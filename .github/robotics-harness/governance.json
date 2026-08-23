@@ -1,7 +1,12 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "repository": "FRC1884/Season2027",
   "review_mode": "manual_codex_session",
+  "promotion_flow": [
+    "task/* -> relevant sub-lead branch",
+    "sub-lead branch -> software-leads",
+    "software-leads -> main"
+  ],
   "branches": {
     "main": {
       "protected": true,
@@ -20,11 +25,41 @@
       "required_approvals": 1,
       "allow_force_push": false,
       "allow_deletion": false
+    },
+    "vision-localisation-lead": {
+      "protected": true,
+      "owner_team": "@FRC1884/vision-localisation-lead",
+      "required_checks": ["build-and-format"],
+      "require_pull_request": true,
+      "required_approvals": 1,
+      "allow_force_push": false,
+      "allow_deletion": false
+    },
+    "core-mechanisms-lead": {
+      "protected": true,
+      "owner_team": "@FRC1884/core-mechanisms-lead",
+      "required_checks": ["build-and-format"],
+      "require_pull_request": true,
+      "required_approvals": 1,
+      "allow_force_push": false,
+      "allow_deletion": false
+    },
+    "autonomous-lead": {
+      "protected": true,
+      "owner_team": "@FRC1884/autonomous-lead",
+      "required_checks": ["build-and-format"],
+      "require_pull_request": true,
+      "required_approvals": 1,
+      "allow_force_push": false,
+      "allow_deletion": false
     }
   },
   "review_groups": {
     "mentors": "@FRC1884/mentors",
     "software_leads": "@FRC1884/software-lead",
+    "vision_localisation_lead": "@FRC1884/vision-localisation-lead",
+    "core_mechanisms_lead": "@FRC1884/core-mechanisms-lead",
+    "autonomous_lead": "@FRC1884/autonomous-lead",
     "approved_alumni": "@FRC1884/approved-alumni-reviewers"
   },
   "protected_paths": [
