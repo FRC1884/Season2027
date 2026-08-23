@@ -5,25 +5,30 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import java.util.function.DoubleSupplier;
 
-/** Reusable driver-input abstraction carried forward from Season2026 without mechanism bindings. */
+/** Driver-input abstraction containing only reusable drivetrain controls. */
 public interface DriverMap {
-    DoubleSupplier getXAxis();
+  DoubleSupplier getXAxis();
 
-    DoubleSupplier getYAxis();
+  DoubleSupplier getYAxis();
 
-    DoubleSupplier getRotAxis();
+  DoubleSupplier getRotAxis();
 
-    Trigger resetOdometry();
+  Trigger resetOdometry();
 
-    default Trigger leftBackButton() {
-        return new Trigger(() -> false);
-    }
+  /** Optional hold control for robot-relative reverse driving. */
+  default Trigger robotRelativeOverride() {
+    return new Trigger(() -> false);
+  }
 
-    default Trigger rightBackButton() {
-        return new Trigger(() -> false);
-    }
+  default Trigger leftBackButton() {
+    return new Trigger(() -> false);
+  }
 
-    default Command rumble() {
-        return Commands.none();
-    }
+  default Trigger rightBackButton() {
+    return new Trigger(() -> false);
+  }
+
+  default Command rumble() {
+    return Commands.none();
+  }
 }
