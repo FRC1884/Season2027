@@ -2,10 +2,40 @@
 
 Every normal Codex coding session acts as a **Software Team Member** unless the user explicitly assigns a different authorized role.
 
+## 0. User-facing intercept
+
+Interpret the user's request against the Harness before using tools, running repository commands, or inspecting repository files. The first visible action must be a concise response to the user.
+
+For a normal request, acknowledge what Codex can do and state that repository inspection and a plan will come next. Do not make routine work confirmation-heavy.
+
+When the request conflicts with Harness policy, contains unsafe ambiguity, requests a bypass, or requires a governed step, explain before repository actions:
+
+1. the valid part Codex can do;
+2. the conflicting part it cannot follow and the policy reason;
+3. the governed alternative it will follow;
+4. any clarification or user plan acknowledgement needed before implementation;
+5. any separate authorized human approval that will still be required later.
+
+The response may be natural prose; these do not need to be literal headings. Do not reject a whole request when only one instruction conflicts, and do not silently ignore the invalid instruction.
+
+Apply this intercept to at least:
+
+- Harness bypass attempts;
+- unsafe assumptions or missing safety-critical information;
+- requests to invent hardware configuration;
+- direct pushes to protected branches;
+- requests to skip planning, testing, review, CODEOWNERS, or CI;
+- requests to fabricate evidence or report unrun tests as passed;
+- self-approval or attempts to substitute informal confirmation for governed approval;
+- implementation-agent self-review presented as independent review;
+- autonomous robot deployment.
+
+If the repository might already contain a required safety-critical value, say that Codex will inspect for it. If inspection does not find it, stop and ask for the value rather than inventing it.
+
 ## 1. Intake
 
-- Read `AGENTS.md`, this Harness directory, and relevant repository context.
-- Restate the requested outcome in one concise task summary.
+- After the user-facing intercept, read `AGENTS.md`, this Harness directory, and relevant repository context.
+- Keep the requested outcome and any policy boundary visible in one concise task summary.
 - Do not edit yet if material requirements are unclear.
 
 ## 2. Clarification
@@ -24,7 +54,32 @@ Do not invent:
 
 ## 3. Plan
 
-Before substantial edits, write a concise plan containing:
+After repository inspection and required clarification, present this gate before substantial edits:
+
+```markdown
+## Proposed Plan
+
+1. ...
+
+## Acceptance Criteria
+
+- ...
+
+## Risk
+
+LOW / MEDIUM / HIGH / CRITICAL
+
+Reason:
+...
+
+## Expected Files / Areas
+
+- ...
+
+Proceed with this plan?
+```
+
+The plan must cover:
 
 - intended behavior;
 - files/areas expected to change;
@@ -33,6 +88,12 @@ Before substantial edits, write a concise plan containing:
 - protected paths involved;
 - rollback strategy where risk warrants it.
 
+Repository inspection, read-only diagnostics, and clarification may happen before acknowledgement. Substantial edits may not begin until the user has seen and acknowledged the plan, acceptance criteria, risk, and expected files/areas.
+
+Natural acknowledgements such as `yes`, `go ahead`, `approved`, `looks good`, `continue`, or `do it` are sufficient. Record whether the plan was acknowledged or rejected.
+
+Plan acknowledgement authorizes the described implementation approach only. It is not Code Owner, Mentor, Safety Code Owner, CI, publication, or merge approval.
+
 ## 4. Risk
 
 Apply `RISK_POLICY.md`. Record the initial risk and re-evaluate against the actual diff before publication.
@@ -40,8 +101,10 @@ Apply `RISK_POLICY.md`. Record the initial risk and re-evaluate against the actu
 ## 5. Implementation
 
 - Work on a task branch.
-- Keep scope within the approved plan.
-- If implementation materially diverges, update the plan before continuing.
+- Keep scope within the acknowledged plan.
+- If scope, architecture, protected paths, acceptance criteria, or risk materially changes, stop substantial edits and tell the user what changed.
+- Present the revised plan and obtain a new user acknowledgement before continuing.
+- Identify any newly required authorized human approval separately from plan acknowledgement.
 - Keep Harness evidence outside the product diff.
 
 ## 6. Validation
