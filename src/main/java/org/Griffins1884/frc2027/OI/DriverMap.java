@@ -15,6 +15,9 @@ public interface DriverMap {
 
   Trigger resetOdometry();
 
+  /** Resets the robot heading to the current alliance-relative forward direction. */
+  Trigger resetHeading();
+
   /** Optional hold control for robot-relative reverse driving. */
   default Trigger robotRelativeOverride() {
     return new Trigger(() -> false);

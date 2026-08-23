@@ -34,6 +34,11 @@ public class XboxDriverMap extends CommandXboxController implements DriverMap {
   }
 
   @Override
+  public Trigger resetHeading() {
+    return start();
+  }
+
+  @Override
   public Trigger robotRelativeOverride() {
     return leftTrigger();
   }
