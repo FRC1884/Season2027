@@ -2,50 +2,81 @@
 
 Repository policy is defined in `.github/robotics-harness/governance.json`. GitHub-hosted rules should match it.
 
+## Common baseline
+
+Apply to all five long-lived branches:
+
+- require a pull request before merging;
+- require at least **1** approval;
+- require appropriate CODEOWNERS/domain-owner review;
+- dismiss stale approvals when new commits are pushed;
+- require conversation resolution before merge;
+- require `build-and-format` to pass;
+- block force pushes;
+- block branch deletion;
+- do not allow Software Team Members to bypass the rules.
+
+The AI review is manual/on-demand (`review PR #<number>` in the user's Codex session), so there is **no Agentic Review status check requirement**.
+
 ## `main`
 
-- Require a pull request before merging.
-- Require at least **1** approval.
-- Require review from CODEOWNERS.
-- Dismiss stale approvals when new commits are pushed.
-- Require conversation resolution before merge.
-- Require `build-and-format` to pass.
-- Require `Agentic Review` once the managed Harness review-state validator is installed and has produced the check at least once.
-- Require branch to be up to date before merge where practical.
-- Block force pushes and branch deletion.
-- Do not allow Software Team Members to bypass these requirements.
+Final protected integration branch.
+
+- Mentor / Software Lead / configured Code Owner governance.
+- Human merge authority only.
 
 ## `software-leads`
 
-Use the same baseline protection as `main`:
+Team-wide software integration branch below `main`.
 
-- PR required;
-- 1 approval;
-- CODEOWNERS review;
-- stale approvals dismissed;
-- conversations resolved;
-- `build-and-format` required;
-- `Agentic Review` required once the runtime/check is active;
-- no force push or deletion.
+- Software Lead ownership/review.
+- Used to integrate work coming from sub-lead domains before final `main` promotion.
+
+## `vision-localisation-lead`
+
+Protected domain integration branch.
+
+Owner team:
+
+`@FRC1884/vision-localisation-lead`
+
+## `core-mechanisms-lead`
+
+Protected domain integration branch.
+
+Owner team:
+
+`@FRC1884/core-mechanisms-lead`
+
+## `autonomous-lead`
+
+Protected domain integration branch.
+
+Owner team:
+
+`@FRC1884/autonomous-lead`
 
 ## Intended flow
 
 ```text
 student task branch
         ↓
-software-leads PR / review where the team chooses to stage integration
+relevant sub-lead branch
         ↓
-main PR
+software-leads
         ↓
-human mentor / Code Owner authority
+main
 ```
 
-Direct `main` pushes are not the student workflow.
+Cross-cutting work may target `software-leads` directly when policy/ownership makes that more appropriate.
 
 ## Review groups
 
 - `@FRC1884/mentors`
 - `@FRC1884/software-lead`
+- `@FRC1884/vision-localisation-lead`
+- `@FRC1884/core-mechanisms-lead`
+- `@FRC1884/autonomous-lead`
 - `@FRC1884/approved-alumni-reviewers`
 
-The repository files establish ownership and desired policy, but hosted GitHub branch/ruleset configuration is a separate control and must be verified in GitHub settings before students begin normal feature work.
+The repository files establish the intended policy and all five branches exist. GitHub-hosted ruleset/branch-protection switches are a separate control and must be enabled/verified in repository settings before students begin normal feature work.
