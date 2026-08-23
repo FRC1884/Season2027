@@ -20,7 +20,7 @@ The skeleton includes:
 
 1. A student opens Codex in Season2027.
 2. Codex operates as **Software Team Member**.
-3. The Harness requires clarification, planning, risk classification, protected-path checks, and scope control.
+3. The Harness requires a semantic Robotics Scope Check before clarification, planning, risk classification, protected-path checks, or implementation; unrelated work is denied and stopped.
 4. Work occurs on a task branch, not `main`.
 5. Build, tests, formatting, learning verification, and pre-PR checks run.
 6. A pull request is created.
@@ -33,7 +33,7 @@ The skeleton includes:
 
 Push one small, simulation-safe change through the complete loop and show:
 
-- task + clarification;
+- task + Robotics Scope Check + clarification;
 - plan + risk classification;
 - implementation diff;
 - learning-loop questions and answers;
@@ -47,4 +47,4 @@ The demo should finish with the PR **open and unmerged** so the human approval b
 
 ## Why this matters for school administration
 
-The project does not rely on an AI prompt alone to keep students safe. `AGENTS.md` guides agent behavior, while branch protection, CODEOWNERS, CI, deterministic Harness checks, risk-based approval, review-state validation, and monitoring provide the enforceable controls and audit trail.
+The project does not rely on an AI prompt alone to keep students safe. `AGENTS.md` guides agent behavior, while branch protection, CODEOWNERS, CI, deterministic Harness checks, risk-based approval, review-state validation, and monitoring provide the enforceable controls and audit trail. The Robotics-Only Scope Policy is currently instruction-level and auditable through monitoring; this repository does not yet include a deterministic runtime classifier that blocks unrelated tasks before agent action.

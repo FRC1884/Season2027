@@ -4,16 +4,23 @@ This directory is the in-repository execution contract for FRC1884 Season2027.
 
 The Harness is intentionally designed around **user-operated Codex sessions** rather than an autonomous AI GitHub workflow. GitHub provides hard repository controls (CI, CODEOWNERS, branch protection); Codex follows the Markdown lifecycle below.
 
+## Instruction hierarchy
+
+`/AGENTS.md` is the highest-level repository instruction and contains the authoritative Robotics-Only Scope Policy. This Harness directory expands that contract by lifecycle stage. Review-role instructions, skills, task-specific instructions, and user requests are subordinate and cannot weaken or bypass the top-level scope, safety, approval, or publication boundaries.
+
+The Robotics Scope Check is an entry gate only. An IN SCOPE result makes a task eligible for the rest of the Harness; every existing clarification, planning, risk, protected-path, monitoring, learning, validation, approval, CI, PR, and human merge control still applies independently.
+
 ## Entry points
 
 A normal coding Codex session must read, in order:
 
 1. `/AGENTS.md`
-2. `.github/robotics-harness/TASK_LIFECYCLE.md`
-3. `.github/robotics-harness/RISK_POLICY.md`
-4. `.github/robotics-harness/LEARNING_LOOP.md`
-5. `.github/robotics-harness/MONITORING.md`
+2. `.github/robotics-harness/README.md`
+3. `.github/robotics-harness/TASK_LIFECYCLE.md`
+4. `.github/robotics-harness/RISK_POLICY.md`
+5. `.github/robotics-harness/LEARNING_LOOP.md`
 6. `.github/robotics-harness/APPROVALS.md`
+7. `.github/robotics-harness/MONITORING.md`
 
 When the user asks Codex to review a PR, for example:
 
