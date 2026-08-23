@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -15,13 +16,16 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 import org.Griffins1884.frc2027.GlobalConstants;
 import org.Griffins1884.frc2027.subsystems.swerve.SwerveCalibration;
 import org.Griffins1884.frc2027.subsystems.swerve.SwerveConstants;
 import org.Griffins1884.frc2027.subsystems.swerve.SwerveSubsystem;
 import org.Griffins1884.frc2027.util.AllianceUtil;
 import org.Griffins1884.frc2027.util.RobotLogging;
+import org.littletonrobotics.junction.Logger;
 
 public class DriveCommands {
   private DriveCommands() {}
@@ -108,6 +112,28 @@ public class DriveCommands {
                   -omega * drive.getMaxAngularSpeedRadPerSec()));
         },
         drive);
+  }
+
+  /** Resets heading to alliance-relative forward while preserving the current field translation. */
+  public static Command resetHeadingToAllianceForwardCommand(SwerveSubsystem drive) {
+    return resetHeadingToAllianceForwardCommand(drive, AllianceUtil::getAlliance);
+  }
+
+  static Command resetHeadingToAllianceForwardCommand(
+      SwerveSubsystem drive, Supplier<Optional<Alliance>> allianceSupplier) {
+    return Commands.runOnce(
+            () -> {
+              Optional<Alliance> alliance = allianceSupplier.get();
+              if (alliance.isEmpty()) {
+                Logger.recordOutput("Odometry/AllianceForwardReset/Failed", true);
+                return;
+              }
+
+              drive.resetHeadingToAllianceForward(alliance.get());
+              Logger.recordOutput("Odometry/AllianceForwardReset/Failed", false);
+            },
+            drive)
+        .ignoringDisable(true);
   }
 
   /**

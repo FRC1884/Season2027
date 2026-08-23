@@ -43,6 +43,25 @@ class SwerveSubsystemResetAndRecoveryTest {
   }
 
   @Test
+  void allianceForwardResetPreservesTranslationAndUsesAllianceHeading() {
+    subsystem.resetOdometry(new Pose2d(2.5, 4.25, Rotation2d.fromDegrees(45.0)));
+
+    subsystem.resetHeadingToAllianceForward(Alliance.Blue);
+
+    assertEquals(2.5, subsystem.getPose().getX(), EPSILON);
+    assertEquals(4.25, subsystem.getPose().getY(), EPSILON);
+    assertEquals(0.0, subsystem.getPose().getRotation().getDegrees(), EPSILON);
+    assertEquals(0.0, gyro.lastResetYawDegrees, EPSILON);
+
+    subsystem.resetHeadingToAllianceForward(Alliance.Red);
+
+    assertEquals(2.5, subsystem.getPose().getX(), EPSILON);
+    assertEquals(4.25, subsystem.getPose().getY(), EPSILON);
+    assertEquals(180.0, subsystem.getPose().getRotation().getDegrees(), EPSILON);
+    assertEquals(180.0, gyro.lastResetYawDegrees, EPSILON);
+  }
+
+  @Test
   void visionRecoveryAlignsRawHeadingWhenEstimatorPoseIsInvalid() {
     subsystem.setOdometryResetListener(() -> {});
 

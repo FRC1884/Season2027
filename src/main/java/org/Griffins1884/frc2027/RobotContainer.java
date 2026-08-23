@@ -181,6 +181,7 @@ public final class RobotContainer implements AutoCloseable {
         .whileTrue(
             DriveCommands.joystickDriveRobotRelativeFlippedCommand(
                 drive, driver.getYAxis(), driver.getXAxis(), driver.getRotAxis()));
+    driver.resetHeading().onTrue(DriveCommands.resetHeadingToAllianceForwardCommand(drive));
     driver
         .resetOdometry()
         .onTrue(
