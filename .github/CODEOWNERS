@@ -1,0 +1,14 @@
+# FRC 1884 Season 2027 ownership policy
+# Hosted enforcement must also be enabled in repository branch/ruleset settings.
+
+* @FRC1884/software-lead
+
+/.github/workflows/ @FRC1884/mentors @FRC1884/software-lead
+/.github/CODEOWNERS @FRC1884/mentors
+/.github/pull_request_template.md @FRC1884/mentors @FRC1884/software-lead
+/AGENTS.md @FRC1884/mentors
+/build.gradle @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
+/settings.gradle @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
+/src/main/java/**/safety/ @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
+/src/main/java/**/*Constants.java @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
+/src/main/deploy/ @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
