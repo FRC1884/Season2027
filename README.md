@@ -45,9 +45,9 @@ The desired hosted protection policy is documented in [`docs/BRANCH_PROTECTION_S
 
 ## Codex workflow
 
-A normal coding Codex session reads `AGENTS.md` and the Harness Markdown policies, then follows:
+A normal coding Codex session applies the Robotics-Only Scope Policy before repository actions and denies unrelated work. An IN SCOPE request then follows:
 
-**clarification → plan → risk → implementation → learning verification → build/test/format → human approval where required → PR**
+**robotics scope PASS → user-facing intercept → clarification → plan acknowledgement → risk → implementation → build/test/format → learning verification → human approval where required → PR**
 
 AI PR review is deliberately **manual/on-demand** rather than an automatic GitHub AI workflow.
 

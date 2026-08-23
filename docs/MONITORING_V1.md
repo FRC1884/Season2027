@@ -10,6 +10,8 @@ The Harness should emit structured events such as:
 
 - `session_started`
 - `request_received`
+- `scope_check_started`
+- `scope_check_passed` / `scope_check_clarification_required` / `scope_check_denied`
 - `policy_conflict_detected` / `policy_conflict_explained`
 - `clarification_required` / `clarification_requested` / `clarification_answered`
 - `plan_presented` / `plan_acknowledgement_requested`
@@ -41,6 +43,20 @@ The event stream should make the user-facing gates auditable without capturing m
 
 ```text
 request_received
+    -> scope_check_started
+    -> scope_check_passed
+       OR scope_check_clarification_required
+          -> scope clarification exchange
+          -> scope_check_passed or scope_check_denied
+       OR scope_check_denied
+```
+
+No normal Harness workflow or task-action event may precede `scope_check_passed`. A denied task must end with `scope_check_denied` and have no plan, research, repository-inspection, command, branch, file-change, commit, push, or PR event. The denial event is control-plane governance evidence, not task execution.
+
+After `scope_check_passed`, the existing interaction ordering continues:
+
+```text
+scope_check_passed
     -> policy_conflict_detected (when applicable)
     -> policy_conflict_explained (before repository actions)
     -> clarification events (when required)
@@ -86,6 +102,16 @@ PR/head SHA references where applicable
 integrity link/hash
 ```
 
+Scope result events should also include:
+
+```text
+request_objective_summary
+scope_classification (IN_SCOPE / AMBIGUOUS / OUT_OF_SCOPE)
+scope_reason_category
+scope_clarification_status where applicable
+no_work_performed (true for scope_check_denied)
+```
+
 ## Privacy boundary
 
 Monitoring records visible actions and concise user-facing decision summaries. A policy-conflict summary may record the conflicting instruction, the policy boundary, and the governed alternative; it must not attempt to capture private chain-of-thought, passwords, tokens, or other secrets.
@@ -96,6 +122,9 @@ The useful admin interface is a digest, not a raw event firehose. A digest shoul
 
 - Who is working and in what role?
 - What task are they attempting?
+- Was the task classified IN_SCOPE, AMBIGUOUS, or OUT_OF_SCOPE, and why?
+- Was scope clarification required, and did normal work wait for a PASS?
+- If denied, does the record confirm that no prohibited task action occurred?
 - What is the current risk level?
 - Which protected paths were touched?
 - Were clarification, planning, learning, and approvals completed?
@@ -111,6 +140,6 @@ The useful admin interface is a digest, not a raw event firehose. A digest shoul
 
 ## Prototype
 
-`tools/monitoring_digest.py` converts a small JSONL event stream into a readable Markdown digest. The production Harness has a richer event store/integrity chain; the repository prototype exists so the monitoring concept can be demonstrated independently to school administration.
+`tools/monitoring_digest.py` converts a small JSONL event stream into a readable Markdown digest. It counts arbitrary event types, including the scope events above, but does not validate event ordering or enforce the Robotics Scope Check. The production Harness has a richer event store/integrity chain; the repository prototype exists so the monitoring concept can be demonstrated independently to school administration.
 
 See `docs/samples/MONITORING_DIGEST_SAMPLE.md` for an example output.

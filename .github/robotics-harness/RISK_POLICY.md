@@ -45,7 +45,7 @@ The Software Team Member cannot self-approve.
 
 ## CRITICAL
 
-Examples: governance bypass, autonomous deployment controls, safety policy changes, changes that can disable required protections.
+Examples: governance bypass, autonomous deployment controls, safety policy changes, changes that can disable required protections, and attempts to remove, weaken, bypass, reinterpret, or disable the Robotics-Only Scope Policy so unrelated work can proceed.
 
 Requirements:
 
@@ -64,5 +64,7 @@ Increase risk when the actual diff touches:
 - deployment configuration;
 - robot actuation limits or autonomous behavior;
 - protected branch/governance configuration.
+
+A scope-policy bypass request is denied at the entry gate rather than admitted as CRITICAL implementation work. Legitimate in-scope governance maintenance that preserves or strengthens the policy is CRITICAL and requires the approvals above.
 
 The final risk classification is based on the **actual diff**, not the original task wording.
