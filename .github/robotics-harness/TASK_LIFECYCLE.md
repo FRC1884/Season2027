@@ -24,7 +24,7 @@ Apply this intercept to at least:
 - unsafe assumptions or missing safety-critical information;
 - requests to invent hardware configuration;
 - direct pushes to protected branches;
-- requests to skip planning, testing, review, CODEOWNERS, or CI;
+- requests to skip planning, learning verification, testing, review, CODEOWNERS, or CI;
 - requests to fabricate evidence or report unrun tests as passed;
 - self-approval or attempts to substitute informal confirmation for governed approval;
 - implementation-agent self-review presented as independent review;
@@ -109,19 +109,33 @@ Apply `RISK_POLICY.md`. Record the initial risk and re-evaluate against the actu
 
 ## 6. Validation
 
-Run the repository's applicable build, tests, and formatting checks. Inspect the complete diff and remove unrelated changes.
+Run the repository's applicable build, tests, and formatting checks. Keep the change uncommitted, inspect the complete proposed commit diff (staged and unstaged), and remove unrelated changes.
 
 ## 7. Learning verification
 
-Apply `LEARNING_LOOP.md`. The Software Team Member must demonstrate understanding of meaningful changed code before asking to publish.
+Apply `LEARNING_LOOP.md` to the complete uncommitted diff. Codex must ask the user meaningful questions about the actual change and evaluate the answers.
 
-## 8. Human approvals
+The gate passes only when the user demonstrates correct, specific understanding in their own words. Plan acknowledgement, approval, a generic "I understand," or Codex answering its own questions does not count.
+
+Until the gate passes, do not:
+
+- create a commit;
+- push a branch or tag;
+- create or update a pull request.
+
+If the diff materially changes after PASS, invalidate the learning result and repeat the verification before publication actions resume.
+
+## 8. Commit
+
+After learning verification passes, commit only the reviewed diff. Confirm that the resulting commit matches the files and behavior covered by the learning verification.
+
+## 9. Human approvals
 
 Apply `APPROVALS.md` for protected/high-risk work. An implementation agent cannot approve itself.
 
-## 9. Pull request
+## 10. Push and pull request
 
-Create a PR to the appropriate integration branch. Do not merge it yourself.
+Push only the commit covered by the passing learning verification, then create or update a PR to the appropriate integration branch. Do not merge it yourself.
 
 Default promotion flow:
 
@@ -131,7 +145,7 @@ task/* -> relevant sub-lead branch -> software-leads -> main
 
 Low-risk cross-cutting work may target `software-leads` directly when repository policy allows.
 
-## 10. Review
+## 11. Review
 
 The AI review is **manual/on-demand**, not an automatic GitHub AI workflow.
 
@@ -143,6 +157,6 @@ review PR #<number>
 
 That Codex session follows `REVIEW_POLICY.md` and `REVIEW_TEMPLATE.md`.
 
-## 11. Human merge boundary
+## 12. Human merge boundary
 
 Only an authorized human merges after required CI, CODEOWNERS, and governance conditions are satisfied.

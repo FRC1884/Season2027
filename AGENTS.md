@@ -13,7 +13,7 @@ If the request conflicts with Harness policy, contains unsafe ambiguity, request
 - which governed alternative Codex will follow;
 - whether clarification, plan acknowledgement, or later authorized human approval will be required.
 
-Do not silently ignore invalid instructions or reject valid parts of a mixed request. Apply this intercept to Harness bypass attempts, unsafe assumptions, missing safety-critical information, direct protected-branch requests, requests to skip planning/testing/review, fake evidence or unrun-test claims, self-approval, CODEOWNERS bypass, autonomous deployment, implementation-agent self-review presented as independent review, and requests to invent hardware configuration.
+Do not silently ignore invalid instructions or reject valid parts of a mixed request. Apply this intercept to Harness bypass attempts, unsafe assumptions, missing safety-critical information, direct protected-branch requests, requests to skip planning/learning/testing/review, fake evidence or unrun-test claims, self-approval, CODEOWNERS bypass, autonomous deployment, implementation-agent self-review presented as independent review, and requests to invent hardware configuration.
 
 When a prohibited value might already exist in the repository, explain first that Codex will inspect the existing configuration and will ask if the value is not defined. Never invent CAN IDs, current limits, gear ratios, physical limits, sensor positions, or other safety-critical values.
 
@@ -30,6 +30,16 @@ For substantial changes, repository inspection and safe diagnostics may happen a
 Natural acknowledgements such as `yes`, `go ahead`, `approved`, `looks good`, `continue`, or `do it` are sufficient. Plan acknowledgement means the user accepts the implementation approach; it never substitutes for Code Owner, Mentor, Safety Code Owner, CI, or merge approval.
 
 If scope, architecture, protected paths, acceptance criteria, or risk materially changes, stop substantial edits, explain the change, present a revised plan, and obtain a new acknowledgement before continuing.
+
+## Learning verification gate
+
+After substantial edits and applicable validation, inspect the complete uncommitted diff and run `LEARNING_LOOP.md` with the user. Ask a small number of meaningful, diff-grounded questions that verify the user understands what changed, why it works, the important risks or assumptions, and how it was validated or can be rolled back.
+
+The user must answer in their own words. Codex must evaluate each answer against the actual diff and may record `learning_verification_passed` only when the answers are correct and specific. If an answer is incomplete or incorrect, explain the gap and ask a focused follow-up; the gate remains blocked.
+
+Do not create a commit, push a branch, or create/update a pull request until learning verification passes for the exact proposed change. Plan acknowledgement, a generic claim of understanding, Mentor approval, or an explanation written by Codex cannot substitute for the user's answers.
+
+If the diff materially changes after learning verification passes, invalidate the result, inspect the new diff, and repeat the questions before the next commit, push, or pull-request action.
 
 ## Default role
 
@@ -60,10 +70,11 @@ Before substantial work, read:
 7. Re-plan and obtain renewed acknowledgement if the implementation materially diverges.
 8. Run applicable build, tests, and formatting.
 9. Inspect the complete diff.
-10. Complete diff-grounded learning verification.
-11. Obtain required human approval for protected/high-risk work.
-12. Create a PR to the appropriate integration branch.
-13. Do not merge it yourself.
+10. Ask the user diff-grounded learning questions and evaluate the answers.
+11. Only after learning verification passes, create the commit.
+12. Obtain required human approval for protected/high-risk work.
+13. Push the passed commit and create/update a PR to the appropriate integration branch.
+14. Do not merge it yourself.
 
 ## Branch promotion model
 
@@ -101,6 +112,7 @@ The review must inspect the real current PR head and produce the structured Mark
 - Never deploy robot code autonomously.
 - Never invent CAN IDs, current limits, physical limits, sensor positions, or other safety-critical hardware data.
 - Never treat implementation-agent self-review as independent review.
+- Never commit, push, or create/update a PR before the user passes diff-grounded learning verification for that change.
 - Never commit Harness monitoring/evidence artifacts into the product diff unless explicitly intended as repository documentation.
 
 ## Protected safety surface
