@@ -1,0 +1,36 @@
+name: Build and Format
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - software-leads
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-format:
+    name: build-and-format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11'
+
+      - name: Build and test
+        run: gradle build --no-daemon --console=plain
+
+      - name: Verify formatting
+        run: gradle spotlessCheck --no-daemon --console=plain
