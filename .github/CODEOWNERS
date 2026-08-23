@@ -3,12 +3,26 @@
 
 * @FRC1884/software-lead
 
+# Governance / Harness
 /.github/workflows/ @FRC1884/mentors @FRC1884/software-lead
 /.github/CODEOWNERS @FRC1884/mentors
 /.github/pull_request_template.md @FRC1884/mentors @FRC1884/software-lead
+/.github/robotics-harness/ @FRC1884/mentors @FRC1884/software-lead
+/.codex/ @FRC1884/mentors @FRC1884/software-lead
 /AGENTS.md @FRC1884/mentors
 /build.gradle @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
 /settings.gradle @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
+
+# Safety-critical shared configuration
 /src/main/java/**/safety/ @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
 /src/main/java/**/*Constants.java @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
 /src/main/deploy/ @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
+
+# Sub-lead domains (used as the season grows)
+/src/main/java/**/vision/ @FRC1884/vision-localisation-lead @FRC1884/software-lead
+/src/main/java/**/localisation/ @FRC1884/vision-localisation-lead @FRC1884/software-lead
+/src/main/java/**/subsystems/ @FRC1884/core-mechanisms-lead @FRC1884/software-lead
+/src/main/java/**/mechanisms/ @FRC1884/core-mechanisms-lead @FRC1884/software-lead
+/src/main/java/**/commands/auto/ @FRC1884/autonomous-lead @FRC1884/software-lead
+/src/main/deploy/pathplanner/ @FRC1884/autonomous-lead @FRC1884/software-lead
+/src/main/deploy/pathplana/ @FRC1884/autonomous-lead @FRC1884/software-lead
