@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "repository": "FRC1884/Season2027",
+  "branches": {
+    "main": {
+      "protected": true,
+      "required_checks": ["build-and-format", "Agentic Review"],
+      "require_pull_request": true,
+      "require_code_owner_review": true,
+      "required_approvals": 1,
+      "allow_force_push": false,
+      "allow_deletion": false
+    },
+    "software-leads": {
+      "protected": true,
+      "required_checks": ["build-and-format", "Agentic Review"],
+      "require_pull_request": true,
+      "require_code_owner_review": true,
+      "required_approvals": 1,
+      "allow_force_push": false,
+      "allow_deletion": false
+    }
+  },
+  "review_groups": {
+    "mentors": "@FRC1884/mentors",
+    "software_leads": "@FRC1884/software-lead",
+    "approved_alumni": "@FRC1884/approved-alumni-reviewers"
+  },
+  "protected_paths": [
+    ".github/workflows/**",
+    ".github/CODEOWNERS",
+    "AGENTS.md",
+    "build.gradle",
+    "settings.gradle",
+    "src/main/java/**/safety/**",
+    "src/main/java/**/*Constants.java",
+    "src/main/deploy/**"
+  ],
+  "automated_deploy_allowed": false
+}
