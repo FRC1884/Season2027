@@ -1,0 +1,17 @@
+# Gradle
+.gradle/
+build/
+
+# WPILib / IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+
+# Harness evidence is local/external and must never enter product PRs
+harness-evidence/
+test-evidence/
+**/__pycache__/
+*.pyc
