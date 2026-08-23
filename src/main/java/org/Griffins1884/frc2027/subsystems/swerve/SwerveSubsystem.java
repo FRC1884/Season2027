@@ -1021,6 +1021,19 @@ public class SwerveSubsystem extends SubsystemBase {
     return alliance == Alliance.Blue ? Rotation2d.fromDegrees(180.0) : new Rotation2d();
   }
 
+  /** Resets heading to alliance-relative forward without changing the current field translation. */
+  public void resetHeadingToAllianceForward(Alliance alliance) {
+    Rotation2d heading = getAllianceForwardRotation(alliance);
+    resetOdometry(new Pose2d(getPose().getTranslation(), heading), true);
+    Logger.recordOutput("Odometry/AllianceForwardReset/HeadingDeg", heading.getDegrees());
+    Logger.recordOutput("Odometry/AllianceForwardReset/Alliance", alliance.name());
+  }
+
+  /** Returns the field heading used for the alliance-relative forward direction. */
+  public static Rotation2d getAllianceForwardRotation(Alliance alliance) {
+    return alliance == Alliance.Red ? Rotation2d.fromDegrees(180.0) : new Rotation2d();
+  }
+
   /** Resets the current odometry pose. */
   public void resetOdometry(Pose2d pose) {
     resetOdometry(pose, false);
