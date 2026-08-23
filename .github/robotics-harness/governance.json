@@ -1,10 +1,11 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "repository": "FRC1884/Season2027",
+  "review_mode": "manual_codex_session",
   "branches": {
     "main": {
       "protected": true,
-      "required_checks": ["build-and-format", "Agentic Review"],
+      "required_checks": ["build-and-format"],
       "require_pull_request": true,
       "require_code_owner_review": true,
       "required_approvals": 1,
@@ -13,7 +14,7 @@
     },
     "software-leads": {
       "protected": true,
-      "required_checks": ["build-and-format", "Agentic Review"],
+      "required_checks": ["build-and-format"],
       "require_pull_request": true,
       "require_code_owner_review": true,
       "required_approvals": 1,
@@ -29,6 +30,8 @@
   "protected_paths": [
     ".github/workflows/**",
     ".github/CODEOWNERS",
+    ".github/robotics-harness/**",
+    ".codex/**",
     "AGENTS.md",
     "build.gradle",
     "settings.gradle",
@@ -36,5 +39,15 @@
     "src/main/java/**/*Constants.java",
     "src/main/deploy/**"
   ],
+  "codex_review": {
+    "automatic_github_ai_workflow": false,
+    "user_invocation": "review PR #<number>",
+    "policy_file": ".github/robotics-harness/REVIEW_POLICY.md",
+    "output_template": ".github/robotics-harness/REVIEW_TEMPLATE.md",
+    "reviewer_role": "Automated Reviewer",
+    "require_fresh_context": true,
+    "bind_to_head_sha": true,
+    "human_merge_authority_only": true
+  },
   "automated_deploy_allowed": false
 }
