@@ -6,6 +6,9 @@ on:
     branches:
       - main
       - software-leads
+      - vision-localisation-lead
+      - core-mechanisms-lead
+      - autonomous-lead
 
 permissions:
   contents: read
