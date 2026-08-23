@@ -19,13 +19,17 @@ The Harness should emit structured events such as:
 - `file_changed`
 - `command_executed`
 - `test_started` / `test_completed`
+- `diff_inspected`
+- `learning_verification_started`
 - `learning_question_asked`
 - `learning_answer_received` / `learning_answer_evaluated`
+- `learning_verification_passed` / `learning_verification_failed`
+- `learning_verification_invalidated`
+- `commit_blocked` / `commit_created`
+- `push_blocked` / `branch_pushed`
+- `pr_blocked` / `pr_created` / `pr_updated`
 - `approval_requested` / `approval_granted` / `approval_denied`
 - `pre_pr_check_started` / `pre_pr_check_completed`
-- `commit_created`
-- `branch_pushed`
-- `pr_created`
 - `review_agent_started`
 - `review_completed` / `review_published`
 - `review_marked_stale` / `review_rerun_completed`
@@ -47,6 +51,24 @@ request_received
 ```
 
 If the user rejects the plan, emit `plan_rejected` and do not begin substantial edits. If the implementation materially changes, emit `plan_revised`, present the revised plan, and require another acknowledgement before edits resume.
+
+### Learning-to-publication ordering
+
+```text
+validation completed
+    -> diff_inspected
+    -> learning_verification_started
+    -> learning_question_asked
+    -> learning_answer_received
+    -> learning_answer_evaluated
+    -> learning_verification_passed
+    -> commit_created
+    -> required approval events
+    -> branch_pushed
+    -> pr_created or pr_updated
+```
+
+An incomplete or failed learning result must be followed by `commit_blocked`, `push_blocked`, or `pr_blocked` when the corresponding action is requested. A material diff change after PASS emits `learning_verification_invalidated` and requires another passing question/answer loop before commit or publication.
 
 Each event should include the minimum useful metadata:
 
@@ -77,6 +99,8 @@ The useful admin interface is a digest, not a raw event firehose. A digest shoul
 - What is the current risk level?
 - Which protected paths were touched?
 - Were clarification, planning, learning, and approvals completed?
+- Did the user pass diff-grounded learning verification before the commit?
+- Was the learning result invalidated and repeated after any material diff change?
 - Did build/tests/CI pass?
 - Was any policy conflict explained before repository actions?
 - Did substantial edits begin only after plan acknowledgement?

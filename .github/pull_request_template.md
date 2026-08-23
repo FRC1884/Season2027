@@ -28,7 +28,7 @@ List protected files if applicable.
 - [ ] Tests pass
 - [ ] Formatting passes
 - [ ] Full diff reviewed
-- [ ] Harness learning verification completed
+- [ ] Harness learning verification passed before every task commit
 - [ ] Runtime/evidence contamination check passed
 
 Commands/results:
@@ -39,7 +39,14 @@ Commands/results:
 
 ## Learning / understanding
 
-Briefly explain the most important design choice, likely failure mode, and how the tests cover it.
+- Proposed commit files / diff digest:
+- Risk at learning verification:
+- Questions asked:
+- Concise user-answer summaries:
+- Evaluation: PASS / BLOCKED
+- Material changes after PASS: No / Yes — verification repeated
+
+> This section records a gate that already passed. Do not create or update the PR first and fill in learning evidence afterward.
 
 ## Safety / rollback
 
