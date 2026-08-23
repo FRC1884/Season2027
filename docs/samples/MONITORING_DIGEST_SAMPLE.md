@@ -10,12 +10,14 @@
 
 ## Lifecycle
 
+- Robotics Scope Check: PASS — direct robotics task
+- Scope sequencing: PASS — no normal workflow or task action preceded scope approval
 - Clarification: PASS
 - Plan: PASS
 - Risk classification: PASS
 - Protected-path check: PASS — none touched
-- Learning verification: PASS
 - Build/tests/formatting: PASS
+- Learning verification: PASS
 - Pre-PR gate: PASS
 - PR created: YES
 - Automated Reviewer: PASS — separate reviewer session
@@ -28,7 +30,7 @@ No blocking findings. One advisory suggestion was recorded for test readability.
 
 ## Governance observations
 
-No direct push to a protected branch, no deployment attempt, no Harness evidence in the product diff, and no approval bypass was observed.
+The request was classified as robotics-related before normal task work began. No direct push to a protected branch, deployment attempt, Harness evidence in the product diff, scope bypass, or approval bypass was observed.
 
 ## Current state
 
