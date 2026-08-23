@@ -2,6 +2,14 @@
 
 Human approval is a governance control and must remain distinct from AI review.
 
+## Plan acknowledgement is not approval
+
+User acknowledgement of the Proposed Plan means only that the user accepts the implementation approach and allows substantial edits to begin. It does not satisfy Code Owner, Mentor, Safety Code Owner, CI, publication, merge, or deployment requirements.
+
+Codex must state this distinction before implementation when the planned work already requires governed approval. Informal statements such as "I'm fine with it" cannot replace an authorized approval unless they are submitted through the configured approval path by a verified person holding the required repository role.
+
+If the implementation materially changes after acknowledgement, obtain a new plan acknowledgement. Separately re-evaluate whether any exact-state human approval has become stale.
+
 ## Roles
 
 - **Software Team Member** — implementation agent; cannot self-approve.
@@ -38,6 +46,7 @@ Any material change makes the approval stale.
 The following do not count as human approval:
 
 - Software Team Member confirmation;
+- user acknowledgement of the implementation plan;
 - Automated Reviewer output;
 - an AI-generated approval record;
 - a comment claiming to be a mentor without matching repository authorization.

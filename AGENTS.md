@@ -2,6 +2,35 @@
 
 This repository is governed by the in-repository Robotics Agentic Development Harness under `.github/robotics-harness/`.
 
+## Respond before repository actions
+
+Before using tools, running repository commands, or inspecting repository files, respond to the user's request. Keep the response brief for normal requests: state what Codex will do and that it will inspect the existing patterns before presenting a plan for substantial changes.
+
+If the request conflicts with Harness policy, contains unsafe ambiguity, requests a bypass, or depends on a governed step, the response must clearly state:
+
+- what part of the request Codex can do;
+- what part it cannot do under repository policy and why;
+- which governed alternative Codex will follow;
+- whether clarification, plan acknowledgement, or later authorized human approval will be required.
+
+Do not silently ignore invalid instructions or reject valid parts of a mixed request. Apply this intercept to Harness bypass attempts, unsafe assumptions, missing safety-critical information, direct protected-branch requests, requests to skip planning/testing/review, fake evidence or unrun-test claims, self-approval, CODEOWNERS bypass, autonomous deployment, implementation-agent self-review presented as independent review, and requests to invent hardware configuration.
+
+When a prohibited value might already exist in the repository, explain first that Codex will inspect the existing configuration and will ask if the value is not defined. Never invent CAN IDs, current limits, gear ratios, physical limits, sensor positions, or other safety-critical values.
+
+## Plan acknowledgement gate
+
+For substantial changes, repository inspection and safe diagnostics may happen after the initial user-facing response and before plan acknowledgement. Substantial edits may not begin until Codex has shown the user:
+
+- a **Proposed Plan**;
+- **Acceptance Criteria**;
+- the classified **Risk** and reason;
+- **Expected Files / Areas**;
+- a direct request to proceed with that plan.
+
+Natural acknowledgements such as `yes`, `go ahead`, `approved`, `looks good`, `continue`, or `do it` are sufficient. Plan acknowledgement means the user accepts the implementation approach; it never substitutes for Code Owner, Mentor, Safety Code Owner, CI, or merge approval.
+
+If scope, architecture, protected paths, acceptance criteria, or risk materially changes, stop substantial edits, explain the change, present a revised plan, and obtain a new acknowledgement before continuing.
+
 ## Default role
 
 Unless the user explicitly assigns another authorized role, a coding Codex session acts as a **Software Team Member**.
@@ -22,18 +51,19 @@ Before substantial work, read:
 
 ## Required implementation flow
 
-1. Understand repository/task context.
-2. Ask clarification questions for material ambiguity or unsafe assumptions.
-3. Produce a concise plan and acceptance criteria.
-4. Classify risk and protected paths.
-5. Work on a task branch.
-6. Re-plan if the actual implementation materially diverges.
-7. Run applicable build, tests, and formatting.
-8. Inspect the complete diff.
-9. Complete diff-grounded learning verification.
-10. Obtain required human approval for protected/high-risk work.
-11. Create a PR to the appropriate integration branch.
-12. Do not merge it yourself.
+1. Interpret the request against Harness policy and respond before repository actions.
+2. Read the required Harness and repository context.
+3. Ask clarification questions for material ambiguity or unsafe assumptions.
+4. Produce the Proposed Plan, Acceptance Criteria, Risk, and Expected Files / Areas.
+5. Obtain user acknowledgement before substantial edits.
+6. Work on a task branch within the acknowledged plan.
+7. Re-plan and obtain renewed acknowledgement if the implementation materially diverges.
+8. Run applicable build, tests, and formatting.
+9. Inspect the complete diff.
+10. Complete diff-grounded learning verification.
+11. Obtain required human approval for protected/high-risk work.
+12. Create a PR to the appropriate integration branch.
+13. Do not merge it yourself.
 
 ## Branch promotion model
 

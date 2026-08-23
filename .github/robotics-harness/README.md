@@ -2,11 +2,17 @@
 
 This directory is the in-repository execution contract for FRC1884 Season2027.
 
-The Harness is intentionally designed around **user-operated Codex sessions** rather than an autonomous AI GitHub workflow. GitHub provides hard repository controls (CI, CODEOWNERS, branch protection); Codex follows the Markdown lifecycle below.
+The Harness is intentionally designed around **user-operated Codex sessions** rather than an autonomous AI GitHub workflow. GitHub is the intended hard-control layer for CI, CODEOWNERS, and branch protection, but those hosted controls must be enabled and verified separately; Codex follows the Markdown lifecycle below.
+
+## First visible response
+
+The root `AGENTS.md` contract is applied at session start. Before a Software Team Member uses tools, runs repository commands, or inspects repository files, it must respond briefly to the user's request.
+
+For a normal request, acknowledge the outcome and explain that repository inspection and a plan will come next. When the request includes a policy conflict, unsafe ambiguity, bypass attempt, or governed action, identify the valid part, explain what cannot be followed and why, state the governed alternative, and identify any clarification, plan acknowledgement, or later human approval the user will need to provide. Never silently ignore a conflicting instruction.
 
 ## Entry points
 
-A normal coding Codex session must read, in order:
+After that first response, a normal coding Codex session must read, in order:
 
 1. `/AGENTS.md`
 2. `.github/robotics-harness/TASK_LIFECYCLE.md`
