@@ -9,7 +9,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
-/** Reusable geometry helpers carried forward from Season2026. */
+/** Reusable geometry helpers. */
 public final class GeomUtil {
   private GeomUtil() {}
 

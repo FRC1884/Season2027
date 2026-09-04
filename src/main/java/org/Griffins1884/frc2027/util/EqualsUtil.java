@@ -2,7 +2,7 @@ package org.Griffins1884.frc2027.util;
 
 import edu.wpi.first.math.geometry.Twist2d;
 
-/** Reusable numeric comparison helpers carried forward from Season2026. */
+/** Reusable numeric comparison helpers. */
 public final class EqualsUtil {
   private EqualsUtil() {}
 
