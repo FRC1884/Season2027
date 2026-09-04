@@ -45,11 +45,9 @@ The desired hosted protection policy is documented in [`docs/BRANCH_PROTECTION_S
 
 ## Codex workflow
 
-A normal coding Codex session reads `AGENTS.md` and the Harness Markdown policies, then follows:
+A normal coding Codex session applies the Robotics-Only Scope Policy before repository actions and denies unrelated work. An IN SCOPE request then follows:
 
-**identity check → clarification → plan → risk → implementation → build/test/format → learning verification (or verified mentor override) → human approval where required → PR**
-
-Local Git name/email values are recorded for attribution, but Mentor status comes only from the authenticated GitHub login's active membership in `@FRC1884/mentors`. The mentor exception waives only learning questions; it does not bypass repository protections or approval, review, safety, deployment, and merge boundaries.
+**robotics scope PASS → user-facing intercept → clarification → plan acknowledgement → risk → implementation → build/test/format → learning verification → human approval where required → PR**
 
 AI PR review is deliberately **manual/on-demand** rather than an automatic GitHub AI workflow.
 

@@ -2,11 +2,48 @@
 
 Every normal Codex coding session acts as a **Software Team Member** unless the user explicitly assigns a different authorized role or the mentor identity check below succeeds.
 
-## 0. User-facing intercept
+## 0. Robotics Scope Check and user-facing intercept
 
-Interpret the user's request against the Harness before using tools, running repository commands, or inspecting repository files. The first visible action must be a concise response to the user.
+Apply the authoritative Robotics-Only Scope Policy in `/AGENTS.md` to the actual primary objective of every new request before using tools, running repository commands, inspecting repository files, or beginning Intake.
 
-For a normal request, acknowledge what Codex can do and state that repository inspection and a plan will come next. Do not make routine work confirmation-heavy.
+```text
+USER REQUEST
+      │
+      ▼
+ROBOTICS SCOPE CHECK
+      │
+      ├── CLEARLY OUT OF SCOPE
+      │       │
+      │       └── DENY + STOP
+      │
+      ├── AMBIGUOUS
+      │       │
+      │       └── CLARIFY
+      │
+      └── IN SCOPE
+              │
+              ▼
+      EXISTING HARNESS WORKFLOW
+              │
+              ├── user-facing intercept / clarification
+              ├── planning + acknowledgement
+              ├── risk classification
+              ├── implementation
+              ├── validation
+              ├── learning verification
+              ├── commit
+              ├── human approval
+              ├── push
+              └── PR / review / governance
+```
+
+- Use semantic/contextual classification and already-available conversation/repository context; a robotics keyword or fictional robotics framing is not sufficient.
+- For genuine ambiguity that could reasonably be robotics-related, ask one concise scope question as the first response and do not implement while waiting.
+- For a clearly unrelated request, issue the prescribed denial as the first response and stop. Do not plan, research, inspect unrelated project files, run implementation commands, modify files, create a branch, commit, push, or open a PR.
+- Where the existing monitoring mechanism is available, the only control-plane action allowed for a denied task is recording the required non-sensitive `scope_check_denied` event. This is governance evidence, not task execution, and must record that no work was performed.
+- Continue with the rest of the user-facing intercept and then Intake only after `scope_check_passed`. A PASS establishes eligibility only; it does not satisfy or bypass any later Harness gate.
+
+The first visible action must reflect the scope result. For an in-scope request, acknowledge what Codex can do and state that repository inspection and a plan will come next. Do not make routine work confirmation-heavy.
 
 When the request conflicts with Harness policy, contains unsafe ambiguity, requests a bypass, or requires a governed step, explain before repository actions:
 
@@ -16,9 +53,9 @@ When the request conflicts with Harness policy, contains unsafe ambiguity, reque
 4. any clarification or user plan acknowledgement needed before implementation;
 5. any separate authorized human approval that will still be required later.
 
-The response may be natural prose; these do not need to be literal headings. Do not reject a whole request when only one instruction conflicts, and do not silently ignore the invalid instruction.
+The response may be natural prose; these do not need to be literal headings. For an in-scope request, do not reject the whole request when only one non-scope instruction conflicts, and do not silently ignore the invalid instruction.
 
-Apply this intercept to at least:
+Apply the remaining intercept to at least:
 
 - Harness bypass attempts;
 - unsafe assumptions or missing safety-critical information;
@@ -37,6 +74,7 @@ If the repository might already contain a required safety-critical value, say th
 - After the user-facing intercept, read `AGENTS.md`, this Harness directory, and relevant repository context.
 - Keep the requested outcome and any policy boundary visible in one concise task summary.
 - Do not edit yet if material requirements are unclear.
+- Record `scope_check_passed` before normal task work begins.
 
 ## 1A. Role resolution
 
