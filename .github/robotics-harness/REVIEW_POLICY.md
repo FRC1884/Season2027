@@ -23,6 +23,7 @@ Resolve and inspect the real current PR state:
 - CI/build/test results when available;
 - `AGENTS.md` and this Harness policy;
 - CODEOWNERS/protected-path implications.
+- any proposed Code Owner self-acceptance evidence, including base-revision ownership and authorization-surface changes.
 
 Do not trust the implementation agent's summary as authoritative evidence.
 
@@ -39,6 +40,7 @@ Prioritize substantive findings:
 - architecture and integration;
 - tests and simulation;
 - protected-path/governance violations;
+- invalid or self-bootstrapping Code Owner self-acceptance;
 - secrets, generated junk, or unrelated changes;
 - maintainability risks that materially affect the team.
 
@@ -61,6 +63,8 @@ Use one of:
 - `REQUEST CHANGES` — blocking correctness/governance findings;
 - `SAFETY ESCALATION` — requires explicit human safety review;
 - `REVIEW INCOMPLETE` — insufficient evidence to review safely.
+
+These are independent Codex review results, not GitHub approval reviews. An `APPROVE` result may satisfy the independent-review prerequisite for Code Owner self-acceptance, but it does not grant self-acceptance or authorize merge by itself.
 
 ## Publishing
 

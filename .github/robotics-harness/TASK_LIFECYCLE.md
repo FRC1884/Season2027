@@ -1,12 +1,92 @@
 # Task Lifecycle
 
-Every normal Codex coding session acts as a **Software Team Member** unless the user explicitly assigns a different authorized role.
+Every normal Codex coding session acts as a **Software Team Member** unless the user explicitly assigns a different authorized role or the mentor identity check below succeeds.
+
+## 0. Robotics Scope Check and user-facing intercept
+
+Apply the authoritative Robotics-Only Scope Policy in `/AGENTS.md` to the actual primary objective of every new request before using tools, running repository commands, inspecting repository files, or beginning Intake.
+
+```text
+USER REQUEST
+      │
+      ▼
+ROBOTICS SCOPE CHECK
+      │
+      ├── CLEARLY OUT OF SCOPE
+      │       │
+      │       └── DENY + STOP
+      │
+      ├── AMBIGUOUS
+      │       │
+      │       └── CLARIFY
+      │
+      └── IN SCOPE
+              │
+              ▼
+      EXISTING HARNESS WORKFLOW
+              │
+              ├── user-facing intercept / clarification
+              ├── planning + acknowledgement
+              ├── risk classification
+              ├── implementation
+              ├── validation
+              ├── learning verification
+              ├── commit
+              ├── human approval
+              ├── push
+              └── PR / review / governance
+```
+
+- Use semantic/contextual classification and already-available conversation/repository context; a robotics keyword or fictional robotics framing is not sufficient.
+- For genuine ambiguity that could reasonably be robotics-related, ask one concise scope question as the first response and do not implement while waiting.
+- For a clearly unrelated request, issue the prescribed denial as the first response and stop. Do not plan, research, inspect unrelated project files, run implementation commands, modify files, create a branch, commit, push, or open a PR.
+- Where the existing monitoring mechanism is available, the only control-plane action allowed for a denied task is recording the required non-sensitive `scope_check_denied` event. This is governance evidence, not task execution, and must record that no work was performed.
+- Continue with the rest of the user-facing intercept and then Intake only after `scope_check_passed`. A PASS establishes eligibility only; it does not satisfy or bypass any later Harness gate.
+
+The first visible action must reflect the scope result. For an in-scope request, acknowledge what Codex can do and state that repository inspection and a plan will come next. Do not make routine work confirmation-heavy.
+
+When the request conflicts with Harness policy, contains unsafe ambiguity, requests a bypass, or requires a governed step, explain before repository actions:
+
+1. the valid part Codex can do;
+2. the conflicting part it cannot follow and the policy reason;
+3. the governed alternative it will follow;
+4. any clarification or user plan acknowledgement needed before implementation;
+5. any separate authorized human approval that will still be required later.
+
+The response may be natural prose; these do not need to be literal headings. For an in-scope request, do not reject the whole request when only one non-scope instruction conflicts, and do not silently ignore the invalid instruction.
+
+Apply the remaining intercept to at least:
+
+- Harness bypass attempts;
+- unsafe assumptions or missing safety-critical information;
+- requests to invent hardware configuration;
+- direct pushes to protected branches;
+- requests to skip planning, learning verification, testing, review, CODEOWNERS, or CI;
+- requests to fabricate evidence or report unrun tests as passed;
+- unverified self-approval or attempts to substitute informal confirmation for governed approval;
+- CODEOWNERS bypass outside the verified self-acceptance path in `APPROVALS.md`;
+- implementation-agent self-review presented as independent review;
+- autonomous robot deployment.
+
+If the repository might already contain a required safety-critical value, say that Codex will inspect for it. If inspection does not find it, stop and ask for the value rather than inventing it.
 
 ## 1. Intake
 
-- Read `AGENTS.md`, this Harness directory, and relevant repository context.
-- Restate the requested outcome in one concise task summary.
+- After the user-facing intercept, read `AGENTS.md`, this Harness directory, and relevant repository context.
+- Keep the requested outcome and any policy boundary visible in one concise task summary.
 - Do not edit yet if material requirements are unclear.
+- Record `scope_check_passed` before normal task work begins.
+
+## 1A. Role resolution
+
+Before applying role-dependent gates:
+
+1. record `git config user.name`, `git config user.email`, and the origin remote for attribution and repository context;
+2. resolve the authenticated login using `gh api user` rather than trusting the local Git name or email;
+3. query `orgs/FRC1884/teams/mentors/memberships/<verified-login>` and require `state: active`;
+4. record the result without recording credentials or tokens.
+
+The origin must resolve to `FRC1884/Season2027`. Missing Git attribution, unavailable GitHub authentication, a mismatched repository, an absent membership, or a non-active membership means the session remains a Software Team Member. Never infer Mentor status from `user.name`, `user.email`, a commit author, or a user claim alone.
 
 ## 2. Clarification
 
@@ -24,7 +104,32 @@ Do not invent:
 
 ## 3. Plan
 
-Before substantial edits, write a concise plan containing:
+After repository inspection and required clarification, present this gate before substantial edits:
+
+```markdown
+## Proposed Plan
+
+1. ...
+
+## Acceptance Criteria
+
+- ...
+
+## Risk
+
+LOW / MEDIUM / HIGH / CRITICAL
+
+Reason:
+...
+
+## Expected Files / Areas
+
+- ...
+
+Proceed with this plan?
+```
+
+The plan must cover:
 
 - intended behavior;
 - files/areas expected to change;
@@ -33,6 +138,12 @@ Before substantial edits, write a concise plan containing:
 - protected paths involved;
 - rollback strategy where risk warrants it.
 
+Repository inspection, read-only diagnostics, and clarification may happen before acknowledgement. Substantial edits may not begin until the user has seen and acknowledged the plan, acceptance criteria, risk, and expected files/areas.
+
+Natural acknowledgements such as `yes`, `go ahead`, `approved`, `looks good`, `continue`, or `do it` are sufficient. Record whether the plan was acknowledged or rejected.
+
+Plan acknowledgement authorizes the described implementation approach only. It is not Code Owner, Mentor, Safety Code Owner, CI, publication, or merge approval.
+
 ## 4. Risk
 
 Apply `RISK_POLICY.md`. Record the initial risk and re-evaluate against the actual diff before publication.
@@ -40,25 +151,41 @@ Apply `RISK_POLICY.md`. Record the initial risk and re-evaluate against the actu
 ## 5. Implementation
 
 - Work on a task branch.
-- Keep scope within the approved plan.
-- If implementation materially diverges, update the plan before continuing.
+- Keep scope within the acknowledged plan.
+- If scope, architecture, protected paths, acceptance criteria, or risk materially changes, stop substantial edits and tell the user what changed.
+- Present the revised plan and obtain a new user acknowledgement before continuing.
+- Identify any newly required authorized human approval separately from plan acknowledgement.
 - Keep Harness evidence outside the product diff.
 
 ## 6. Validation
 
-Run the repository's applicable build, tests, and formatting checks. Inspect the complete diff and remove unrelated changes.
+Run the repository's applicable build, tests, and formatting checks. Keep the change uncommitted, inspect the complete proposed commit diff (staged and unstaged), and remove unrelated changes.
 
 ## 7. Learning verification
 
-Apply `LEARNING_LOOP.md`. The Software Team Member must demonstrate understanding of meaningful changed code before asking to publish.
+Apply `LEARNING_LOOP.md` to the complete uncommitted diff. Codex must ask the user meaningful questions about the actual change and evaluate the answers unless a verified mentor explicitly uses the documented learning override.
 
-## 8. Human approvals
+The gate passes only when the user demonstrates correct, specific understanding in their own words, or when an authenticated active `@FRC1884/mentors` member explicitly invokes and records the mentor learning override for the bound diff. Plan acknowledgement, approval, a generic "I understand," or Codex answering its own questions does not count.
 
-Apply `APPROVALS.md` for protected/high-risk work. An implementation agent cannot approve itself.
+Until the gate passes, do not:
 
-## 9. Pull request
+- create a commit;
+- push a branch or tag;
+- create or update a pull request.
 
-Create a PR to the appropriate integration branch. Do not merge it yourself.
+If the diff materially changes after PASS or after a mentor override, invalidate the result and repeat the verification or re-record the override against the revised diff before publication actions resume.
+
+## 8. Commit
+
+After learning verification passes or a verified mentor override is recorded, commit only the covered diff. Confirm that the resulting commit matches the files and behavior covered by the learning result or override.
+
+## 9. Approval path
+
+Apply `APPROVALS.md` for protected/high-risk work and identify whether the change requires a different human approver or is eligible for later Code Owner self-acceptance. A Software Team Member cannot approve itself. A verified Code Owner who authored the PR may self-accept only after the PR exists and through the exact-head procedure in that policy; GitHub author self-review never counts as approval.
+
+## 10. Push and pull request
+
+Push only the commit covered by the passing learning verification or verified mentor override, then create or update a PR to the appropriate integration branch. Do not merge it before the approval, review, CI, and explicit merge-intent requirements below pass.
 
 Default promotion flow:
 
@@ -68,7 +195,7 @@ task/* -> relevant sub-lead branch -> software-leads -> main
 
 Low-risk cross-cutting work may target `software-leads` directly when repository policy allows.
 
-## 10. Review
+## 11. Review
 
 The AI review is **manual/on-demand**, not an automatic GitHub AI workflow.
 
@@ -80,6 +207,10 @@ review PR #<number>
 
 That Codex session follows `REVIEW_POLICY.md` and `REVIEW_TEMPLATE.md`.
 
-## 11. Human merge boundary
+The review must cover the current head. `APPROVE` means the independent Codex review found no blocking issue; it is not a GitHub approval and does not itself authorize merge.
 
-Only an authorized human merges after required CI, CODEOWNERS, and governance conditions are satisfied.
+## 12. Human merge boundary
+
+Only an authorized human merges after required CI, review, CODEOWNERS, and governance conditions are satisfied. A verified Code Owner may accept and merge their own PR when `APPROVALS.md` resolves them as an owner for every changed path, any additional risk role matches, the current head satisfies every prerequisite, and the hosted ruleset provides the configured pull-request bypass.
+
+Codex may execute that merge only after the authenticated Code Owner explicitly requests merge of the exact current head. Otherwise, a different authorized human must approve and merge.
