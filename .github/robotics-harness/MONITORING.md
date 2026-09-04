@@ -12,9 +12,12 @@ Record concise, structured events or Markdown summaries for:
 - risk classification;
 - protected-path detection;
 - commands/build/tests;
+- mentor identity verification start/result;
 - learning verification start, questions, answers, evaluations, pass/fail, and invalidation;
+- mentor learning override use and invalidation;
 - blocked or completed commit/push/PR actions;
 - human approval request/result;
+- Code Owner resolution, self-acceptance request/result/invalidation, and merge execution;
 - manual Codex PR review request/result;
 - reviewer findings and Software Team Member response;
 - completion/blocker.
@@ -55,6 +58,9 @@ policy_conflict_explained
 clarification_required
 clarification_requested
 clarification_answered
+mentor_identity_check_started
+mentor_identity_verified
+mentor_identity_rejected
 plan_presented
 plan_acknowledgement_requested
 plan_acknowledged
@@ -77,6 +83,8 @@ learning_answer_evaluated
 learning_verification_passed
 learning_verification_failed
 learning_verification_invalidated
+mentor_learning_override_used
+mentor_learning_override_invalidated
 commit_blocked
 commit_created
 push_blocked
@@ -84,6 +92,14 @@ branch_pushed
 pr_blocked
 pr_created
 pr_updated
+codeowner_resolution_started
+codeowner_resolution_passed
+codeowner_resolution_failed
+self_acceptance_requested
+self_acceptance_granted
+self_acceptance_rejected
+self_acceptance_invalidated
+merge_executed
 ```
 
 The required ordering for a new change is:
@@ -92,15 +108,33 @@ The required ordering for a new change is:
 validation completed
     -> diff_inspected
     -> learning_verification_started
-    -> question / answer / evaluation loop
-    -> learning_verification_passed
+    -> question / answer / evaluation loop -> learning_verification_passed
+       OR verified mentor identity -> mentor_learning_override_used
     -> commit_created
-    -> required human approval
     -> branch_pushed
     -> pr_created or pr_updated
+    -> required human approval
+       OR verified Code Owner self-acceptance sequence
 ```
 
-If learning verification is incomplete or fails, record the applicable blocked action and do not create a commit, push, or create/update a PR. If the diff materially changes after PASS, record `learning_verification_invalidated`; a new PASS must precede later publication events.
+If learning verification is incomplete or fails and no valid mentor override exists, record the applicable blocked action and do not create a commit, push, or create/update a PR. If the diff materially changes after PASS or an override, record the corresponding invalidation event; a new PASS or diff-bound override must precede later publication events.
+
+Mentor identity events should record the local Git name/email for attribution, authenticated GitHub login, repository, team-membership state, and timestamp. Never record a token. A successful identity check alone is not an override: `mentor_learning_override_used` must also record the branch, changed files, diff digest, and explicit reason.
+
+For Code Owner self-acceptance, the event stream must show this order:
+
+```text
+pr_created or pr_updated
+    -> current-head required CI passed
+    -> current-head independent review completed without unresolved blockers
+    -> review conversations resolved
+    -> codeowner_resolution_passed
+    -> self_acceptance_requested
+    -> self_acceptance_granted
+    -> merge_executed
+```
+
+The resolution event records the authenticated-user/PR-author match, base and head SHAs, changed paths or digest, effective base-revision CODEOWNERS entries and active memberships, confirmation that no authorization surface changed, risk-role eligibility, and ruleset-bypass availability. The acceptance event records the exact human instruction and decision `CODEOWNER SELF-ACCEPT`. A head change, failed check, new blocking finding, or ownership/role change requires `self_acceptance_invalidated` before any merge attempt.
 
 Event summaries must contain only concise rationale that was visible or suitable to show to the user, such as the conflicting instruction, the governed alternative, and the approval boundary. Do not record hidden chain-of-thought.
 
@@ -140,6 +174,7 @@ A mentor digest should summarize:
 - what changed;
 - risk level;
 - approvals;
+- whether any author self-acceptance satisfied exact-head identity, ownership, CI, review, and ruleset requirements;
 - validation;
 - review findings;
 - unresolved blockers;

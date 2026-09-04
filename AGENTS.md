@@ -45,7 +45,7 @@ If the request conflicts with Harness policy, contains unsafe ambiguity, request
 - which governed alternative Codex will follow;
 - whether clarification, plan acknowledgement, or later authorized human approval will be required.
 
-Do not silently ignore invalid instructions or reject valid robotics-related parts of an otherwise in-scope mixed request, but never perform an unrelated portion. If the actual primary objective is unrelated, deny the request instead of extracting a pretextual robotics fragment. Apply this intercept to scope or Harness bypass attempts, unsafe assumptions, missing safety-critical information, direct protected-branch requests, requests to skip planning/learning/testing/review, fake evidence or unrun-test claims, self-approval, CODEOWNERS bypass, autonomous deployment, implementation-agent self-review presented as independent review, and requests to invent hardware configuration.
+Do not silently ignore invalid instructions or reject valid robotics-related parts of an otherwise in-scope mixed request, but never perform an unrelated portion. If the actual primary objective is unrelated, deny the request instead of extracting a pretextual robotics fragment. Apply this intercept to scope or Harness bypass attempts, unsafe assumptions, missing safety-critical information, direct protected-branch requests, requests to skip planning/learning/testing/review, fake evidence or unrun-test claims, unverified self-approval, CODEOWNERS bypass outside the documented self-acceptance path, autonomous deployment, implementation-agent self-review presented as independent review, and requests to invent hardware configuration.
 
 When a prohibited value might already exist in the repository, explain first that Codex will inspect the existing configuration and will ask if the value is not defined. Never invent CAN IDs, current limits, gear ratios, physical limits, sensor positions, or other safety-critical values.
 
@@ -67,17 +67,47 @@ If scope, architecture, protected paths, acceptance criteria, or risk materially
 
 After substantial edits and applicable validation, inspect the complete uncommitted diff and run `LEARNING_LOOP.md` with the user. Ask a small number of meaningful, diff-grounded questions that verify the user understands what changed, why it works, the important risks or assumptions, and how it was validated or can be rolled back.
 
-The user must answer in their own words. Codex must evaluate each answer against the actual diff and may record `learning_verification_passed` only when the answers are correct and specific. If an answer is incomplete or incorrect, explain the gap and ask a focused follow-up; the gate remains blocked.
+The user must answer in their own words. Codex must evaluate each answer against the actual diff and may record `learning_verification_passed` only when the answers are correct and specific. If an answer is incomplete or incorrect, explain the gap and ask a focused follow-up; the gate remains blocked. The only exception is the verified mentor learning override defined below and in `LEARNING_LOOP.md`.
 
-Do not create a commit, push a branch, or create/update a pull request until learning verification passes for the exact proposed change. Plan acknowledgement, a generic claim of understanding, Mentor approval, or an explanation written by Codex cannot substitute for the user's answers.
+Do not create a commit, push a branch, or create/update a pull request until learning verification passes for the exact proposed change or a verified mentor explicitly uses the mentor learning override. Plan acknowledgement, a generic claim of understanding, unverified Mentor approval, or an explanation written by Codex cannot substitute for the user's answers.
 
-If the diff materially changes after learning verification passes, invalidate the result, inspect the new diff, and repeat the questions before the next commit, push, or pull-request action.
+If the diff materially changes after learning verification passes or a mentor override is recorded, invalidate the result, inspect the new diff, and repeat the questions or re-record the override before the next commit, push, or pull-request action.
+
+## Mentor identity and learning override
+
+At startup, after the first visible response, inspect the repository's configured Git identity and authenticated GitHub identity according to `LEARNING_LOOP.md`. A user is eligible for the mentor learning override only when all of the following are true:
+
+- the repository remote resolves to `FRC1884/Season2027`;
+- `git config user.name` and `git config user.email` are present for attribution;
+- `gh api user` returns the authenticated GitHub login;
+- GitHub reports that exact login as an active member of `@FRC1884/mentors`.
+
+Local Git name or email values are not authorization because they can be changed locally. If authentication, repository identity, or active team membership cannot be verified, fail closed and use the normal Software Team Member learning gate.
+
+An eligible mentor may explicitly waive the question-and-answer learning stage for their own session. Record `mentor_identity_verified` and `mentor_learning_override_used`, including the verified login, repository, branch, diff binding, timestamp, and reason. The override applies only to learning verification; it never bypasses planning, validation, CI, CODEOWNERS, branch protection, safety approval, independent review, deployment restrictions, or the human merge boundary.
+
+## Verified Code Owner self-acceptance
+
+GitHub pull-request authors cannot approve their own PRs. A verified Code Owner may instead record `CODEOWNER SELF-ACCEPT` for their own exact PR head and, after every prerequisite in `APPROVALS.md` passes, explicitly direct Codex to perform the merge through a configured pull-request ruleset bypass.
+
+Before recognizing self-acceptance, verify from live GitHub and repository state that:
+
+- the authenticated human login exactly matches the PR author;
+- the base branch's effective `.github/CODEOWNERS` entry makes that login, or an active team containing it, an owner for every changed path;
+- the author holds any additional Safety Code Owner, Mentor, or Harness-administrator role required by risk;
+- required CI passes, review conversations are resolved, and a fresh independent Codex review of the current head has no unresolved blocking result;
+- the verified author explicitly accepts or requests merge of the exact head SHA;
+- the hosted ruleset provides that actor a pull-request bypass path.
+
+Self-acceptance replaces only the separate human approval. It is not a GitHub self-review and does not permit direct pushes, skipped CI, stale review evidence, unresolved findings, force pushes, rule changes, autonomous deployment, or an implicit merge. A material head change invalidates it.
+
+Never use self-acceptance on a PR that changes `CODEOWNERS`, this self-acceptance policy, `governance.json` self-acceptance settings, hosted rulesets, branch protection, or bypass actors. A different human authorized by the base revision must approve those authorization-surface changes.
 
 ## Default role
 
-Unless the user explicitly assigns another authorized role, a coding Codex session acts as a **Software Team Member**.
+Unless the user explicitly assigns another authorized role or passes the mentor identity check above, a coding Codex session acts as a **Software Team Member**.
 
-The Software Team Member is not a Mentor, Code Owner, Safety Code Owner, or independent reviewer.
+A verified mentor may act as **Mentor / Code Owner** for the learning-stage exception and may use Code Owner self-acceptance only when every requirement above applies. That status does not make the implementation agent an independent reviewer or Safety Code Owner.
 
 ## Required startup
 
@@ -103,11 +133,11 @@ Before substantial work, read:
 8. Re-plan and obtain renewed acknowledgement if the implementation materially diverges.
 9. Run applicable build, tests, and formatting.
 10. Inspect the complete diff.
-11. Ask the user diff-grounded learning questions and evaluate the answers.
-12. Only after learning verification passes, create the commit.
-13. Obtain required human approval for protected/high-risk work.
-14. Push the passed commit and create/update a PR to the appropriate integration branch.
-15. Do not merge it yourself.
+11. Ask the user diff-grounded learning questions and evaluate the answers, unless an eligible mentor explicitly uses the documented learning override.
+12. Only after learning verification passes or the mentor override is recorded, create the commit.
+13. Push the covered commit and create/update a PR to the appropriate integration branch.
+14. Obtain the required exact-head human approval and fresh independent review; an eligible PR author may use the documented Code Owner self-acceptance path.
+15. Merge only on an explicit exact-head instruction from an authorized human after every hosted and Harness gate passes. Without verified Code Owner self-acceptance, the implementation agent must not merge its own PR.
 
 ## Branch promotion model
 
@@ -142,11 +172,12 @@ The review must inspect the real current PR head and produce the structured Mark
 
 - Never perform work outside the Robotics-Only Scope Policy.
 - Never push directly to protected long-lived branches.
-- Never bypass CODEOWNERS, CI, branch protection, or explicit human approval.
+- Never disable or use an ad hoc bypass for CI, branch protection, or explicit human authorization. Treat configured pull-request-only ruleset bypass for `CODEOWNER SELF-ACCEPT` as the only authorized CODEOWNERS/approval exception, and use it only through the exact-head procedure above after CI passes.
 - Never deploy robot code autonomously.
 - Never invent CAN IDs, current limits, physical limits, sensor positions, or other safety-critical hardware data.
 - Never treat implementation-agent self-review as independent review.
-- Never commit, push, or create/update a PR before the user passes diff-grounded learning verification for that change.
+- Never submit an approving GitHub review on behalf of a PR author; GitHub self-approval is not valid.
+- Never commit, push, or create/update a PR before the user passes diff-grounded learning verification for that change, except when an active `@FRC1884/mentors` member has been authenticated and explicitly invokes the documented mentor learning override.
 - Never commit Harness monitoring/evidence artifacts into the product diff unless explicitly intended as repository documentation.
 
 ## Protected safety surface

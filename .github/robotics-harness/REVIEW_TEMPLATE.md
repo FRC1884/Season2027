@@ -40,8 +40,8 @@ For each finding use:
 
 ### AR-001 — <title>
 
-**Severity:** `<level>`  
-**File:** `<path>`  
+**Severity:** `<level>`
+**File:** `<path>`
 **Lines:** `<range if available>`
 
 **Issue**
@@ -77,6 +77,8 @@ For each finding use:
 
 - Protected paths touched:
 - CODEOWNERS implications:
+- Code Owner self-acceptance proposed: YES/NO
+- Base-revision ownership and authorization-surface result:
 - Scope/unrelated files:
 - Harness policy concerns:
 
