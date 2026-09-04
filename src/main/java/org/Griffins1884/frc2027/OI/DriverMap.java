@@ -7,23 +7,23 @@ import java.util.function.DoubleSupplier;
 
 /** Reusable driver-input abstraction carried forward from Season2026 without mechanism bindings. */
 public interface DriverMap {
-    DoubleSupplier getXAxis();
+  DoubleSupplier getXAxis();
 
-    DoubleSupplier getYAxis();
+  DoubleSupplier getYAxis();
 
-    DoubleSupplier getRotAxis();
+  DoubleSupplier getRotAxis();
 
-    Trigger resetOdometry();
+  Trigger resetOdometry();
 
-    default Trigger leftBackButton() {
-        return new Trigger(() -> false);
-    }
+  default Trigger leftBackButton() {
+    return new Trigger(() -> false);
+  }
 
-    default Trigger rightBackButton() {
-        return new Trigger(() -> false);
-    }
+  default Trigger rightBackButton() {
+    return new Trigger(() -> false);
+  }
 
-    default Command rumble() {
-        return Commands.none();
-    }
+  default Command rumble() {
+    return Commands.none();
+  }
 }
