@@ -1,6 +1,6 @@
 # Task Lifecycle
 
-Every normal Codex coding session acts as a **Software Team Member** unless the user explicitly assigns a different authorized role.
+Every normal Codex coding session acts as a **Software Team Member** unless the user explicitly assigns a different authorized role or the mentor identity check below succeeds.
 
 ## 0. User-facing intercept
 
@@ -37,6 +37,17 @@ If the repository might already contain a required safety-critical value, say th
 - After the user-facing intercept, read `AGENTS.md`, this Harness directory, and relevant repository context.
 - Keep the requested outcome and any policy boundary visible in one concise task summary.
 - Do not edit yet if material requirements are unclear.
+
+## 1A. Role resolution
+
+Before applying role-dependent gates:
+
+1. record `git config user.name`, `git config user.email`, and the origin remote for attribution and repository context;
+2. resolve the authenticated login using `gh api user` rather than trusting the local Git name or email;
+3. query `orgs/FRC1884/teams/mentors/memberships/<verified-login>` and require `state: active`;
+4. record the result without recording credentials or tokens.
+
+The origin must resolve to `FRC1884/Season2027`. Missing Git attribution, unavailable GitHub authentication, a mismatched repository, an absent membership, or a non-active membership means the session remains a Software Team Member. Never infer Mentor status from `user.name`, `user.email`, a commit author, or a user claim alone.
 
 ## 2. Clarification
 
@@ -113,9 +124,9 @@ Run the repository's applicable build, tests, and formatting checks. Keep the ch
 
 ## 7. Learning verification
 
-Apply `LEARNING_LOOP.md` to the complete uncommitted diff. Codex must ask the user meaningful questions about the actual change and evaluate the answers.
+Apply `LEARNING_LOOP.md` to the complete uncommitted diff. Codex must ask the user meaningful questions about the actual change and evaluate the answers unless a verified mentor explicitly uses the documented learning override.
 
-The gate passes only when the user demonstrates correct, specific understanding in their own words. Plan acknowledgement, approval, a generic "I understand," or Codex answering its own questions does not count.
+The gate passes only when the user demonstrates correct, specific understanding in their own words, or when an authenticated active `@FRC1884/mentors` member explicitly invokes and records the mentor learning override for the bound diff. Plan acknowledgement, approval, a generic "I understand," or Codex answering its own questions does not count.
 
 Until the gate passes, do not:
 
@@ -123,11 +134,11 @@ Until the gate passes, do not:
 - push a branch or tag;
 - create or update a pull request.
 
-If the diff materially changes after PASS, invalidate the learning result and repeat the verification before publication actions resume.
+If the diff materially changes after PASS or after a mentor override, invalidate the result and repeat the verification or re-record the override against the revised diff before publication actions resume.
 
 ## 8. Commit
 
-After learning verification passes, commit only the reviewed diff. Confirm that the resulting commit matches the files and behavior covered by the learning verification.
+After learning verification passes or a verified mentor override is recorded, commit only the covered diff. Confirm that the resulting commit matches the files and behavior covered by the learning result or override.
 
 ## 9. Human approvals
 
@@ -135,7 +146,7 @@ Apply `APPROVALS.md` for protected/high-risk work. An implementation agent canno
 
 ## 10. Push and pull request
 
-Push only the commit covered by the passing learning verification, then create or update a PR to the appropriate integration branch. Do not merge it yourself.
+Push only the commit covered by the passing learning verification or verified mentor override, then create or update a PR to the appropriate integration branch. Do not merge it yourself.
 
 Default promotion flow:
 

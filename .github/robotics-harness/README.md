@@ -36,9 +36,15 @@ Codex must additionally read:
 ## Roles
 
 - **Software Team Member** — normal implementation agent.
-- **Mentor / Code Owner** — human governance and protected-path approval.
+- **Mentor / Code Owner** — human governance and protected-path approval; an authenticated active member of `@FRC1884/mentors` may waive the learning questions for their own session.
 - **Safety Code Owner** — human approval for high-risk hardware/safety changes.
 - **Automated Reviewer** — a fresh Codex review context invoked by the user.
+
+## Mentor identity boundary
+
+Codex records the repository's `git config user.name` and `git config user.email`, then resolves the authenticated login with `gh api user` and verifies that login's active membership in `@FRC1884/mentors`. Local Git configuration is attribution, not authorization; changing a local name or email cannot grant Mentor status. If the GitHub identity or membership check is unavailable or fails, Codex uses the normal Software Team Member workflow.
+
+The resulting mentor override is limited to the question-and-answer learning stage. It does not weaken hosted controls, safety governance, validation, approval, review, deployment, or merge requirements.
 
 ## Hard vs soft enforcement
 

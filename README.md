@@ -13,7 +13,7 @@ The reusable project/tooling structure has been carried forward and renamed to `
 - Team 1884 WPILib / Gradle tooling baseline
 - in-repository Robotics Agentic Development Harness under `.github/robotics-harness/`
 - `AGENTS.md` v1 for normal Software Team Member Codex sessions
-- diff-grounded learning verification policy
+- diff-grounded learning verification policy with an authenticated mentor-only learning override
 - risk classification and human approval policy
 - Monitoring v1 contract and sample mentor digest
 - PR template with risk, safety, learning, testing, and rollback evidence
@@ -47,7 +47,9 @@ The desired hosted protection policy is documented in [`docs/BRANCH_PROTECTION_S
 
 A normal coding Codex session reads `AGENTS.md` and the Harness Markdown policies, then follows:
 
-**clarification → plan → risk → implementation → learning verification → build/test/format → human approval where required → PR**
+**identity check → clarification → plan → risk → implementation → build/test/format → learning verification (or verified mentor override) → human approval where required → PR**
+
+Local Git name/email values are recorded for attribution, but Mentor status comes only from the authenticated GitHub login's active membership in `@FRC1884/mentors`. The mentor exception waives only learning questions; it does not bypass repository protections or approval, review, safety, deployment, and merge boundaries.
 
 AI PR review is deliberately **manual/on-demand** rather than an automatic GitHub AI workflow.
 

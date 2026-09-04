@@ -10,6 +10,12 @@ Codex must state this distinction before implementation when the planned work al
 
 If the implementation materially changes after acknowledgement, obtain a new plan acknowledgement. Separately re-evaluate whether any exact-state human approval has become stale.
 
+## Learning override is not approval
+
+The verified mentor learning override in `LEARNING_LOOP.md` only waives learning questions for that mentor's own diff-bound session. It is not approval of the implementation and does not let the implementation agent satisfy a separate Mentor, Safety Code Owner, Code Owner, independent-review, or merge requirement.
+
+The identity check for the learning override may be reused as identity evidence, but approval must still be an explicit decision through the configured approval path and must be bound to the exact state required below.
+
 ## Roles
 
 - **Software Team Member** — implementation agent; cannot self-approve.
@@ -47,6 +53,7 @@ The following do not count as human approval:
 
 - Software Team Member confirmation;
 - user acknowledgement of the implementation plan;
+- use of the verified mentor learning override;
 - Automated Reviewer output;
 - an AI-generated approval record;
 - a comment claiming to be a mentor without matching repository authorization.

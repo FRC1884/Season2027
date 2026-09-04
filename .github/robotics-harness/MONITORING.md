@@ -11,7 +11,9 @@ Record concise, structured events or Markdown summaries for:
 - risk classification;
 - protected-path detection;
 - commands/build/tests;
+- mentor identity verification start/result;
 - learning verification start, questions, answers, evaluations, pass/fail, and invalidation;
+- mentor learning override use and invalidation;
 - blocked or completed commit/push/PR actions;
 - human approval request/result;
 - manual Codex PR review request/result;
@@ -29,6 +31,9 @@ policy_conflict_explained
 clarification_required
 clarification_requested
 clarification_answered
+mentor_identity_check_started
+mentor_identity_verified
+mentor_identity_rejected
 plan_presented
 plan_acknowledgement_requested
 plan_acknowledged
@@ -51,6 +56,8 @@ learning_answer_evaluated
 learning_verification_passed
 learning_verification_failed
 learning_verification_invalidated
+mentor_learning_override_used
+mentor_learning_override_invalidated
 commit_blocked
 commit_created
 push_blocked
@@ -66,15 +73,17 @@ The required ordering for a new change is:
 validation completed
     -> diff_inspected
     -> learning_verification_started
-    -> question / answer / evaluation loop
-    -> learning_verification_passed
+    -> question / answer / evaluation loop -> learning_verification_passed
+       OR verified mentor identity -> mentor_learning_override_used
     -> commit_created
     -> required human approval
     -> branch_pushed
     -> pr_created or pr_updated
 ```
 
-If learning verification is incomplete or fails, record the applicable blocked action and do not create a commit, push, or create/update a PR. If the diff materially changes after PASS, record `learning_verification_invalidated`; a new PASS must precede later publication events.
+If learning verification is incomplete or fails and no valid mentor override exists, record the applicable blocked action and do not create a commit, push, or create/update a PR. If the diff materially changes after PASS or an override, record the corresponding invalidation event; a new PASS or diff-bound override must precede later publication events.
+
+Mentor identity events should record the local Git name/email for attribution, authenticated GitHub login, repository, team-membership state, and timestamp. Never record a token. A successful identity check alone is not an override: `mentor_learning_override_used` must also record the branch, changed files, diff digest, and explicit reason.
 
 Event summaries must contain only concise rationale that was visible or suitable to show to the user, such as the conflicting instruction, the governed alternative, and the approval boundary. Do not record hidden chain-of-thought.
 

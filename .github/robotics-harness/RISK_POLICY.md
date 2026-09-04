@@ -54,6 +54,8 @@ Requirements:
 - additional approval(s) when configured;
 - no autonomous merge/deploy.
 
+Using the authenticated, diff-bound mentor learning override exactly as defined in `LEARNING_LOOP.md` is an authorized learning-stage path, not a general governance bypass. Creating, weakening, or expanding that exception remains CRITICAL governance work and requires the review above.
+
 ## Escalation triggers
 
 Increase risk when the actual diff touches:
