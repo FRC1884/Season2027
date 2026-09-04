@@ -6,14 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 class SafetyConstantsTest {
-    @Test
-    void defaultMotorLimitStaysWithinSafeRange() {
-        assertTrue(SafetyConstants.DEFAULT_MOTOR_OUTPUT_LIMIT > 0.0);
-        assertTrue(SafetyConstants.DEFAULT_MOTOR_OUTPUT_LIMIT <= 1.0);
-    }
+  @Test
+  void defaultMotorLimitStaysWithinSafeRange() {
+    assertTrue(SafetyConstants.DEFAULT_MOTOR_OUTPUT_LIMIT > 0.0);
+    assertTrue(SafetyConstants.DEFAULT_MOTOR_OUTPUT_LIMIT <= 1.0);
+  }
 
-    @Test
-    void automatedDeployIsDisabledByDefault() {
-        assertFalse(SafetyConstants.ALLOW_AUTOMATED_DEPLOY);
-    }
+  @Test
+  void automatedDeployIsDisabledByDefault() {
+    assertFalse(SafetyConstants.ALLOW_AUTOMATED_DEPLOY);
+  }
 }
