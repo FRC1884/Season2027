@@ -37,7 +37,7 @@ Requirements:
 
 - explicit plan revision and rollback strategy;
 - learning verification at higher depth;
-- Safety Code Owner / Mentor approval before publication;
+- Safety Code Owner / Mentor approval or eligible exact-head Code Owner self-acceptance before merge;
 - Code Owner review;
 - full validation.
 
@@ -55,6 +55,8 @@ Requirements:
 - no autonomous merge/deploy.
 
 Using the authenticated, diff-bound mentor learning override exactly as defined in `LEARNING_LOOP.md` is an authorized learning-stage path, not a general governance bypass. Creating, weakening, or expanding that exception remains CRITICAL governance work and requires the review above.
+
+Using verified Code Owner self-acceptance exactly as defined in `APPROVALS.md` is an authorized approval path, not an unverified bypass. The author must hold every Code Owner and risk role required by the exact diff, and CI plus fresh independent review remain mandatory. Creating or expanding this exception is CRITICAL governance work.
 
 ## Escalation triggers
 

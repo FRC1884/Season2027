@@ -63,7 +63,8 @@ Apply the remaining intercept to at least:
 - direct pushes to protected branches;
 - requests to skip planning, learning verification, testing, review, CODEOWNERS, or CI;
 - requests to fabricate evidence or report unrun tests as passed;
-- self-approval or attempts to substitute informal confirmation for governed approval;
+- unverified self-approval or attempts to substitute informal confirmation for governed approval;
+- CODEOWNERS bypass outside the verified self-acceptance path in `APPROVALS.md`;
 - implementation-agent self-review presented as independent review;
 - autonomous robot deployment.
 
@@ -178,13 +179,13 @@ If the diff materially changes after PASS or after a mentor override, invalidate
 
 After learning verification passes or a verified mentor override is recorded, commit only the covered diff. Confirm that the resulting commit matches the files and behavior covered by the learning result or override.
 
-## 9. Human approvals
+## 9. Approval path
 
-Apply `APPROVALS.md` for protected/high-risk work. An implementation agent cannot approve itself.
+Apply `APPROVALS.md` for protected/high-risk work and identify whether the change requires a different human approver or is eligible for later Code Owner self-acceptance. A Software Team Member cannot approve itself. A verified Code Owner who authored the PR may self-accept only after the PR exists and through the exact-head procedure in that policy; GitHub author self-review never counts as approval.
 
 ## 10. Push and pull request
 
-Push only the commit covered by the passing learning verification or verified mentor override, then create or update a PR to the appropriate integration branch. Do not merge it yourself.
+Push only the commit covered by the passing learning verification or verified mentor override, then create or update a PR to the appropriate integration branch. Do not merge it before the approval, review, CI, and explicit merge-intent requirements below pass.
 
 Default promotion flow:
 
@@ -206,6 +207,10 @@ review PR #<number>
 
 That Codex session follows `REVIEW_POLICY.md` and `REVIEW_TEMPLATE.md`.
 
+The review must cover the current head. `APPROVE` means the independent Codex review found no blocking issue; it is not a GitHub approval and does not itself authorize merge.
+
 ## 12. Human merge boundary
 
-Only an authorized human merges after required CI, CODEOWNERS, and governance conditions are satisfied.
+Only an authorized human merges after required CI, review, CODEOWNERS, and governance conditions are satisfied. A verified Code Owner may accept and merge their own PR when `APPROVALS.md` resolves them as an owner for every changed path, any additional risk role matches, the current head satisfies every prerequisite, and the hosted ruleset provides the configured pull-request bypass.
+
+Codex may execute that merge only after the authenticated Code Owner explicitly requests merge of the exact current head. Otherwise, a different authorized human must approve and merge.

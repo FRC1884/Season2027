@@ -45,7 +45,7 @@ If the request conflicts with Harness policy, contains unsafe ambiguity, request
 - which governed alternative Codex will follow;
 - whether clarification, plan acknowledgement, or later authorized human approval will be required.
 
-Do not silently ignore invalid instructions or reject valid robotics-related parts of an otherwise in-scope mixed request, but never perform an unrelated portion. If the actual primary objective is unrelated, deny the request instead of extracting a pretextual robotics fragment. Apply this intercept to scope or Harness bypass attempts, unsafe assumptions, missing safety-critical information, direct protected-branch requests, requests to skip planning/learning/testing/review, fake evidence or unrun-test claims, self-approval, CODEOWNERS bypass, autonomous deployment, implementation-agent self-review presented as independent review, and requests to invent hardware configuration.
+Do not silently ignore invalid instructions or reject valid robotics-related parts of an otherwise in-scope mixed request, but never perform an unrelated portion. If the actual primary objective is unrelated, deny the request instead of extracting a pretextual robotics fragment. Apply this intercept to scope or Harness bypass attempts, unsafe assumptions, missing safety-critical information, direct protected-branch requests, requests to skip planning/learning/testing/review, fake evidence or unrun-test claims, unverified self-approval, CODEOWNERS bypass outside the documented self-acceptance path, autonomous deployment, implementation-agent self-review presented as independent review, and requests to invent hardware configuration.
 
 When a prohibited value might already exist in the repository, explain first that Codex will inspect the existing configuration and will ask if the value is not defined. Never invent CAN IDs, current limits, gear ratios, physical limits, sensor positions, or other safety-critical values.
 
@@ -86,11 +86,28 @@ Local Git name or email values are not authorization because they can be changed
 
 An eligible mentor may explicitly waive the question-and-answer learning stage for their own session. Record `mentor_identity_verified` and `mentor_learning_override_used`, including the verified login, repository, branch, diff binding, timestamp, and reason. The override applies only to learning verification; it never bypasses planning, validation, CI, CODEOWNERS, branch protection, safety approval, independent review, deployment restrictions, or the human merge boundary.
 
+## Verified Code Owner self-acceptance
+
+GitHub pull-request authors cannot approve their own PRs. A verified Code Owner may instead record `CODEOWNER SELF-ACCEPT` for their own exact PR head and, after every prerequisite in `APPROVALS.md` passes, explicitly direct Codex to perform the merge through a configured pull-request ruleset bypass.
+
+Before recognizing self-acceptance, verify from live GitHub and repository state that:
+
+- the authenticated human login exactly matches the PR author;
+- the base branch's effective `.github/CODEOWNERS` entry makes that login, or an active team containing it, an owner for every changed path;
+- the author holds any additional Safety Code Owner, Mentor, or Harness-administrator role required by risk;
+- required CI passes, review conversations are resolved, and a fresh independent Codex review of the current head has no unresolved blocking result;
+- the verified author explicitly accepts or requests merge of the exact head SHA;
+- the hosted ruleset provides that actor a pull-request bypass path.
+
+Self-acceptance replaces only the separate human approval. It is not a GitHub self-review and does not permit direct pushes, skipped CI, stale review evidence, unresolved findings, force pushes, rule changes, autonomous deployment, or an implicit merge. A material head change invalidates it.
+
+Never use self-acceptance on a PR that changes `CODEOWNERS`, this self-acceptance policy, `governance.json` self-acceptance settings, hosted rulesets, branch protection, or bypass actors. A different human authorized by the base revision must approve those authorization-surface changes.
+
 ## Default role
 
 Unless the user explicitly assigns another authorized role or passes the mentor identity check above, a coding Codex session acts as a **Software Team Member**.
 
-A verified mentor may act as **Mentor / Code Owner** for the learning-stage exception only. That status does not make the implementation agent an independent reviewer or Safety Code Owner and does not allow self-approval where a separate approval is required.
+A verified mentor may act as **Mentor / Code Owner** for the learning-stage exception and may use Code Owner self-acceptance only when every requirement above applies. That status does not make the implementation agent an independent reviewer or Safety Code Owner.
 
 ## Required startup
 
@@ -116,11 +133,11 @@ Before substantial work, read:
 8. Re-plan and obtain renewed acknowledgement if the implementation materially diverges.
 9. Run applicable build, tests, and formatting.
 10. Inspect the complete diff.
-11. Ask the user diff-grounded learning questions and evaluate the answers.
-12. Only after learning verification passes, create the commit.
-13. Obtain required human approval for protected/high-risk work.
-14. Push the passed commit and create/update a PR to the appropriate integration branch.
-15. Do not merge it yourself.
+11. Ask the user diff-grounded learning questions and evaluate the answers, unless an eligible mentor explicitly uses the documented learning override.
+12. Only after learning verification passes or the mentor override is recorded, create the commit.
+13. Push the covered commit and create/update a PR to the appropriate integration branch.
+14. Obtain the required exact-head human approval and fresh independent review; an eligible PR author may use the documented Code Owner self-acceptance path.
+15. Merge only on an explicit exact-head instruction from an authorized human after every hosted and Harness gate passes. Without verified Code Owner self-acceptance, the implementation agent must not merge its own PR.
 
 ## Branch promotion model
 
@@ -155,10 +172,11 @@ The review must inspect the real current PR head and produce the structured Mark
 
 - Never perform work outside the Robotics-Only Scope Policy.
 - Never push directly to protected long-lived branches.
-- Never bypass CODEOWNERS, CI, branch protection, or explicit human approval.
+- Never disable or use an ad hoc bypass for CI, branch protection, or explicit human authorization. Treat configured pull-request-only ruleset bypass for `CODEOWNER SELF-ACCEPT` as the only authorized CODEOWNERS/approval exception, and use it only through the exact-head procedure above after CI passes.
 - Never deploy robot code autonomously.
 - Never invent CAN IDs, current limits, physical limits, sensor positions, or other safety-critical hardware data.
 - Never treat implementation-agent self-review as independent review.
+- Never submit an approving GitHub review on behalf of a PR author; GitHub self-approval is not valid.
 - Never commit, push, or create/update a PR before the user passes diff-grounded learning verification for that change, except when an active `@FRC1884/mentors` member has been authenticated and explicitly invokes the documented mentor learning override.
 - Never commit Harness monitoring/evidence artifacts into the product diff unless explicitly intended as repository documentation.
 

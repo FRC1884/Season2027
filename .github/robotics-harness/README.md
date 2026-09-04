@@ -43,7 +43,7 @@ Codex must additionally read:
 ## Roles
 
 - **Software Team Member** — normal implementation agent.
-- **Mentor / Code Owner** — human governance and protected-path approval; an authenticated active member of `@FRC1884/mentors` may waive the learning questions for their own session.
+- **Mentor / Code Owner** — human governance and protected-path approval; an authenticated active member of `@FRC1884/mentors` may waive the learning questions for their own session, and a verified full-path Code Owner may self-accept their own exact PR head.
 - **Safety Code Owner** — human approval for high-risk hardware/safety changes.
 - **Automated Reviewer** — a fresh Codex review context invoked by the user.
 
@@ -52,6 +52,8 @@ Codex must additionally read:
 Codex records the repository's `git config user.name` and `git config user.email`, then resolves the authenticated login with `gh api user` and verifies that login's active membership in `@FRC1884/mentors`. Local Git configuration is attribution, not authorization; changing a local name or email cannot grant Mentor status. If the GitHub identity or membership check is unavailable or fails, Codex uses the normal Software Team Member workflow.
 
 The resulting mentor override is limited to the question-and-answer learning stage. It does not weaken hosted controls, safety governance, validation, approval, review, deployment, or merge requirements.
+
+Code Owner self-acceptance is separate. GitHub does not let PR authors approve their own review, so the Harness records an exact-head `CODEOWNER SELF-ACCEPT` decision and uses a configured pull-request ruleset bypass only after CI, current independent review, conversation resolution, path ownership, risk-role checks, and explicit human merge intent pass. See `APPROVALS.md`.
 
 ## Hard vs soft enforcement
 
@@ -63,6 +65,8 @@ Markdown rules control agent behavior but are not a security boundary. Hard cont
 - review requirements;
 - protected safety/configuration paths;
 - no force pushes / no branch deletion where configured.
+
+Ruleset bypass is broader than CODEOWNERS path matching. Hosted configuration must grant it only to trusted owner roles, while the Harness verifies exact path ownership before use. A custom GitHub App/check is required if the team needs deterministic path-scoped enforcement rather than this audited human/Codex procedure.
 
 The repository currently has no deterministic runtime classifier or pre-action validator for robotics relevance. The scope gate is an authoritative Codex instruction with monitoring/audit requirements; the absence of runtime enforcement must not be represented as a hard control.
 

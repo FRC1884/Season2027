@@ -33,6 +33,9 @@ The Harness should emit structured events such as:
 - `push_blocked` / `branch_pushed`
 - `pr_blocked` / `pr_created` / `pr_updated`
 - `approval_requested` / `approval_granted` / `approval_denied`
+- `codeowner_resolution_started` / `codeowner_resolution_passed` / `codeowner_resolution_failed`
+- `self_acceptance_requested` / `self_acceptance_granted` / `self_acceptance_rejected` / `self_acceptance_invalidated`
+- `merge_executed`
 - `pre_pr_check_started` / `pre_pr_check_completed`
 - `review_agent_started`
 - `review_completed` / `review_published`
@@ -80,12 +83,25 @@ validation completed
        -> learning_answer_evaluated -> learning_verification_passed
        OR verified mentor identity -> mentor_learning_override_used
     -> commit_created
-    -> required approval events
     -> branch_pushed
     -> pr_created or pr_updated
+    -> required approval events
+       OR verified Code Owner self-acceptance events
 ```
 
 An incomplete or failed learning result without a valid mentor override must be followed by `commit_blocked`, `push_blocked`, or `pr_blocked` when the corresponding action is requested. A material diff change after PASS or an override emits the corresponding invalidation event and requires another passing question/answer loop or diff-bound override before commit or publication.
+
+### Code Owner self-acceptance ordering
+
+```text
+current-head required CI passed
+    -> current-head independent review completed without unresolved blockers
+    -> review conversations resolved
+    -> codeowner_resolution_passed
+    -> self_acceptance_requested
+    -> self_acceptance_granted
+    -> merge_executed
+```
 
 Each event should include the minimum useful metadata:
 
@@ -113,6 +129,10 @@ scope_clarification_status where applicable
 no_work_performed (true for scope_check_denied)
 ```
 
+Mentor identity events record local Git name/email as attribution and the authenticated GitHub login plus active `@FRC1884/mentors` membership as authorization. They must not record tokens. Learning-override events additionally bind the explicit waiver and reason to the repository, branch, changed files, and diff digest.
+
+Code Owner self-acceptance events bind the authenticated PR author, base and head SHAs, changed paths/digest, effective base-revision CODEOWNERS entries and active team memberships, confirmation that no authorization surface changed, risk-role eligibility, required checks, current independent review, conversation resolution, ruleset-bypass eligibility, and explicit `CODEOWNER SELF-ACCEPT` decision. Any head or eligibility change invalidates the decision before merge.
+
 ## Privacy boundary
 
 Monitoring records visible actions and concise user-facing decision summaries. A policy-conflict summary may record the conflicting instruction, the policy boundary, and the governed alternative; it must not attempt to capture private chain-of-thought, passwords, tokens, or other secrets.
@@ -138,6 +158,7 @@ The useful admin interface is a digest, not a raw event firehose. A digest shoul
 - Has the current head been independently reviewed?
 - Are there unresolved blocking findings?
 - Did anything attempt to bypass governance?
+- If the author self-accepted, did the exact-head identity, ownership, CI, review, conversation, and hosted-bypass requirements pass before merge?
 
 ## Prototype
 

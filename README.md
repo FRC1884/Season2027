@@ -15,6 +15,7 @@ The reusable project/tooling structure has been carried forward and renamed to `
 - `AGENTS.md` v1 for normal Software Team Member Codex sessions
 - diff-grounded learning verification policy with an authenticated mentor-only learning override
 - risk classification and human approval policy
+- exact-head Code Owner self-acceptance policy for author-owned PRs
 - Monitoring v1 contract and sample mentor digest
 - PR template with risk, safety, learning, testing, and rollback evidence
 - CODEOWNERS for mentors, Software Lead, three sub-leads, and approved alumni
@@ -47,7 +48,9 @@ The desired hosted protection policy is documented in [`docs/BRANCH_PROTECTION_S
 
 A normal coding Codex session applies the Robotics-Only Scope Policy before repository actions and denies unrelated work. An IN SCOPE request then follows:
 
-**robotics scope PASS → user-facing intercept → clarification → plan acknowledgement → risk → implementation → build/test/format → learning verification → human approval where required → PR**
+**robotics scope PASS → user-facing intercept → clarification → plan acknowledgement → risk → implementation → build/test/format → learning verification or mentor override → PR → approval or Code Owner self-acceptance → merge**
+
+A verified Code Owner may self-accept their own PR through an explicit exact-head decision when they own every changed path and all required CI, current independent review, risk-role, conversation-resolution, and hosted ruleset-bypass conditions pass. GitHub does not treat the author's own review as an approval, so the Harness never fabricates one.
 
 AI PR review is deliberately **manual/on-demand** rather than an automatic GitHub AI workflow.
 
