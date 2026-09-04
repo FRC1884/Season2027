@@ -84,5 +84,22 @@
     "bind_to_head_sha": true,
     "human_merge_authority_only": true
   },
+  "code_owner_self_acceptance": {
+    "allowed": true,
+    "decision": "CODEOWNER SELF-ACCEPT",
+    "github_author_review_counts_as_approval": false,
+    "require_authenticated_author_match": true,
+    "resolve_codeowners_from_base_revision": true,
+    "require_owner_for_every_changed_path": true,
+    "deny_when_authorization_surface_changes": true,
+    "require_all_additional_risk_roles": true,
+    "require_current_head": true,
+    "require_required_checks": true,
+    "require_conversation_resolution": true,
+    "require_fresh_independent_codex_review": true,
+    "require_explicit_exact_head_merge_instruction": true,
+    "require_pull_request_ruleset_bypass": true,
+    "allow_ad_hoc_admin_bypass": false
+  },
   "automated_deploy_allowed": false
 }
