@@ -68,7 +68,7 @@ plan_rejected
 plan_revised
 ```
 
-The user-facing interaction sequence begins only after `scope_check_passed`. For a policy conflict, `policy_conflict_explained` must occur before any repository inspection, command, or edit event. For a substantial change, `plan_presented` and `plan_acknowledgement_requested` must precede `plan_acknowledged`, and `plan_acknowledged` must precede the first substantial edit event. A material plan change requires `plan_revised` and a new acknowledgement sequence before substantial edits resume.
+The user-facing interaction sequence begins only after `scope_check_passed`. For a policy conflict, `policy_conflict_explained` must occur before any repository inspection, command, or edit event. For a change-producing task, `plan_presented` and `plan_acknowledgement_requested` must precede `plan_acknowledged`, and `plan_acknowledged` must precede the first implementation edit event. A material plan change requires `plan_revised` and a new acknowledgement sequence before implementation edits resume.
 
 ## Learning and publication gate events
 
@@ -181,3 +181,35 @@ A mentor digest should summarize:
 - final PR state.
 
 See `docs/samples/MONITORING_DIGEST_SAMPLE.md` for the human-facing demo format.
+
+## Provider and review event extension
+
+Extend the existing structured event store; do not create a second competing
+log. Record task/session, provider, repository/branch, revision or digest,
+UTC timestamp, action, status, concise visible reason and sanitized evidence
+references. Local records are editable diagnostics, not independent authority.
+Keep incidental events and private interactions outside the product diff.
+
+Record scope started/passed/clarification/denied; visible response; clarification
+requested/answered or already resolved; plan proposed/approved/rejected/invalidated;
+blocked writes; validation; complete diff inspected; learning requested, answer
+received/evaluated, failed/passed/invalidated or verified permitted override;
+commit/push/author PR blocked/completed; review context and independence; identity
+check; report approval; posting blocked/published/failed/stale and reconciliation.
+Use the runtime's existing canonical event names and structured fields rather
+than interpreting a prose event count as a gate result.
+
+Scope denial permits only sanitized control-plane recording that no task action
+occurred. Plan approval must precede implementation actions. Validation and
+complete change digest precede learning evaluation; current learning precedes
+commit/push/author PR. Review-only events have a distinct action type and never
+unlock author actions. Report approval precedes identity/freshness rechecks and
+publication; read-back evidence records actual author, state, SHA and body digest.
+An uncertain network outcome is unresolved until reconciliation. Any head race
+or subsequent change records stale evidence.
+
+Preserve existing mentor identity/learning override and target self-acceptance
+events without broadening eligibility. Record only verified roles and actual
+human interaction; fixtures explicitly identify simulated approvals and never
+supply real authorization. Do not expose token values, student transcripts,
+secrets, hidden chain-of-thought or personal machine paths in public summaries.

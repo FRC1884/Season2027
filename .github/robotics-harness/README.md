@@ -2,7 +2,7 @@
 
 This directory is the in-repository execution contract for FRC1884 Season2027.
 
-The Harness is intentionally designed around **user-operated Codex sessions** rather than an autonomous AI GitHub workflow. GitHub is the intended hard-control layer for CI, CODEOWNERS, and branch protection, but those hosted controls must be enabled and verified separately; Codex follows the Markdown lifecycle below.
+The Harness is intentionally designed around **user-operated Codex and Claude Code sessions** rather than an autonomous AI GitHub workflow. GitHub is the intended hard-control layer for CI, CODEOWNERS, and branch protection, but those hosted controls must be enabled and verified separately; Codex follows the Markdown lifecycle below.
 
 ## Instruction hierarchy
 
@@ -18,7 +18,7 @@ For an unrelated request, issue the required denial and stop without task action
 
 ## Entry points
 
-After that first response, a normal coding Codex session must read, in order:
+After that first response, a normal coding Codex or Claude Code session must read, in order:
 
 1. `/AGENTS.md`
 2. `.github/robotics-harness/README.md`
@@ -28,15 +28,15 @@ After that first response, a normal coding Codex session must read, in order:
 6. `.github/robotics-harness/APPROVALS.md`
 7. `.github/robotics-harness/MONITORING.md`
 
-When the user asks Codex to review a PR, for example:
+When the user asks either client to review a PR, for example:
 
 ```text
 review PR #42
 ```
 
-Codex must additionally read:
+The reviewer must additionally read:
 
-1. `.codex/skills/agentic-review/SKILL.md`
+1. `.agents/skills/agentic-review/SKILL.md` (Codex) or `.claude/skills/agentic-review/SKILL.md` (Claude)
 2. `.github/robotics-harness/REVIEW_POLICY.md`
 3. `.github/robotics-harness/REVIEW_TEMPLATE.md`
 
@@ -45,7 +45,7 @@ Codex must additionally read:
 - **Software Team Member** — normal implementation agent.
 - **Mentor / Code Owner** — human governance and protected-path approval; an authenticated active member of `@FRC1884/mentors` may waive the learning questions for their own session, and a verified full-path Code Owner may self-accept their own exact PR head.
 - **Safety Code Owner** — human approval for high-risk hardware/safety changes.
-- **Automated Reviewer** — a fresh Codex review context invoked by the user.
+- **Automated Reviewer** — a fresh Codex or Claude Code review context invoked by the user.
 
 ## Mentor identity boundary
 
@@ -68,10 +68,16 @@ Markdown rules control agent behavior but are not a security boundary. Hard cont
 
 Ruleset bypass is broader than CODEOWNERS path matching. Hosted configuration must grant it only to trusted owner roles, while the Harness verifies exact path ownership before use. A custom GitHub App/check is required if the team needs deterministic path-scoped enforcement rather than this audited human/Codex procedure.
 
-The repository currently has no deterministic runtime classifier or pre-action validator for robotics relevance. The scope gate is an authoritative Codex instruction with monitoring/audit requirements; the absence of runtime enforcement must not be represented as a hard control.
+The local session guard checks declared scope and machine-readable prerequisites on routed actions. It is not a semantic scope proof or tamper-proof authority: direct shell/API, unsupported tools and editable state remain limitations.
 
 ## Review model
 
-There is no required OpenAI API key and no automatic GitHub-hosted AI review job. The user asks their own Codex instance to review a PR. The reviewer reads the exact PR head, applies the policy in this directory, writes a structured Markdown report, and may post it to the PR when GitHub access is available.
+There is no required OpenAI API key and no automatic GitHub-hosted AI review job. The user asks their existing Codex or Claude Code session to review a PR. After verified gh identity and explicit review-plan agreement, the reviewer reads trusted-base policy and the full current diff. Exact rendered-report approval authorizes only its SHA-bound COMMENT publication, followed by read-back; GitHub access alone is not publication authorization.
 
 A review is valid only for the head SHA it inspected. Any later commit makes it stale.
+
+## Shared contract and provider adapters
+
+Explicitly read `WORKFLOW.md` in addition to the lifecycle documents above. It is generated from the shared Harness and applies to both providers; this repository retains its own approval, learning-exception and promotion rules. Root `CLAUDE.md` imports `@AGENTS.md`. Codex uses `.agents/skills/agentic-review/`; Claude uses `.claude/skills/agentic-review/`; `.codex/skills/agentic-review/` is compatibility guidance. Natural `review PR #123` and repository-qualified requests enter the same review-only route. Use `$agentic-review` (Codex) or `/agentic-review` (Claude) explicitly when needed; built-in `/review` is not a substitute.
+
+These are repository-level controls, subordinate to system/developer instructions, runtime permissions and GitHub authorization. Consult `WORKFLOW.md` for fresh/resumed session checks and enforcement limits. Real-client compatibility remains NOT RUN until execution evidence records actual loading and blocked/allowed attempts.

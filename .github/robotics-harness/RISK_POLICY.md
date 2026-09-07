@@ -1,6 +1,6 @@
 # Risk Policy
 
-Classify each task before major implementation and again against the final diff.
+Classify each task before implementation and again against the final diff.
 
 ## LOW
 
@@ -62,7 +62,7 @@ Using verified Code Owner self-acceptance exactly as defined in `APPROVALS.md` i
 
 Increase risk when the actual diff touches:
 
-- `.github/**`, `.codex/**`, `AGENTS.md`;
+- `.github/**`, `.codex/**`, `.agents/**`, `.claude/**`, `AGENTS.md`, `AGENTS.override.md`, `CLAUDE.md`, nested instruction files and `tools/robotics_harness/**`;
 - `src/main/java/**/safety/**`;
 - `*Constants.java` containing hardware/safety values;
 - deployment configuration;

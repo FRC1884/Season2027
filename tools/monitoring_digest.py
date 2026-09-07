@@ -25,15 +25,19 @@ def main() -> int:
 
     latest = events[-1]
     counts = Counter(str(event.get("event_type", "unknown")) for event in events)
-    roles = sorted({str(event.get("actor_role", "unknown")) for event in events})
+    roles = sorted({str(event.get("actor_role", "not recorded")) for event in events})
+    providers = sorted(
+        {str(event.get("metadata", {}).get("provider", "not recorded")) for event in events}
+    )
 
     print("# Monitoring Digest")
     print()
     print(f"- Repository: `{latest.get('repository', 'unknown')}`")
     print(f"- Branch: `{latest.get('branch', 'unknown')}`")
-    print(f"- Task: `{latest.get('task_id', 'unknown')}`")
+    print(f"- Task: `{latest.get('task_identifier', latest.get('task_id', 'unknown'))}`")
     print(f"- Events: **{len(events)}**")
     print(f"- Actor roles: {', '.join(roles)}")
+    print(f"- Providers: {', '.join(providers)}")
     print()
     print("## Event summary")
     print()
@@ -42,7 +46,7 @@ def main() -> int:
     print()
     print("## Latest status")
     print()
-    print(str(latest.get("summary", latest.get("status", "No summary"))))
+    print(str(latest.get("summary", latest.get("result", latest.get("status", "No summary")))))
     return 0
 
 

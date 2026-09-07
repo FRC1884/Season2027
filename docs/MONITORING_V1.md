@@ -162,6 +162,12 @@ The useful admin interface is a digest, not a raw event firehose. A digest shoul
 
 ## Prototype
 
+The installed shared runtime now emits the typed `MonitoringEvent` schema through
+the same local JSONL store. The digest accepts its `task_identifier`, `result`,
+and provider metadata as well as historical sample fields. It summarizes recorded
+events; it does not independently certify approvals or make local records tamper-proof.
+The active action gates are documented in `.github/robotics-harness/WORKFLOW.md`.
+
 `tools/monitoring_digest.py` converts a small JSONL event stream into a readable Markdown digest. It counts arbitrary event types, including the scope events above, but does not validate event ordering or enforce the Robotics Scope Check. The production Harness has a richer event store/integrity chain; the repository prototype exists so the monitoring concept can be demonstrated independently to school administration.
 
 See `docs/samples/MONITORING_DIGEST_SAMPLE.md` for an example output.
