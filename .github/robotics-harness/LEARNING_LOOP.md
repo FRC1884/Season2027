@@ -4,7 +4,7 @@ The learning loop is a **trust-but-verify gate** that confirms the user understa
 
 ## Verified mentor learning override
 
-An authenticated active member of `@FRC1884/mentors` may explicitly waive the question-and-answer learning stage for their own Codex session. This is a role-based exception to this file only, not a general Harness bypass.
+An authenticated active member of `@FRC1884/mentors` may explicitly waive the question-and-answer learning stage for their own Codex or Claude Code session. This is a role-based exception to this file only, not a general Harness bypass.
 
 Before offering or using the override, Codex must run the equivalent of these read-only checks:
 
@@ -35,7 +35,7 @@ Do not record authentication tokens or private credential data. A material diff 
 Run learning verification:
 
 1. after implementation and applicable validation;
-2. after Codex inspects the complete proposed commit diff, including staged and unstaged changes;
+2. after Codex inspects the complete proposed commit diff, including staged, unstaged and intended new files;
 3. before creating any commit, pushing any ref, or creating/updating a pull request.
 
 Questions must be grounded in the actual uncommitted diff, not the original request or a generic description.
@@ -83,14 +83,14 @@ Record `learning_verification_passed` only when the answers cover all meaningful
 
 Bind the result to the proposed change by recording, where available:
 
-- repository and branch;
-- changed-file list;
-- diff digest or staged-diff digest;
+- repository, task/session, provider, branch and approved plan revision;
+- human interaction reference and changed-file list;
+- base revision and exact complete change digest;
 - risk classification;
 - questions, concise user-answer summaries, and evaluations;
 - timestamp and final result.
 
-If the diff materially changes after PASS or `MENTOR OVERRIDE`, emit `learning_verification_invalidated`, inspect the revised diff, and repeat the necessary questions or record a new explicit mentor override. Non-semantic formatting may retain the result only after Codex re-inspects the diff and confirms the meaning is unchanged.
+If the diff materially changes after PASS or `MENTOR OVERRIDE`, emit `learning_verification_invalidated`, inspect the revised diff, and repeat the necessary questions or record a new explicit mentor override. Even formatting changes the snapshot digest: re-inspect and explicitly rebind the human evidence only when its evaluation still applies; never publish using a stale digest.
 
 ## Commit and publication gate
 
@@ -100,7 +100,7 @@ Until learning verification passes or a verified mentor override is recorded, do
 - push a branch, tag, or commit;
 - create or update a pull request.
 
-After PASS or `MENTOR OVERRIDE`, commit only the covered change and confirm the commit matches the bound diff before pushing. Human approval, independent review, CI, and merge requirements remain separate gates.
+After PASS or `MENTOR OVERRIDE`, commit only the covered change and verify both the staged snapshot and resulting committed contents match the bound diff before pushing. Human approval, independent review, CI, and merge requirements remain separate gates.
 
 ## Evidence
 
@@ -141,3 +141,5 @@ PASS / MENTOR OVERRIDE / BLOCKED / INVALIDATED
 ```
 
 Do not record hidden chain-of-thought. Concise questions, visible answer summaries, evaluations, and change-binding metadata are sufficient.
+
+Review-only sessions report author learning evidence availability without invoking this author gate. Incorrect but lengthy answers must fail; deterministic wording checks do not establish correctness. Keep private answers in access-controlled local evidence and publish only sanitized status/references, never student transcripts or personal machine paths.

@@ -1,76 +1,71 @@
-## Summary
+## Objective and confirmed plan
 
-What does this change do?
+- Task / repository / integration branch:
+- Objective, intended behavior and non-goals:
+- Confirmed plan revision / digest / sanitized agreement reference:
+- Clarification checkpoint: RESOLVED / NOT APPLICABLE (explain) / BLOCKED
+- Material scope/risk changes and renewed agreement: NONE VERIFIED / reference
 
-## Why
+## Scope and risk
 
-What problem or requirement does it address?
+- Complete changed-file list / exact snapshot digest:
+- Risk: LOW / MEDIUM / HIGH / CRITICAL — reason:
+- Protected paths / required reviewer groups:
+- Behavior before / after and hardware assumptions:
 
-## Risk
+## Validation actually performed
 
-- [ ] Low
-- [ ] Medium
-- [ ] High
-- [ ] Critical
+| Command or check | Exact revision / snapshot | Result | Sanitized evidence |
+| --- | --- | --- | --- |
+| Populate actual checks | | PASS / FAIL / NOT RUN / BLOCKED | |
 
-Explain the classification and any safety implications.
+- Complete staged, unstaged and intended-new-file diff inspected:
+- Staged/committed contents match learning snapshot:
+- Evidence contamination / limitations / missing checks:
 
-## Protected paths
+Never pre-tick completion or claim planned tests passed. Use evidence links or
+relative artifact identifiers, not credentials, private student transcripts or
+personal machine paths.
 
-- [ ] No protected paths changed
-- [ ] Protected paths changed and appropriate Code Owners requested
+## Learning status before commit and publication
 
-List protected files if applicable.
+- Status: PASS / VERIFIED PERMITTED EXCEPTION / BLOCKED
+- Bound task / human interaction reference / changed-file list / digest:
+- Evaluation and practical verification evidence, where required:
+- Verified permitted exception reference, role and exact limits (if applicable):
+- Changes after learning: NONE VERIFIED / invalidated and re-evaluated reference
 
-## Validation
+This records an already satisfied author gate. Agent-generated explanations and
+checkboxes are not human answers. Do not publish private answers in this PR.
+A target exception cannot waive a different repository's learning requirement.
 
-- [ ] Build passes
-- [ ] Tests pass
-- [ ] Formatting passes
-- [ ] Full diff reviewed
-- [ ] Harness learning verification passed or a verified mentor override was recorded before every task commit
-- [ ] Runtime/evidence contamination check passed
+## Safety, limitations and rollback
 
-Commands/results:
+- Risks / unresolved assumptions / safety interlocks:
+- Known-good revision and revert/disable procedure:
+- Rollback verification:
 
-```text
-<commands and results>
-```
+## Requested review
 
-## Learning / understanding
+- Human reviewers / required safety roles:
+- Independent agent review: PENDING / exact-head report reference
+- Human approval: PENDING / verified exact-head decision reference
+- Blocking findings / conversations: PENDING / verified status
+- Publication readiness: DRAFT / governed ready decision reference
 
-- Proposed commit files / diff digest:
-- Risk at learning verification:
-- Questions asked:
-- Concise user-answer summaries:
-- Evaluation: PASS / MENTOR OVERRIDE / BLOCKED
-- Material changes after PASS/override: No / Yes — verification or override repeated
+PENDING is expected before a new PR can be independently reviewed. Review is not
+a circular prerequisite to creating the PR. AI-assisted COMMENT reviews are
+not human approval or merge authorization. Never merge or deploy as a side effect.
 
-> This section records a gate that already passed. Do not create or update the PR first and fill in learning evidence afterward.
+### Code Owner self-acceptance, only when permitted
 
-## Safety / rollback
+- Decision: NOT USED / CODEOWNER SELF-ACCEPT
+- Verified PR author / authenticated login / exact head SHA:
+- Base-revision matching CODEOWNERS entries and active memberships:
+- Authorization surface changed: YES (prohibited) / NO (verified)
+- Risk/safety role, current CI, independent review and resolved conversations:
+- Configured pull-request bypass / explicit exact-head human instruction:
+- Timestamp and evidence reference:
 
-What could go wrong on a real robot, and how would we disable or revert this safely?
-
-## Review
-
-- [ ] Required human approval obtained/requested, or verified Code Owner self-acceptance recorded
-- [ ] Independent Automated Reviewer Codex review completed for the current head SHA
-- [ ] Blocking findings resolved or explicitly escalated
-
-### Code Owner self-acceptance (when used)
-
-- PR author/authenticated login:
-- Exact head SHA:
-- Matching CODEOWNERS entries/team memberships:
-- Ownership resolved from base revision:
-- Authorization surface changed: No / Yes — self-acceptance prohibited
-- Required risk/safety role:
-- Required checks:
-- Current independent review result:
-- Conversations resolved:
-- Ruleset bypass actor/mode:
-- Explicit decision: CODEOWNER SELF-ACCEPT / NOT USED
-- Decision timestamp:
-
-> A PR author cannot approve their own GitHub review. Self-acceptance is an exact-head Harness decision plus configured ruleset-bypass merge, not an approval review. Do not merge solely because automated review passes; human governance remains authoritative.
+Self-acceptance cannot approve changes to its own authorization surface. It is
+not a GitHub self-approval and does not waive any other exact-head gate.

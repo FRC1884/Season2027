@@ -1,6 +1,6 @@
 # Task Lifecycle
 
-Every normal Codex coding session acts as a **Software Team Member** unless the user explicitly assigns a different authorized role or the mentor identity check below succeeds.
+Every normal Codex or Claude Code coding session acts as a **Software Team Member** unless the user explicitly assigns a different authorized role or the mentor identity check below succeeds.
 
 ## 0. Robotics Scope Check and user-facing intercept
 
@@ -32,9 +32,9 @@ ROBOTICS SCOPE CHECK
               ├── validation
               ├── learning verification
               ├── commit
-              ├── human approval
               ├── push
-              └── PR / review / governance
+              ├── template-based PR
+              └── independent review / authorized human decision
 ```
 
 - Use semantic/contextual classification and already-available conversation/repository context; a robotics keyword or fictional robotics framing is not sufficient.
@@ -90,7 +90,7 @@ The origin must resolve to `FRC1884/Season2027`. Missing Git attribution, unavai
 
 ## 2. Clarification
 
-Ask only questions that materially affect correctness, safety, architecture, hardware assumptions, or acceptance criteria.
+Complete the clarification checkpoint after read-only inspection. Ask only unresolved questions that materially affect correctness, safety, architecture, hardware assumptions, scope, verification or acceptance criteria, and wait for their answers. When requirements are already resolved, state confirmed understanding and assumptions in the plan; do not invent questions.
 
 Do not invent:
 
@@ -104,7 +104,7 @@ Do not invent:
 
 ## 3. Plan
 
-After repository inspection and required clarification, present this gate before substantial edits:
+After repository inspection and required clarification, present this gate before implementation edits:
 
 ```markdown
 ## Proposed Plan
@@ -152,14 +152,14 @@ Apply `RISK_POLICY.md`. Record the initial risk and re-evaluate against the actu
 
 - Work on a task branch.
 - Keep scope within the acknowledged plan.
-- If scope, architecture, protected paths, acceptance criteria, or risk materially changes, stop substantial edits and tell the user what changed.
+- If scope, architecture, protected paths, acceptance criteria, or risk materially changes, stop implementation edits and tell the user what changed.
 - Present the revised plan and obtain a new user acknowledgement before continuing.
 - Identify any newly required authorized human approval separately from plan acknowledgement.
 - Keep Harness evidence outside the product diff.
 
 ## 6. Validation
 
-Run the repository's applicable build, tests, and formatting checks. Keep the change uncommitted, inspect the complete proposed commit diff (staged and unstaged), and remove unrelated changes.
+Run the repository's applicable build, tests, and formatting checks. Keep the change uncommitted and inspect the complete proposed snapshot: staged, unstaged and intended new files, renames, deletions and binaries. Preserve pre-existing unrelated work; never reset, clean, stash or overwrite it without authorization.
 
 ## 7. Learning verification
 
@@ -199,18 +199,22 @@ Low-risk cross-cutting work may target `software-leads` directly when repository
 
 The AI review is **manual/on-demand**, not an automatic GitHub AI workflow.
 
-A human opens a fresh Codex session and asks:
+A human opens a fresh Codex or Claude Code session and asks:
 
 ```text
 review PR #<number>
 ```
 
-That Codex session follows `REVIEW_POLICY.md` and `REVIEW_TEMPLATE.md`.
+That session follows the distinct review route in `WORKFLOW.md`, `REVIEW_POLICY.md` and `REVIEW_TEMPLATE.md`. Reviewer report publication is separate from author-side commit/push/PR learning gates.
 
-The review must cover the current head. `APPROVE` means the independent Codex review found no blocking issue; it is not a GitHub approval and does not itself authorize merge.
+The review must cover the current head. `APPROVE` means the independent agent review found no blocking issue; it is not a GitHub approval and does not itself authorize merge.
 
 ## 12. Human merge boundary
 
 Only an authorized human merges after required CI, review, CODEOWNERS, and governance conditions are satisfied. A verified Code Owner may accept and merge their own PR when `APPROVALS.md` resolves them as an owner for every changed path, any additional risk role matches, the current head satisfies every prerequisite, and the hosted ruleset provides the configured pull-request bypass.
 
 Codex may execute that merge only after the authenticated Code Owner explicitly requests merge of the exact current head. Otherwise, a different authorized human must approve and merge.
+
+## Shared action contract
+
+Explicitly read `WORKFLOW.md` for current-plan approval (including small tasks), exact change snapshots and review routing. Before plan approval, no branch creation, formatting, dependencies, write-producing builds or publication is allowed. Minimal sanitized lifecycle records outside tracked files grant no authority. Author PRs use `.github/pull_request_template.md`; independent review is PENDING until performed after PR creation.
