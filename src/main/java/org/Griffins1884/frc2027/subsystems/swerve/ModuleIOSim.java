@@ -5,7 +5,10 @@ import static org.Griffins1884.frc2027.subsystems.swerve.SwerveConstants.*;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import java.util.Arrays;
+import org.Griffins1884.frc2027.runtime.RuntimeModeManager;
 import org.Griffins1884.frc2027.util.LoggedTunableNumber;
 import org.Griffins1884.frc2027.util.SparkUtil;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
@@ -25,6 +28,8 @@ public class ModuleIOSim implements ModuleIO {
       new PIDController(ROTATOR_GAINS.kP().get(), 0, ROTATOR_GAINS.kD().get());
   private final int tuningId = System.identityHashCode(this);
   private double driveFFVolts = 0.0;
+  private double appliedDriveKs = DRIVE_MOTOR_GAINS.kS().get();
+  private double appliedDriveKv = DRIVE_MOTOR_GAINS.kV().get();
   private double driveAppliedVolts = 0.0;
   private double turnAppliedVolts = 0.0;
 
@@ -45,18 +50,27 @@ public class ModuleIOSim implements ModuleIO {
 
   @Override
   public void updateInputs(ModuleIOInputs inputs) {
-    LoggedTunableNumber.ifChanged(
-        tuningId,
-        values -> driveController.setPID(values[0], values[1], values[2]),
-        DRIVE_MOTOR_GAINS.kP(),
-        DRIVE_MOTOR_GAINS.kI(),
-        DRIVE_MOTOR_GAINS.kD());
-    LoggedTunableNumber.ifChanged(
-        tuningId,
-        values -> turnController.setPID(values[0], values[1], values[2]),
-        ROTATOR_GAINS.kP(),
-        ROTATOR_GAINS.kI(),
-        ROTATOR_GAINS.kD());
+    updateInputs(inputs, Timer.getFPGATimestamp());
+  }
+
+  @Override
+  public void updateInputs(ModuleIOInputs inputs, double acquisitionTimestampSeconds) {
+    if (DriverStation.isDisabled() && RuntimeModeManager.allowsTuning(false)) {
+      appliedDriveKs = DRIVE_MOTOR_GAINS.kS().get();
+      appliedDriveKv = DRIVE_MOTOR_GAINS.kV().get();
+      LoggedTunableNumber.ifChanged(
+          tuningId,
+          values -> driveController.setPID(values[0], values[1], values[2]),
+          DRIVE_MOTOR_GAINS.kP(),
+          DRIVE_MOTOR_GAINS.kI(),
+          DRIVE_MOTOR_GAINS.kD());
+      LoggedTunableNumber.ifChanged(
+          tuningId,
+          values -> turnController.setPID(values[0], values[1], values[2]),
+          ROTATOR_GAINS.kP(),
+          ROTATOR_GAINS.kI(),
+          ROTATOR_GAINS.kD());
+    }
     // Run closed-loop control
     if (driveClosedLoop) {
       driveAppliedVolts =
@@ -95,7 +109,8 @@ public class ModuleIOSim implements ModuleIO {
     inputs.terrainTurnAuthorityScale = 1.0;
 
     // Update odometry inputs
-    inputs.odometryTimestamps = SparkUtil.getSimulationOdometryTimeStamps();
+    inputs.odometryTimestamps =
+        SparkUtil.getSimulationOdometryTimeStamps(acquisitionTimestampSeconds);
     inputs.odometryDrivePositionsRad =
         Arrays.stream(moduleSimulation.getCachedDriveWheelFinalPositions())
             .mapToDouble(angle -> angle.in(Radians))
@@ -119,8 +134,7 @@ public class ModuleIOSim implements ModuleIO {
   public void setDriveVelocity(double velocityRadPerSec) {
     driveClosedLoop = true;
     driveFFVolts =
-        DRIVE_MOTOR_GAINS.kS().get() * Math.signum(velocityRadPerSec)
-            + DRIVE_MOTOR_GAINS.kV().get() * velocityRadPerSec;
+        appliedDriveKs * Math.signum(velocityRadPerSec) + appliedDriveKv * velocityRadPerSec;
     driveController.setSetpoint(velocityRadPerSec);
   }
 

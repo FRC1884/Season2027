@@ -46,7 +46,19 @@ public class GyroIOPigeon2 implements GyroIO {
   }
 
   @Override
+  public void clearOdometrySamples() {
+    yawTimestampQueue.clear();
+    yawPositionQueue.clear();
+  }
+
+  @Override
+  public void close() {
+    pigeon.close();
+  }
+
+  @Override
   public void resetYaw(double yawDegrees) {
     pigeon.getConfigurator().setYaw(yawDegrees);
+    yaw.refresh();
   }
 }
