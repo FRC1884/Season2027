@@ -290,3 +290,14 @@ References: [Java17 HttpServer](https://docs.oracle.com/en/java/javase/17/docs/a
 [OpenJDK17.0.18 dispatcher](https://github.com/openjdk/jdk17u/blob/jdk-17.0.18-ga/src/jdk.httpserver/share/classes/sun/net/httpserver/ServerImpl.java),
 [RFC9110 validators](https://www.rfc-editor.org/rfc/rfc9110.html#section-8.8.1),
 [If-None-Match](https://www.rfc-editor.org/rfc/rfc9110.html#section-13.1.2).
+
+### Publication validation follow-up
+
+The first hosted run used Temurin 17.0.20+1 and passed 93 of 94 tests. Its HTTP
+implementation rejects `//` request targets with 400 before the application handler,
+where local 17.0.18 had reached the handler and returned 404. The compatibility test
+now accepts only these two specific rejection paths, checks whether the handler ran,
+and verifies neither opened a file body. Production server code is unchanged.
+A temporary diagnostic JVM using upstream 17.0.20 HTTP classes reproduced the
+difference; that probe is not represented as a full Linux/17.0.20 runtime test.
+The required hosted check must pass for the updated head before review/merge gates.

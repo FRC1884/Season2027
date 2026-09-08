@@ -170,9 +170,17 @@ class OperatorBoardHttpTest {
         assertEquals(200, get(server, "/index.js?q=" + i, null).statusCode());
         assertEquals(404, get(server, "/missing-" + i, null).statusCode());
       }
-      for (String path :
-          new String[] {"/%2e%2e/secret", "/..%2fsecret", "//etc/passwd", "/default-data/"})
-        assertEquals(404, get(server, path, null).statusCode());
+      for (String path : new String[] {"/%2e%2e/secret", "/..%2fsecret", "/default-data/"})
+        assertEquals(404, get(server, path, null).statusCode(), path);
+      // JDK17.0.20 rejects network-path request targets before creating an exchange.
+      // Older Java17 reaches our containment check. Both must reject without opening a body.
+      var beforeNetworkPath = server.getMetricsSnapshot();
+      int networkPathStatus = get(server, "//etc/passwd", null).statusCode();
+      assertTrue(networkPathStatus == 400 || networkPathStatus == 404);
+      assertEquals(
+          beforeNetworkPath.requests() + (networkPathStatus == 400 ? 0 : 1),
+          server.getMetricsSnapshot().requests());
+      assertEquals(beforeNetworkPath.fileBodyOpens(), server.getMetricsSnapshot().fileBodyOpens());
       Files.createSymbolicLink(root.resolve("escape.js"), outside);
       assertTrue(get(server, "/escape.js", null).statusCode() >= 400);
       assertEquals(0, server.getMetricsSnapshot().validatorCacheEntries());
