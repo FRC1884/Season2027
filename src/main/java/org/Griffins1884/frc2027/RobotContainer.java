@@ -36,6 +36,7 @@ import org.Griffins1884.frc2027.subsystems.swerve.GyroIO;
 import org.Griffins1884.frc2027.subsystems.swerve.GyroIONavX;
 import org.Griffins1884.frc2027.subsystems.swerve.GyroIOPigeon2;
 import org.Griffins1884.frc2027.subsystems.swerve.GyroIOSim;
+import org.Griffins1884.frc2027.subsystems.swerve.ModuleConfigurationWorker;
 import org.Griffins1884.frc2027.subsystems.swerve.ModuleIO;
 import org.Griffins1884.frc2027.subsystems.swerve.ModuleIOFullKraken;
 import org.Griffins1884.frc2027.subsystems.swerve.ModuleIOSim;
@@ -50,6 +51,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /** Composition root for the Season2027 drivetrain and reusable infrastructure base. */
 public final class RobotContainer implements AutoCloseable {
+  private ModuleConfigurationWorker configurationWorker;
   private final SwerveSubsystem drive;
   private final SwerveDriveSimulation driveSimulation;
   private final DriverMap driver = getDriverController();
@@ -98,6 +100,8 @@ public final class RobotContainer implements AutoCloseable {
   }
 
   private DriveBuildResult buildDrive() {
+    if (MODE == GlobalConstants.RobotMode.REAL)
+      configurationWorker = new ModuleConfigurationWorker(DriverStation::isDisabled);
     return switch (MODE) {
       case REAL ->
           new DriveBuildResult(
@@ -107,10 +111,10 @@ public final class RobotContainer implements AutoCloseable {
                     case NAVX -> new GyroIONavX();
                     case ADIS -> new GyroIO() {};
                   },
-                  new ModuleIOFullKraken(FRONT_LEFT),
-                  new ModuleIOFullKraken(FRONT_RIGHT),
-                  new ModuleIOFullKraken(BACK_LEFT),
-                  new ModuleIOFullKraken(BACK_RIGHT)),
+                  new ModuleIOFullKraken(FRONT_LEFT, configurationWorker),
+                  new ModuleIOFullKraken(FRONT_RIGHT, configurationWorker),
+                  new ModuleIOFullKraken(BACK_LEFT, configurationWorker),
+                  new ModuleIOFullKraken(BACK_RIGHT, configurationWorker)),
               null);
       case SIM -> buildSimDrive();
       case REPLAY ->
@@ -282,6 +286,8 @@ public final class RobotContainer implements AutoCloseable {
 
   @Override
   public void close() {
+    if (configurationWorker != null) configurationWorker.close();
+    if (drive != null) drive.close();
     if (operatorBoardServer != null) {
       operatorBoardServer.close();
     }

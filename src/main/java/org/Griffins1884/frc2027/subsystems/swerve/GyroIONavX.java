@@ -33,6 +33,12 @@ public class GyroIONavX implements GyroIO {
   }
 
   @Override
+  public void clearOdometrySamples() {
+    yawTimestampQueue.clear();
+    yawPositionQueue.clear();
+  }
+
+  @Override
   public void resetYaw(double yawDegrees) {
     navX.zeroYaw();
   }
