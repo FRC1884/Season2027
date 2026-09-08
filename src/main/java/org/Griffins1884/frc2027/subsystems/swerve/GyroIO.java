@@ -17,6 +17,15 @@ public interface GyroIO {
 
   default void updateInputs(GyroIOInputs inputs) {}
 
+  default void updateInputs(GyroIOInputs inputs, double acquisitionTimestampSeconds) {
+    updateInputs(inputs);
+  }
+
+  /** Caller holds the shared odometry lock. */
+  default void clearOdometrySamples() {}
+
+  default void close() {}
+
   /** Resets the reported yaw to the provided field-relative heading in degrees. */
   default void resetYaw(double yawDegrees) {}
 }

@@ -17,6 +17,32 @@ import java.util.function.DoubleSupplier;
 import org.Griffins1884.frc2027.GlobalConstants;
 
 public class PhoenixOdometryThread extends Thread {
+  private volatile long droppedSamples;
+  private volatile long generation;
+  private static final int QUEUE_CAPACITY = 20;
+
+  public long getDroppedSamples() {
+    return droppedSamples;
+  }
+
+  /** Caller holds odometryLock; reject any refresh begun before a sensor reset. */
+  void invalidatePendingSamples() {
+    generation++;
+  }
+
+  public void shutdown() {
+    interrupt();
+    boolean interrupted = false;
+    while (isAlive()) {
+      try {
+        join();
+      } catch (InterruptedException exception) {
+        interrupted = true;
+      }
+    }
+    if (interrupted) Thread.currentThread().interrupt();
+  }
+
   private final Lock signalsLock = new ReentrantLock();
   private BaseStatusSignal[] phoenixSignals = new BaseStatusSignal[0];
   private final List<DoubleSupplier> genericSignals = new ArrayList<>();
@@ -45,7 +71,7 @@ public class PhoenixOdometryThread extends Thread {
     return instance;
   }
 
-  private PhoenixOdometryThread() {
+  PhoenixOdometryThread() {
     setName("PhoenixOdometryThread");
     setDaemon(true);
   }
@@ -58,7 +84,7 @@ public class PhoenixOdometryThread extends Thread {
   }
 
   public Queue<Double> registerSignal(StatusSignal<Angle> signal) {
-    Queue<Double> queue = new ArrayBlockingQueue<>(20);
+    Queue<Double> queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
     signalsLock.lock();
     SwerveSubsystem.odometryLock.lock();
     try {
@@ -75,7 +101,7 @@ public class PhoenixOdometryThread extends Thread {
   }
 
   public Queue<Double> registerSignal(DoubleSupplier signal) {
-    Queue<Double> queue = new ArrayBlockingQueue<>(20);
+    Queue<Double> queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
     signalsLock.lock();
     SwerveSubsystem.odometryLock.lock();
     try {
@@ -89,7 +115,7 @@ public class PhoenixOdometryThread extends Thread {
   }
 
   public Queue<Double> makeTimestampQueue() {
-    Queue<Double> queue = new ArrayBlockingQueue<>(20);
+    Queue<Double> queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
     SwerveSubsystem.odometryLock.lock();
     try {
       timestampQueues.add(queue);
@@ -103,7 +129,8 @@ public class PhoenixOdometryThread extends Thread {
   public void run() {
     Threads.setCurrentThreadPriority(true, 1);
 
-    while (true) {
+    while (!isInterrupted()) {
+      long sampleGeneration = generation;
       signalsLock.lock();
       try {
         if (isCanFd && phoenixSignals.length > 0) {
@@ -123,6 +150,10 @@ public class PhoenixOdometryThread extends Thread {
 
       SwerveSubsystem.odometryLock.lock();
       try {
+        if (sampleGeneration != generation) {
+          droppedSamples++;
+          continue;
+        }
         double timestamp = RobotController.getFPGATime() / 1e6;
         double totalLatency = 0.0;
         for (BaseStatusSignal signal : phoenixSignals) {
@@ -132,18 +163,31 @@ public class PhoenixOdometryThread extends Thread {
           timestamp -= totalLatency / phoenixSignals.length;
         }
 
-        for (int i = 0; i < phoenixSignals.length; i++) {
-          phoenixQueues.get(i).offer(phoenixSignals[i].getValueAsDouble());
-        }
-        for (int i = 0; i < genericSignals.size(); i++) {
-          genericQueues.get(i).offer(genericSignals.get(i).getAsDouble());
-        }
-        for (Queue<Double> timestampQueue : timestampQueues) {
-          timestampQueue.offer(timestamp);
-        }
+        publishSample(timestamp);
+
       } finally {
         SwerveSubsystem.odometryLock.unlock();
       }
     }
+  }
+
+  private static boolean anyQueueFull(List<Queue<Double>> queues) {
+    for (Queue<Double> queue : queues) if (queue.size() >= QUEUE_CAPACITY) return true;
+    return false;
+  }
+
+  /** All channels append together or all drop together; caller holds odometryLock. */
+  void publishSample(double timestamp) {
+    if (anyQueueFull(phoenixQueues)
+        || anyQueueFull(genericQueues)
+        || anyQueueFull(timestampQueues)) {
+      droppedSamples++;
+      return;
+    }
+    for (int i = 0; i < phoenixSignals.length; i++)
+      phoenixQueues.get(i).offer(phoenixSignals[i].getValueAsDouble());
+    for (int i = 0; i < genericSignals.size(); i++)
+      genericQueues.get(i).offer(genericSignals.get(i).getAsDouble());
+    for (Queue<Double> queue : timestampQueues) queue.offer(timestamp);
   }
 }

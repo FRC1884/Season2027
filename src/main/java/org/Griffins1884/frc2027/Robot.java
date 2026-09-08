@@ -57,8 +57,13 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     Threads.setCurrentThreadPriority(true, 99);
     try {
+      long schedulerStart = System.nanoTime();
       CommandScheduler.getInstance().run();
+      long containerStart = System.nanoTime();
       robotContainer.periodic();
+      long end = System.nanoTime();
+      Logger.recordOutput("Robot/Performance/SchedulerMS", (containerStart - schedulerStart) / 1e6);
+      Logger.recordOutput("Robot/Performance/ContainerMS", (end - containerStart) / 1e6);
     } finally {
       Threads.setCurrentThreadPriority(false, 10);
     }
@@ -113,6 +118,15 @@ public class Robot extends LoggedRobot {
     if (characterizationCommand != null) {
       characterizationCommand.cancel();
       characterizationCommand = null;
+    }
+  }
+
+  @Override
+  public void close() {
+    try {
+      robotContainer.close();
+    } finally {
+      super.close();
     }
   }
 }

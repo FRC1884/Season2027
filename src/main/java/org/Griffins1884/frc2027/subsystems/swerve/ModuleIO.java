@@ -30,7 +30,36 @@ public interface ModuleIO {
     public double[] odometryTurnPositionsRotations = new double[] {};
   }
 
+  default void initializeConfiguration(ModuleConfiguration configuration) {
+    setDrivePID(configuration.driveP(), configuration.driveI(), configuration.driveD());
+    setTurnPID(configuration.turnP(), configuration.turnI(), configuration.turnD());
+  }
+
+  default boolean requestConfiguration(ModuleConfiguration configuration) {
+    initializeConfiguration(configuration);
+    return true;
+  }
+
+  default void updateConfigurationState(boolean disabled) {}
+
+  default boolean isConfigurationReady() {
+    return true;
+  }
+
+  default ModuleConfigurationWorker.Status getConfigurationStatus() {
+    return ModuleConfigurationWorker.Status.READY;
+  }
+
+  /** Caller holds the shared odometry lock. */
+  default void clearOdometrySamples() {}
+
+  default void close() {}
+
   default void updateInputs(ModuleIOInputs inputs) {}
+
+  default void updateInputs(ModuleIOInputs inputs, double acquisitionTimestampSeconds) {
+    updateInputs(inputs);
+  }
 
   default void setDriveOpenLoop(double output) {}
 

@@ -52,10 +52,15 @@ public class SparkUtil {
   }
 
   public static double[] getSimulationOdometryTimeStamps() {
+    return getSimulationOdometryTimeStamps(Timer.getFPGATimestamp());
+  }
+
+  /** All adapters in one acquisition use the same base time for the same cached substeps. */
+  public static double[] getSimulationOdometryTimeStamps(double acquisitionTimestampSeconds) {
     final double[] odometryTimeStamps = new double[SimulatedArena.getSimulationSubTicksIn1Period()];
     for (int i = 0; i < odometryTimeStamps.length; i++) {
       odometryTimeStamps[i] =
-          Timer.getFPGATimestamp() - 0.02 + i * SimulatedArena.getSimulationDt().in(Seconds);
+          acquisitionTimestampSeconds - 0.02 + i * SimulatedArena.getSimulationDt().in(Seconds);
     }
 
     return odometryTimeStamps;
