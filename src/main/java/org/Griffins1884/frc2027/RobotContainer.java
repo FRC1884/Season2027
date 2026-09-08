@@ -65,10 +65,36 @@ public final class RobotContainer implements AutoCloseable {
   private boolean autoAllianceZeroed;
 
   public RobotContainer() {
+    this(null, null);
+  }
+
+  /** Isolated sensor fixture composition; never accepted on real HAL or in REAL/REPLAY mode. */
+  public RobotContainer(GyroIO fixtureGyro, ModuleIO[] fixtureModules) {
+    boolean fixture = fixtureGyro != null || fixtureModules != null;
+    if (fixture && (edu.wpi.first.wpilibj.RobotBase.isReal() || MODE != RobotMode.SIM))
+      throw new IllegalStateException("Sensor fixtures require simulated HAL and SIM mode");
+    if (fixture) {
+      if (!DRIVETRAIN_ENABLED)
+        throw new IllegalStateException("Drivetrain disabled in current composition");
+      java.util.Objects.requireNonNull(fixtureGyro, "fixtureGyro");
+      if (fixtureModules == null || fixtureModules.length != 4)
+        throw new IllegalArgumentException("Exactly four fixture modules required");
+      fixtureModules = fixtureModules.clone();
+      for (ModuleIO io : fixtureModules) java.util.Objects.requireNonNull(io, "fixture module");
+    }
     characterizationChooser.addDefaultOption("None", characterizationIdleCommand);
 
     DriveBuildResult driveBuild =
-        DRIVETRAIN_ENABLED ? buildDrive() : new DriveBuildResult(null, null);
+        fixture
+            ? new DriveBuildResult(
+                new SwerveSubsystem(
+                    fixtureGyro,
+                    fixtureModules[0],
+                    fixtureModules[1],
+                    fixtureModules[2],
+                    fixtureModules[3]),
+                null)
+            : DRIVETRAIN_ENABLED ? buildDrive() : new DriveBuildResult(null, null);
     drive = driveBuild.subsystem();
     driveSimulation = driveBuild.simulation();
     vision =
@@ -282,6 +308,16 @@ public final class RobotContainer implements AutoCloseable {
       PPLibTelemetry.setCurrentPose(drive.getPose());
     }
     robotStateVisualizer.periodic();
+  }
+
+  /** Existing drivetrain, exposed without constructing an alternative control path. */
+  public SwerveSubsystem getDrive() {
+    return drive;
+  }
+
+  /** Existing server, exposed for opt-in bounded diagnostics. */
+  public OperatorBoardServer getOperatorBoardServer() {
+    return operatorBoardServer;
   }
 
   @Override

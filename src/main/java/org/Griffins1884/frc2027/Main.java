@@ -1,6 +1,7 @@
 package org.Griffins1884.frc2027;
 
 import edu.wpi.first.wpilibj.RobotBase;
+import org.Griffins1884.frc2027.performance.ObservedRobot;
 
 /**
  * Do NOT add any static variables to this class, or any initialization at all. Unless you know what
@@ -16,6 +17,10 @@ public final class Main {
    * <p>If you change your main robot class, change the parameter type.
    */
   public static void main(String... args) {
-    RobotBase.startRobot(Robot::new);
+    RobotBase.startRobot(
+        () ->
+            Boolean.getBoolean("frc.performance.observe")
+                ? ObservedRobot.fromProperties()
+                : new Robot());
   }
 }

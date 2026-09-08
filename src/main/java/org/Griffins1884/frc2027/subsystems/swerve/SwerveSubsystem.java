@@ -67,6 +67,20 @@ public class SwerveSubsystem extends SubsystemBase {
   private long discardedSnapshotCount;
   private long invalidSnapshotCount;
   private long measuredKinematicsCount;
+  // Opt-in measurement only. These fields never select a control path or change sensor rates.
+  private boolean performanceObservationEnabled;
+  private long observedAcquiredSamples;
+  private long observedConsumedSamples;
+  private long observedDriveRequests;
+  private long observedAppliedDriveRequests;
+  private long observedPeriodicNanos;
+  private long observedLockWaitNanos;
+  private long observedLockHoldNanos;
+  private long observedOdometryNanos;
+  private long observedInputProcessingNanos;
+  private long observedSetpointNanos;
+  private long observedControlNanos;
+  private double observedLastSampleTimestamp = Double.NaN;
   private double cycleWheelRadius;
   private long calibrationRevision;
   private double lastLoggedRadius = Double.NaN;
@@ -261,12 +275,18 @@ public class SwerveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     long started = System.nanoTime();
+    if (performanceObservationEnabled) {
+      observedSetpointNanos = 0;
+      observedControlNanos = 0;
+    }
     boolean disabled = DriverStation.isDisabled();
     for (Module module : modules) module.updateConfiguration(disabled);
     synchronized (measurementLock) {
       periodicCaptured(disabled);
     }
-    Logger.recordOutput("Swerve/Performance/PeriodicMS", (System.nanoTime() - started) / 1e6);
+    long elapsed = System.nanoTime() - started;
+    if (performanceObservationEnabled) observedPeriodicNanos = elapsed;
+    Logger.recordOutput("Swerve/Performance/PeriodicMS", elapsed / 1e6);
   }
 
   private void periodicCaptured(boolean disabled) {
@@ -296,6 +316,11 @@ public class SwerveSubsystem extends SubsystemBase {
       odometryLock.unlock();
     }
     long released = System.nanoTime();
+    if (performanceObservationEnabled) {
+      observedLockWaitNanos = acquired - waitStarted;
+      observedLockHoldNanos = released - acquired;
+      observedAcquiredSamples += modules[0].getOdometryTimestamps().length;
+    }
     Logger.recordOutput("Swerve/Performance/OdometryLockWaitMS", (acquired - waitStarted) / 1e6);
     Logger.recordOutput("Swerve/Performance/OdometryLockHoldMS", (released - acquired) / 1e6);
     Logger.recordOutput("Swerve/Performance/ModuleAcquisitionMS", moduleAcquisitionMs);
@@ -341,16 +366,18 @@ public class SwerveSubsystem extends SubsystemBase {
     } else {
       processOdometrySnapshot();
     }
-    Logger.recordOutput(
-        "Swerve/Performance/OdometryProcessingMS", (System.nanoTime() - odometryStarted) / 1e6);
+    long odometryElapsed = System.nanoTime() - odometryStarted;
+    if (performanceObservationEnabled) observedOdometryNanos = odometryElapsed;
+    Logger.recordOutput("Swerve/Performance/OdometryProcessingMS", odometryElapsed / 1e6);
     Logger.recordOutput("Swerve/Odometry/DiscardedResetSnapshots", discardedSnapshotCount);
     Logger.recordOutput("Swerve/Odometry/InvalidSnapshots", invalidSnapshotCount);
     Logger.recordOutput(
         "Swerve/Odometry/DroppedProducerSamples",
         PhoenixOdometryThread.getInstance().getDroppedSamples());
+    long inputProcessingElapsed = System.nanoTime() - processingStarted;
+    if (performanceObservationEnabled) observedInputProcessingNanos = inputProcessingElapsed;
     Logger.recordOutput(
-        "Swerve/Performance/InputProcessingAndOdometryMS",
-        (System.nanoTime() - processingStarted) / 1e6);
+        "Swerve/Performance/InputProcessingAndOdometryMS", inputProcessingElapsed / 1e6);
 
     Pose2d estimatedPose = poseEstimator.getEstimatedPosition();
     if (!isFinitePose(estimatedPose)) {
@@ -661,7 +688,10 @@ public class SwerveSubsystem extends SubsystemBase {
    * @param speeds Speeds in meters/sec
    */
   public void runVelocity(ChassisSpeeds speeds) {
+    long controlStarted = performanceObservationEnabled ? System.nanoTime() : 0;
+    if (performanceObservationEnabled) observedDriveRequests++;
     if (!allowOutputs()) return;
+    if (performanceObservationEnabled) observedAppliedDriveRequests++;
     synchronized (measurementLock) {
       refreshCalibrationIfChanged();
     }
@@ -673,9 +703,11 @@ public class SwerveSubsystem extends SubsystemBase {
     // when publication is gated. It is not safe to treat it as a telemetry-only calculation.
     SwerveModuleState[] setpointStatesUnoptimized = kinematics.toSwerveModuleStates(discreteSpeeds);
 
+    long setpointStarted = performanceObservationEnabled ? System.nanoTime() : 0;
     krakenCurrentSetpoint =
         krakenSetpointGenerator.generateSetpoint(
             SwerveConstants.KRAKEN_MODULE_LIMITS_FREE, krakenCurrentSetpoint, discreteSpeeds, 0.02);
+    if (performanceObservationEnabled) observedSetpointNanos += System.nanoTime() - setpointStarted;
     SwerveModuleState[] setpointStates = krakenCurrentSetpoint.moduleStates();
 
     if (publishTelemetry)
@@ -688,6 +720,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
+    if (performanceObservationEnabled) observedControlNanos += System.nanoTime() - controlStarted;
   }
 
   public ChassisSpeeds getCommandedRobotRelativeSpeeds() {
@@ -1378,8 +1411,58 @@ public class SwerveSubsystem extends SubsystemBase {
       }
       lastModulePositions = positions;
       poseEstimator.updateWithTime(timestamps[i], rawGyroRotation, positions);
+      if (performanceObservationEnabled) {
+        observedConsumedSamples++;
+        observedLastSampleTimestamp = timestamps[i];
+      }
     }
   }
+
+  /** Enable only at the observation runner's startup, on the robot thread. */
+  public void setPerformanceObservationEnabled(boolean enabled) {
+    performanceObservationEnabled = enabled;
+  }
+
+  /** Read on the robot thread after a cycle; the returned record owns its primitive values. */
+  public PerformanceSnapshot getPerformanceSnapshot() {
+    return new PerformanceSnapshot(
+        configurationReady,
+        gyroInputs.connected,
+        observedAcquiredSamples,
+        observedConsumedSamples,
+        invalidSnapshotCount,
+        PhoenixOdometryThread.getInstance().getDroppedSamples(),
+        resetGeneration,
+        observedDriveRequests,
+        observedAppliedDriveRequests,
+        observedLastSampleTimestamp,
+        observedPeriodicNanos,
+        observedLockWaitNanos,
+        observedLockHoldNanos,
+        observedOdometryNanos,
+        observedInputProcessingNanos,
+        observedSetpointNanos,
+        observedControlNanos);
+  }
+
+  public record PerformanceSnapshot(
+      boolean ready,
+      boolean gyroConnected,
+      long acquiredSamples,
+      long consumedSamples,
+      long invalidSnapshots,
+      long droppedProducerSamples,
+      long resetGeneration,
+      long driveRequests,
+      long appliedDriveRequests,
+      double lastSampleTimestampSeconds,
+      long periodicNanos,
+      long lockWaitNanos,
+      long lockHoldNanos,
+      long odometryNanos,
+      long inputProcessingNanos,
+      long setpointNanos,
+      long controlNanos) {}
 
   public void close() {
     synchronized (measurementLock) {

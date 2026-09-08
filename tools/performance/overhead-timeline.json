@@ -1,0 +1,8 @@
+[
+  {"name":"warmup","durationSeconds":30},
+  {"name":"disabled_before_auto","durationSeconds":5},
+  {"name":"auto_fixture","durationSeconds":15},
+  {"name":"disabled_transition","durationSeconds":1},
+  {"name":"teleop","durationSeconds":20},
+  {"name":"disabled_recovery","durationSeconds":10}
+]

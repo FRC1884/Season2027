@@ -98,7 +98,11 @@ class OperatorBoardResourceTest {
         assertEquals(0, snapshot.fullResponses());
         assertEquals(4, snapshot.fileBodyOpens());
         for (Socket socket : slow) socket.close();
-        await(() -> server.getMetricsSnapshot().activeTransfers() == 0);
+        // Transfer cleanup precedes the enclosing handler's failure counter. Wait for both.
+        await(
+            () ->
+                server.getMetricsSnapshot().activeTransfers() == 0
+                    && server.getMetricsSnapshot().ioFailures() >= 4);
         assertEquals(0, server.getMetricsSnapshot().fullResponses());
         assertTrue(server.getMetricsSnapshot().ioFailures() >= 4);
         Files.writeString(root.resolve("index.html"), "recovered");

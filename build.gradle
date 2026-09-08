@@ -103,3 +103,31 @@ spotless {
 tasks.named('check') {
     dependsOn tasks.named('spotlessCheck')
 }
+
+// Desktop runners are deliberately excluded from the deployed robot JAR.
+sourceSets {
+    performance {
+        java.srcDir 'src/performance/java'
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+configurations {
+    performanceImplementation.extendsFrom implementation
+    performanceRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+    testImplementation sourceSets.performance.output
+}
+
+tasks.register('performanceClasspath') {
+    dependsOn tasks.named('performanceClasses'), tasks.named('extractReleaseNative')
+    doLast {
+        def destination = layout.buildDirectory.file('performance/classpath.txt').get().asFile
+        destination.parentFile.mkdirs()
+        destination.text = sourceSets.performance.runtimeClasspath.asPath
+        println destination.absolutePath
+    }
+}

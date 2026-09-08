@@ -20,18 +20,34 @@ import org.littletonrobotics.urcl.URCL;
 
 /** AdvantageKit-backed robot lifecycle for the reusable Season2027 base. */
 public class Robot extends LoggedRobot {
+  private long lastSchedulerNanos;
+  private long lastContainerNanos;
   private Command autonomousCommand;
   private Command characterizationCommand;
   private final RobotContainer robotContainer;
 
   public Robot() {
+    this(RobotContainer::new);
+  }
+
+  /**
+   * Composition seam; desktop fixtures are supplied only by the separate performance source set.
+   */
+  protected Robot(java.util.function.Supplier<RobotContainer> containerFactory) {
     Logger.recordMetadata("ProjectName", "Season2027");
     Logger.recordMetadata("RuntimeMode", MODE.name());
     Logger.recordMetadata("LoggingMode", GlobalConstants.LOGGING_MODE.name());
 
     switch (MODE) {
       case REAL, SIM -> {
-        Logger.addDataReceiver(new WPILOGWriter());
+        String desktopLogDirectory =
+            MODE == GlobalConstants.RobotMode.SIM
+                ? System.getProperty("frc.performance.logDirectory", "")
+                : "";
+        Logger.addDataReceiver(
+            desktopLogDirectory.isBlank()
+                ? new WPILOGWriter()
+                : new WPILOGWriter(desktopLogDirectory));
         Logger.addDataReceiver(new NT4Publisher());
       }
       case REPLAY -> {
@@ -45,12 +61,20 @@ public class Robot extends LoggedRobot {
     Logger.registerURCL(URCL.startExternal());
     Logger.start();
 
-    DataLogManager.start();
+    String desktopDataLogDirectory =
+        MODE == GlobalConstants.RobotMode.SIM
+            ? System.getProperty("frc.performance.logDirectory", "")
+            : "";
+    if (desktopDataLogDirectory.isBlank()) {
+      DataLogManager.start();
+    } else {
+      DataLogManager.start(desktopDataLogDirectory);
+    }
     DataLogManager.logNetworkTables(true);
     DriverStation.startDataLog(DataLogManager.getLog(), true);
     DriverStation.silenceJoystickConnectionWarning(MODE == GlobalConstants.RobotMode.SIM);
 
-    robotContainer = new RobotContainer();
+    robotContainer = containerFactory.get();
   }
 
   @Override
@@ -62,8 +86,10 @@ public class Robot extends LoggedRobot {
       long containerStart = System.nanoTime();
       robotContainer.periodic();
       long end = System.nanoTime();
-      Logger.recordOutput("Robot/Performance/SchedulerMS", (containerStart - schedulerStart) / 1e6);
-      Logger.recordOutput("Robot/Performance/ContainerMS", (end - containerStart) / 1e6);
+      lastSchedulerNanos = containerStart - schedulerStart;
+      lastContainerNanos = end - containerStart;
+      Logger.recordOutput("Robot/Performance/SchedulerMS", lastSchedulerNanos / 1e6);
+      Logger.recordOutput("Robot/Performance/ContainerMS", lastContainerNanos / 1e6);
     } finally {
       Threads.setCurrentThreadPriority(false, 10);
     }
@@ -82,7 +108,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void autonomousInit() {
     cancelCharacterization();
-    autonomousCommand = robotContainer.getAutonomousCommand();
+    autonomousCommand = createAutonomousCommand();
     if (autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(autonomousCommand);
     }
@@ -112,6 +138,26 @@ public class Robot extends LoggedRobot {
     if (MODE == GlobalConstants.RobotMode.SIM) {
       SimulatedArena.getInstance().simulationPeriodic();
     }
+  }
+
+  /** Existing inclusive scheduler timing; read on the robot thread after its cycle. */
+  public final long getLastSchedulerNanos() {
+    return lastSchedulerNanos;
+  }
+
+  /** Existing container timing, excluding the scheduler; read on the robot thread. */
+  public final long getLastContainerNanos() {
+    return lastContainerNanos;
+  }
+
+  /** Lifecycle seam for desktop-only autonomous fixtures; normal selection is unchanged. */
+  protected Command createAutonomousCommand() {
+    return robotContainer.getAutonomousCommand();
+  }
+
+  /** Read-only access for the opt-in observer and desktop composition. */
+  protected final RobotContainer getRobotContainer() {
+    return robotContainer;
   }
 
   private void cancelCharacterization() {

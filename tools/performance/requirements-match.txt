@@ -1,0 +1,2 @@
+# Host reporting only; never included in the robot artifact.
+XlsxWriter==3.2.9
