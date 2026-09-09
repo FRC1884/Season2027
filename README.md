@@ -23,7 +23,7 @@ The reusable project/tooling structure has been carried forward and renamed to `
 - safety-critical constants isolated under protected paths
 - AGENTS.md stress-test findings
 
-See [`docs/SEASON_ROLLOVER.md`](docs/SEASON_ROLLOVER.md) for the season rollover and [`docs/SCHOOL_ADMIN_DEMO.md`](docs/SCHOOL_ADMIN_DEMO.md) for the school-facing demo.
+See [`docs/SEASON_ROLLOVER.md`](docs/SEASON_ROLLOVER.md) for the season rollover.
 
 ## Branch model
 
@@ -69,8 +69,7 @@ trusted-base [review policy](.github/robotics-harness/REVIEW_POLICY.md) and
 verifies the gh human account, agrees a short review plan, inspects the complete
 diff and shows the exact report for separate publication approval. Publication
 is an explicit-SHA COMMENT review followed by read-back. It never counts as a
-human approving review and does not merge or deploy. No vendor review connector,
-hosted reviewer or new model API key is required.
+human approving review and does not merge or deploy.
 
 Codex uses `.agents/skills/`; Claude uses `.claude/skills/` and root `CLAUDE.md`
 imports `@AGENTS.md`. `.codex/skills/` retains compatibility references. Read
@@ -79,12 +78,5 @@ Fixture results do not prove client compatibility: real loading from root and
 subdirectory, fresh and resumed sessions must have separate evidence. Missing
 execution/authentication is NOT RUN/BLOCKED. Local guards and editable state are
 not tamper-proof; direct shell/API operations remain outside their enforcement.
-
-## School-admin demo
-
-Follow the [demo](docs/SCHOOL_ADMIN_DEMO.md) with an explicitly approved fixture
-or draft PR. Real learning answers and exact-report approval cannot be simulated
-for publication. Keep the final PR open and unmerged. Historical samples record
-only the provider and checks actually used at the time.
 
 The native SessionStart message provides the actual session ID and reserved input/report directory. Follow the shared WORKFLOW command section: author commands take `--root --session --provider`; review commands take `--root --session-id --provider`. The legacy `.codex` skill is `agentic-review-compat` with implicit invocation disabled. A hook firing is not evidence of model instruction loading.
