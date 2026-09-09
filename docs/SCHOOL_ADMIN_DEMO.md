@@ -12,26 +12,26 @@ The skeleton includes:
 - CI for build, tests, and formatting;
 - `AGENTS.md` v1 for the Software Team Member workflow;
 - safety-critical constants isolated under protected paths;
-- Codex Automated Reviewer configuration and review skill;
+- shared review policy and thin Codex/Claude Code skill entry points;
 - Monitoring v1 specification and sample digest;
 - AGENTS.md stress-test findings describing what prompt instructions can and cannot enforce.
 
 ## Intended development loop
 
-1. A student opens Codex in Season2027.
-2. Codex operates as **Software Team Member**.
+1. A student opens Codex or Claude Code in Season2027.
+2. The agent operates as **Software Team Member**.
 3. The Harness requires a semantic Robotics Scope Check before repository actions, clarification, planning, risk classification, protected-path checks, or implementation; unrelated work is denied and stopped.
-4. Work occurs on a task branch, not `main`.
-5. Build, tests, formatting, learning verification, and pre-PR checks run.
+4. After read-only inspection and the clarification checkpoint, the agent presents the plan and waits for explicit agreement before creating a task branch or editing.
+5. Build/tests/format and full uncommitted-snapshot inspection precede actual human learning answers and evaluation; passing evidence must match before commit/push.
 6. A pull request is created.
-7. A fresh Codex **Automated Reviewer** reviews the exact current head SHA independently.
-8. GitHub CI and deterministic Harness checks enforce the current review/build state.
+7. A fresh Codex or Claude Code review context follows the trusted-base shared template, after verified gh identity and explicit review-plan agreement.
+8. Exact rendered-report approval precedes SHA-bound COMMENT publication and read-back. Record verified hosted CI/protection separately; inaccessible settings are UNVERIFIED.
 9. Human Code Owners retain final merge authority.
 10. Monitoring produces a readable audit digest for mentors and school oversight.
 
 ## Live demo
 
-Push one small, simulation-safe change through the complete loop and show:
+Use an explicitly approved harmless fixture/draft PR for the demonstration. Do not use unrelated PRs, simulate real human learning, or treat plan approval as approval of an unseen review report. Show:
 
 - task + Robotics Scope Check + clarification;
 - plan + risk classification;
@@ -47,4 +47,4 @@ The demo should finish with the PR **open and unmerged** so the human approval b
 
 ## Why this matters for school administration
 
-The project does not rely on an AI prompt alone to keep students safe. `AGENTS.md` guides agent behavior, while branch protection, CODEOWNERS, CI, deterministic Harness checks, risk-based approval, review-state validation, and monitoring provide the enforceable controls and audit trail. The Robotics-Only Scope Policy is currently instruction-level and auditable through monitoring; this repository does not yet include a deterministic runtime classifier that blocks unrelated tasks before agent action.
+The project does not rely on an AI prompt alone to keep students safe. `AGENTS.md` guides agent behavior, while branch protection, CODEOWNERS, CI, deterministic Harness checks, risk-based approval, review-state validation, and monitoring provide the enforceable controls and audit trail. Local guards validate routed machine-readable preconditions but cannot prove semantic scope, human understanding or context freshness. Direct shell/API calls and editable local evidence remain bypasses. Real-client loading tests and mock fixture results must be reported separately.

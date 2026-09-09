@@ -1,7 +1,7 @@
 {
   "schema_version": 3,
   "repository": "FRC1884/Season2027",
-  "review_mode": "manual_codex_session",
+  "review_mode": "manual_user_agent_session",
   "promotion_flow": [
     "task/* -> relevant sub-lead branch",
     "sub-lead branch -> software-leads",
@@ -10,7 +10,9 @@
   "branches": {
     "main": {
       "protected": true,
-      "required_checks": ["build-and-format"],
+      "required_checks": [
+        "build-and-format"
+      ],
       "require_pull_request": true,
       "require_code_owner_review": true,
       "required_approvals": 1,
@@ -19,7 +21,9 @@
     },
     "software-leads": {
       "protected": true,
-      "required_checks": ["build-and-format"],
+      "required_checks": [
+        "build-and-format"
+      ],
       "require_pull_request": true,
       "require_code_owner_review": true,
       "required_approvals": 1,
@@ -29,7 +33,9 @@
     "vision-localisation-lead": {
       "protected": true,
       "owner_team": "@FRC1884/vision-localisation-lead",
-      "required_checks": ["build-and-format"],
+      "required_checks": [
+        "build-and-format"
+      ],
       "require_pull_request": true,
       "required_approvals": 1,
       "allow_force_push": false,
@@ -38,7 +44,9 @@
     "core-mechanisms-lead": {
       "protected": true,
       "owner_team": "@FRC1884/core-mechanisms-lead",
-      "required_checks": ["build-and-format"],
+      "required_checks": [
+        "build-and-format"
+      ],
       "require_pull_request": true,
       "required_approvals": 1,
       "allow_force_push": false,
@@ -47,7 +55,9 @@
     "autonomous-lead": {
       "protected": true,
       "owner_team": "@FRC1884/autonomous-lead",
-      "required_checks": ["build-and-format"],
+      "required_checks": [
+        "build-and-format"
+      ],
       "require_pull_request": true,
       "required_approvals": 1,
       "allow_force_push": false,
@@ -72,7 +82,15 @@
     "settings.gradle",
     "src/main/java/**/safety/**",
     "src/main/java/**/*Constants.java",
-    "src/main/deploy/**"
+    "src/main/deploy/**",
+    "CLAUDE.md",
+    "AGENTS.override.md",
+    "**/AGENTS.md",
+    "**/AGENTS.override.md",
+    "**/CLAUDE.md",
+    ".claude/**",
+    ".agents/**",
+    "tools/robotics_harness/**"
   ],
   "codex_review": {
     "automatic_github_ai_workflow": false,
@@ -82,7 +100,16 @@
     "reviewer_role": "Automated Reviewer",
     "require_fresh_context": true,
     "bind_to_head_sha": true,
-    "human_merge_authority_only": true
+    "human_merge_authority_only": true,
+    "providers": [
+      "codex",
+      "claude"
+    ],
+    "publisher_transport": "gh_api_pull_request_reviews",
+    "github_event": "COMMENT",
+    "require_exact_report_approval": true,
+    "require_posted_review_readback": true,
+    "comment_counts_as_human_approval": false
   },
   "code_owner_self_acceptance": {
     "allowed": true,

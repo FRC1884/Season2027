@@ -4,7 +4,7 @@ Human approval is a governance control and must remain distinct from AI review.
 
 ## Plan acknowledgement is not approval
 
-User acknowledgement of the Proposed Plan means only that the user accepts the implementation approach and allows substantial edits to begin. It does not satisfy Code Owner, Mentor, Safety Code Owner, CI, publication, merge, or deployment requirements.
+User acknowledgement of the Proposed Plan means only that the user accepts the implementation approach and allows implementation edits to begin. It does not satisfy Code Owner, Mentor, Safety Code Owner, CI, publication, merge, or deployment requirements.
 
 Codex must state this distinction before implementation when the planned work already requires governed approval. Informal statements such as "I'm fine with it" cannot replace an authorized approval unless they are submitted through the configured approval path by a verified person holding the required repository role.
 
@@ -42,7 +42,7 @@ Before self-acceptance, the exact current head must have:
 
 - successful required CI, including `build-and-format`;
 - all review conversations resolved;
-- a fresh independent Codex review with no unresolved `REQUEST CHANGES`, `SAFETY ESCALATION`, or `REVIEW INCOMPLETE` result, and no outstanding blocking human review;
+- a fresh independent agent review with no unresolved `REQUEST CHANGES`, `SAFETY ESCALATION`, or `REVIEW INCOMPLETE` result, and no outstanding blocking human review;
 - no commits after the evidence above;
 - an explicit instruction from the verified Code Owner to accept or merge that exact PR head.
 
@@ -86,4 +86,4 @@ The following do not count as human approval:
 - an AI-generated approval record;
 - a comment claiming to be a mentor without matching repository authorization.
 
-An authenticated, exact-head `CODEOWNER SELF-ACCEPT` decision is the only exception to author/approver separation. It replaces the separate human approval for that PR but not independent Codex review, CI, safety-role matching, conversation resolution, or explicit human merge intent.
+An authenticated, exact-head `CODEOWNER SELF-ACCEPT` decision is the only exception to author/approver separation. It replaces the separate human approval for that PR but not independent agent review, CI, safety-role matching, conversation resolution, or explicit human merge intent.

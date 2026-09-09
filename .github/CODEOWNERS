@@ -26,3 +26,14 @@
 /src/main/java/**/commands/auto/ @FRC1884/autonomous-lead @FRC1884/software-lead
 /src/main/deploy/pathplanner/ @FRC1884/autonomous-lead @FRC1884/software-lead
 /src/main/deploy/pathplana/ @FRC1884/autonomous-lead @FRC1884/software-lead
+
+# Shared provider adapters and executable policy
+/CLAUDE.md @FRC1884/mentors
+/AGENTS.override.md @FRC1884/mentors
+/**/AGENTS.md @FRC1884/mentors
+/**/AGENTS.override.md @FRC1884/mentors
+/**/CLAUDE.md @FRC1884/mentors
+/.claude/** @FRC1884/mentors
+/.agents/** @FRC1884/mentors
+/.codex/** @FRC1884/mentors
+/tools/robotics_harness/** @FRC1884/mentors

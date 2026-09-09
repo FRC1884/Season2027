@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "profiles": {
+    "shared": {
+      "repository": "FRC1884/robotics-agentic-development-harness",
+      "runtime_bundle": false,
+      "required_reading": [
+        "AGENTS.md",
+        "templates/robotics-harness/WORKFLOW.md",
+        "docs/operations/STANDARD_DEVELOPMENT_WORKFLOW.md",
+        "docs/learning-loop/LEARNING_LOOP.md",
+        "docs/governance/CODE_REVIEW_POLICY.md",
+        "docs/governance/ENFORCEMENT_MATRIX.md"
+      ],
+      "review_policy": "templates/robotics-harness/REVIEW_POLICY.md",
+      "review_template": "templates/robotics-harness/REVIEW_TEMPLATE.md",
+      "author_task_bases": [
+        "main"
+      ],
+      "preimplementation_approval_teams": {
+        "Harness Administrators": "FRC1884/mentors",
+        "Safety Code Owners": "FRC1884/mentors"
+      }
+    },
+    "season2027": {
+      "repository": "FRC1884/Season2027",
+      "runtime_bundle": true,
+      "required_reading": [
+        "AGENTS.md",
+        ".github/robotics-harness/README.md",
+        ".github/robotics-harness/TASK_LIFECYCLE.md",
+        ".github/robotics-harness/RISK_POLICY.md",
+        ".github/robotics-harness/LEARNING_LOOP.md",
+        ".github/robotics-harness/APPROVALS.md",
+        ".github/robotics-harness/MONITORING.md"
+      ],
+      "review_policy": ".github/robotics-harness/REVIEW_POLICY.md",
+      "review_template": ".github/robotics-harness/REVIEW_TEMPLATE.md",
+      "author_task_bases": [
+        "software-leads",
+        "vision-localisation-lead",
+        "core-mechanisms-lead",
+        "autonomous-lead"
+      ],
+      "preimplementation_approval_teams": {
+        "Harness Administrators": "FRC1884/mentors",
+        "Safety Code Owners": "FRC1884/mentors"
+      }
+    }
+  }
+}

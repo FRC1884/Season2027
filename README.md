@@ -12,7 +12,7 @@ The reusable project/tooling structure has been carried forward and renamed to `
 - reusable Season2026 OI and generic utility patterns under `org.Griffins1884.frc2027`
 - Team 1884 WPILib / Gradle tooling baseline
 - in-repository Robotics Agentic Development Harness under `.github/robotics-harness/`
-- `AGENTS.md` v1 for normal Software Team Member Codex sessions
+- shared `AGENTS.md` with thin Codex and Claude Code entry points
 - diff-grounded learning verification policy with an authenticated mentor-only learning override
 - risk classification and human approval policy
 - exact-head Code Owner self-acceptance policy for author-owned PRs
@@ -23,7 +23,7 @@ The reusable project/tooling structure has been carried forward and renamed to `
 - safety-critical constants isolated under protected paths
 - AGENTS.md stress-test findings
 
-See [`docs/SEASON_ROLLOVER.md`](docs/SEASON_ROLLOVER.md) for the season rollover and [`docs/SCHOOL_ADMIN_DEMO.md`](docs/SCHOOL_ADMIN_DEMO.md) for the school-facing demo.
+See [`docs/SEASON_ROLLOVER.md`](docs/SEASON_ROLLOVER.md) for the season rollover.
 
 ## Branch model
 
@@ -44,26 +44,39 @@ The five long-lived integration branches are:
 
 The desired hosted protection policy is documented in [`docs/BRANCH_PROTECTION_SETUP.md`](docs/BRANCH_PROTECTION_SETUP.md).
 
-## Codex workflow
+## Student and reviewer entry points
 
-A normal coding Codex session applies the Robotics-Only Scope Policy before repository actions and denies unrelated work. An IN SCOPE request then follows:
+Start a robotics task in either Codex or Claude Code with the intended outcome.
+The agent classifies scope, responds visibly, inspects read-only and completes a
+clarification checkpoint. It presents a plan and waits for your explicit yes
+before edits, task branches or write-producing commands. Small changes use a
+short plan. After validation and complete uncommitted-diff review, answer the
+learning questions in your own words; the agent evaluates them before commit,
+push and a template-based PR. The existing verified mentor-learning exception
+retains its narrow limits. See the [shared workflow](.github/robotics-harness/WORKFLOW.md).
 
-**robotics scope PASS → user-facing intercept → clarification → plan acknowledgement → risk → implementation → build/test/format → learning verification or mentor override → PR → approval or Code Owner self-acceptance → merge**
-
-A verified Code Owner may self-accept their own PR through an explicit exact-head decision when they own every changed path and all required CI, current independent review, risk-role, conversation-resolution, and hosted ruleset-bypass conditions pass. GitHub does not treat the author's own review as an approval, so the Harness never fabricates one.
-
-AI PR review is deliberately **manual/on-demand** rather than an automatic GitHub AI workflow.
-
-A user opens/uses their own Codex session and asks:
+A reviewer starts a fresh context and asks:
 
 ```text
-review PR #<number>
+review PR #123
+review PR FRC1884/Season2027#123
 ```
 
-Codex then reads `.github/robotics-harness/REVIEW_POLICY.md` and `REVIEW_TEMPLATE.md`, inspects the exact current PR head, produces the structured Markdown review, and may publish the result to GitHub when access is available.
+Explicit skill entries are `$agentic-review` in Codex and `/agentic-review` in
+Claude Code. Built-in `/review` is not this harness. Both routes load the same
+trusted-base [review policy](.github/robotics-harness/REVIEW_POLICY.md) and
+[review template](.github/robotics-harness/REVIEW_TEMPLATE.md). The reviewer
+verifies the gh human account, agrees a short review plan, inspects the complete
+diff and shows the exact report for separate publication approval. Publication
+is an explicit-SHA COMMENT review followed by read-back. It never counts as a
+human approving review and does not merge or deploy.
 
-No `OPENAI_API_KEY` is required for this review model.
+Codex uses `.agents/skills/`; Claude uses `.claude/skills/` and root `CLAUDE.md`
+imports `@AGENTS.md`. `.codex/skills/` retains compatibility references. Read
+applicable nested instructions explicitly and revalidate approvals on resume.
+Fixture results do not prove client compatibility: real loading from root and
+subdirectory, fresh and resumed sessions must have separate evidence. Missing
+execution/authentication is NOT RUN/BLOCKED. Local guards and editable state are
+not tamper-proof; direct shell/API operations remain outside their enforcement.
 
-## School-admin demo
-
-The demonstration is one small change through the governed loop, followed by a separate user-invoked Codex review and a sample monitoring digest. The final PR stays open and unmerged so the human authority boundary remains visible.
+The native SessionStart message provides the actual session ID and reserved input/report directory. Follow the shared WORKFLOW command section: author commands take `--root --session --provider`; review commands take `--root --session-id --provider`. The legacy `.codex` skill is `agentic-review-compat` with implicit invocation disabled. A hook firing is not evidence of model instruction loading.

@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "root=$(git rev-parse --show-toplevel) && exec python3 \"$root/tools/robotics_harness/entry.py\" hook --provider claude --root \"$root\" --hook-event SessionStart",
+            "timeout": 10
+          }
+        ],
+        "matcher": "startup|resume|clear|compact"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "root=$(git rev-parse --show-toplevel) && exec python3 \"$root/tools/robotics_harness/entry.py\" hook --provider claude --root \"$root\" --hook-event UserPromptSubmit",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "root=$(git rev-parse --show-toplevel) && exec python3 \"$root/tools/robotics_harness/entry.py\" hook --provider claude --root \"$root\" --hook-event PreToolUse",
+            "timeout": 10
+          }
+        ],
+        "matcher": ".*"
+      }
+    ]
+  }
+}
