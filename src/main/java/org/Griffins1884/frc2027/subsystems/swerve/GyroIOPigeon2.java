@@ -13,6 +13,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import java.util.Queue;
 
+/** IO implementation for Pigeon 2. */
 public class GyroIOPigeon2 implements GyroIO {
   private final Pigeon2 pigeon = new Pigeon2(SwerveConstants.PIGEON_ID, SwerveConstants.canBus);
   private final StatusSignal<Angle> yaw = pigeon.getYaw();
@@ -37,28 +38,16 @@ public class GyroIOPigeon2 implements GyroIO {
     inputs.yawPosition = Rotation2d.fromDegrees(yaw.getValueAsDouble());
     inputs.yawVelocityRadPerSec = Units.degreesToRadians(yawVelocity.getValueAsDouble());
 
-    inputs.odometryYawTimestamps =
-        yawTimestampQueue.stream().mapToDouble(Double::doubleValue).toArray();
-    inputs.odometryYawPositions =
-        yawPositionQueue.stream().map(Rotation2d::fromDegrees).toArray(Rotation2d[]::new);
+    inputs.odometryYawTimestamps = yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+    inputs.odometryYawPositions = yawPositionQueue.stream()
+        .map((Double value) -> Rotation2d.fromDegrees(value))
+        .toArray(Rotation2d[]::new);
     yawTimestampQueue.clear();
     yawPositionQueue.clear();
-  }
-
-  @Override
-  public void clearOdometrySamples() {
-    yawTimestampQueue.clear();
-    yawPositionQueue.clear();
-  }
-
-  @Override
-  public void close() {
-    pigeon.close();
   }
 
   @Override
   public void resetYaw(double yawDegrees) {
     pigeon.getConfigurator().setYaw(yawDegrees);
-    yaw.refresh();
   }
 }

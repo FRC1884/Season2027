@@ -1,0 +1,21 @@
+package org.Griffins1884.frc2027.subsystems.shooter;
+
+import org.Griffins1884.frc2027.mechanisms.arms.MechanismArmIOKraken;
+
+public class ShooterPivotIOKraken extends MechanismArmIOKraken implements ShooterPivotIO {
+  public ShooterPivotIOKraken() {
+    super(
+        ShooterPivotConstants.MOTOR_ID,
+        ShooterPivotConstants.CURRENT_LIMIT_AMPS,
+        ShooterPivotConstants.BRAKE_MODE,
+        ShooterPivotConstants.FORWARD_LIMIT,
+        ShooterPivotConstants.REVERSE_LIMIT,
+        ShooterPivotConstants.POSITION_COEFFICIENT,
+        ShooterPivotConstants.INVERTED,
+        ShooterPivotConstants.CAN_BUS,
+        ShooterPivotConstants.MOTION_MAGIC_CRUISE_VEL.get(),
+        ShooterPivotConstants.MOTION_MAGIC_ACCEL.get(),
+        ShooterPivotConstants.MOTION_MAGIC_JERK.get(),
+        ShooterPivotConstants.KRAKEN_FEATURES);
+  }
+}

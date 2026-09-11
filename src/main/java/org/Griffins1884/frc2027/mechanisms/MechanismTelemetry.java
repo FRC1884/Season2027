@@ -6,7 +6,9 @@ import java.util.Set;
 /**
  * Normalized telemetry snapshot for all migrated mechanisms.
  *
- * <p>This is intentionally broader than the current family-specific IO inputs so the later
+ * <p>
+ * This is intentionally broader than the current family-specific IO inputs so
+ * the later
  * dashboard/config work can render one consistent tree.
  */
 public record MechanismTelemetry(
@@ -59,5 +61,6 @@ public record MechanismTelemetry(
       double appliedVoltage,
       double supplyCurrentAmps,
       double torqueCurrentAmps,
-      double temperatureCelsius) {}
+      double temperatureCelsius) {
+  }
 }

@@ -2,18 +2,22 @@ package org.Griffins1884.frc2027.runtime;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import org.Griffins1884.frc2027.mechanisms.MechanismTelemetry;
 
 /**
  * Central runtime profile holder.
  *
- * <p>This is the mode/config seam that the dashboard updates instead of every subsystem reading
- * globals independently.
+ * <p>
+ * This is the mode/config seam that the future config dashboard will update
+ * instead of every
+ * subsystem reading globals independently.
  */
 public final class RuntimeModeManager {
-  private static final AtomicReference<RuntimeModeProfile> activeProfile =
-      new AtomicReference<>(RuntimeModeProfile.fromGlobals());
+  private static final AtomicReference<RuntimeModeProfile> activeProfile = new AtomicReference<>(
+      RuntimeModeProfile.fromGlobals());
 
-  private RuntimeModeManager() {}
+  private RuntimeModeManager() {
+  }
 
   public static RuntimeModeProfile getActiveProfile() {
     return activeProfile.get();
@@ -39,11 +43,11 @@ public final class RuntimeModeManager {
     return getActiveProfile().allowsTuning(allowInCompMode);
   }
 
-  public static boolean shouldLog(String signal, String subsystemKey) {
+  public static boolean shouldLog(MechanismTelemetry.Signal signal, String subsystemKey) {
     return getActiveProfile().shouldLog(signal, subsystemKey);
   }
 
-  public static boolean shouldPublish(String signal, String subsystemKey) {
+  public static boolean shouldPublish(MechanismTelemetry.Signal signal, String subsystemKey) {
     return getActiveProfile().shouldPublish(signal, subsystemKey);
   }
 }

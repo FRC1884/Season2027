@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import java.util.Queue;
 
+/** IO implementation for NavX. */
 public class GyroIONavX implements GyroIO {
   private final AHRS navX = new AHRS(AHRS.NavXComType.kMXP_SPI, NavXUpdateRate.k50Hz);
   private final Queue<Double> yawPositionQueue;
@@ -22,18 +23,10 @@ public class GyroIONavX implements GyroIO {
     inputs.yawPosition = Rotation2d.fromDegrees(-navX.getAngle());
     inputs.yawVelocityRadPerSec = Units.degreesToRadians(-navX.getRawGyroZ());
 
-    inputs.odometryYawTimestamps =
-        yawTimestampQueue.stream().mapToDouble(Double::doubleValue).toArray();
-    inputs.odometryYawPositions =
-        yawPositionQueue.stream()
-            .map(value -> Rotation2d.fromDegrees(-value))
-            .toArray(Rotation2d[]::new);
-    yawTimestampQueue.clear();
-    yawPositionQueue.clear();
-  }
-
-  @Override
-  public void clearOdometrySamples() {
+    inputs.odometryYawTimestamps = yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+    inputs.odometryYawPositions = yawPositionQueue.stream()
+        .map((Double value) -> Rotation2d.fromDegrees(-value))
+        .toArray(Rotation2d[]::new);
     yawTimestampQueue.clear();
     yawPositionQueue.clear();
   }

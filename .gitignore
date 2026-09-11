@@ -15,3 +15,6 @@ harness-evidence/
 test-evidence/
 **/__pycache__/
 *.pyc
+
+#Operator Board - Backups
+operatorboard-data/diagnostics/bundles

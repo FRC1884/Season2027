@@ -3,220 +3,506 @@ package org.Griffins1884.frc2027;
 import static org.Griffins1884.frc2027.Config.Controllers.getDriverController;
 import static org.Griffins1884.frc2027.Config.Subsystems.AUTONOMOUS_ENABLED;
 import static org.Griffins1884.frc2027.Config.Subsystems.DRIVETRAIN_ENABLED;
+import static org.Griffins1884.frc2027.Config.Subsystems.LEDS_ENABLED;
+import static org.Griffins1884.frc2027.Config.Subsystems.SHOOTER_PIVOT_ENABLED;
+import static org.Griffins1884.frc2027.Config.Subsystems.TURRET_ENABLED;
+import static org.Griffins1884.frc2027.Config.Subsystems.VISION_ENABLED;
 import static org.Griffins1884.frc2027.GlobalConstants.MODE;
 import static org.Griffins1884.frc2027.subsystems.swerve.SwerveConstants.BACK_LEFT;
 import static org.Griffins1884.frc2027.subsystems.swerve.SwerveConstants.BACK_RIGHT;
 import static org.Griffins1884.frc2027.subsystems.swerve.SwerveConstants.FRONT_LEFT;
 import static org.Griffins1884.frc2027.subsystems.swerve.SwerveConstants.FRONT_RIGHT;
 import static org.Griffins1884.frc2027.subsystems.swerve.SwerveConstants.GYRO_TYPE;
+import static org.Griffins1884.frc2027.subsystems.vision.AprilTagVisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PPLibTelemetry;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import java.io.IOException;
 import java.util.Optional;
 import org.Griffins1884.frc2027.GlobalConstants.RobotMode;
 import org.Griffins1884.frc2027.OI.DriverMap;
+import org.Griffins1884.frc2027.commands.AutoCommands;
 import org.Griffins1884.frc2027.commands.DriveCommands;
-import org.Griffins1884.frc2027.simulation.GenericSimArena;
+import org.Griffins1884.frc2027.commands.ShooterCommands;
+import org.Griffins1884.frc2027.commands.TurretCommands;
+import org.Griffins1884.frc2027.mechanisms.RobotMechanismDefinitions;
+import org.Griffins1884.frc2027.simulation.maple.MapleArenaSetup;
+import org.Griffins1884.frc2027.simulation.maple.Rebuilt2026FieldModel;
 import org.Griffins1884.frc2027.simulation.visualization.RobotStateVisualizer;
-import org.Griffins1884.frc2027.subsystems.swerve.GyroIO;
-import org.Griffins1884.frc2027.subsystems.swerve.GyroIONavX;
-import org.Griffins1884.frc2027.subsystems.swerve.GyroIOPigeon2;
-import org.Griffins1884.frc2027.subsystems.swerve.GyroIOSim;
-import org.Griffins1884.frc2027.subsystems.swerve.ModuleConfigurationWorker;
-import org.Griffins1884.frc2027.subsystems.swerve.ModuleIO;
-import org.Griffins1884.frc2027.subsystems.swerve.ModuleIOFullKraken;
-import org.Griffins1884.frc2027.subsystems.swerve.ModuleIOSim;
-import org.Griffins1884.frc2027.subsystems.swerve.SwerveConstants;
-import org.Griffins1884.frc2027.subsystems.swerve.SwerveSubsystem;
-import org.Griffins1884.frc2027.subsystems.vision.Vision;
-import org.Griffins1884.frc2027.web.OperatorBoardServer;
+import org.Griffins1884.frc2027.subsystems.Superstructure;
+import org.Griffins1884.frc2027.subsystems.leds.LEDSubsystem;
+import org.Griffins1884.frc2027.subsystems.objectivetracker.OperatorBoardIOServer;
+import org.Griffins1884.frc2027.subsystems.objectivetracker.OperatorBoardTracker;
+import org.Griffins1884.frc2027.subsystems.shooter.ShooterPivotIO;
+import org.Griffins1884.frc2027.subsystems.shooter.ShooterPivotIOKraken;
+import org.Griffins1884.frc2027.subsystems.shooter.ShooterPivotIOSim;
+import org.Griffins1884.frc2027.subsystems.shooter.ShooterPivotSubsystem;
+import org.Griffins1884.frc2027.subsystems.swerve.*;
+import org.Griffins1884.frc2027.subsystems.turret.TurretConstants;
+import org.Griffins1884.frc2027.subsystems.turret.TurretIO;
+import org.Griffins1884.frc2027.subsystems.turret.TurretIOKraken;
+import org.Griffins1884.frc2027.subsystems.turret.TurretIOSim;
+import org.Griffins1884.frc2027.subsystems.turret.TurretSubsystem;
+import org.Griffins1884.frc2027.subsystems.vision.*;
+import org.griffins1884.sim3d.CommandableDriveSimulationAdapter;
+import org.griffins1884.sim3d.DriveSimulationAdapter;
+import org.griffins1884.sim3d.SwerveCorner;
+import org.griffins1884.sim3d.TerrainAwareSwerveSimulation;
+import org.griffins1884.sim3d.integration.DriveSimulationFactories;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-/** Composition root for the Season2027 drivetrain and reusable infrastructure base. */
-public final class RobotContainer implements AutoCloseable {
-  private ModuleConfigurationWorker configurationWorker;
-  private final SwerveSubsystem drive;
-  private final SwerveDriveSimulation driveSimulation;
-  private final DriverMap driver = getDriverController();
-  private final LoggedDashboardChooser<Command> characterizationChooser =
-      new LoggedDashboardChooser<>("Characterization/Diagnostics");
-  private final Command characterizationIdleCommand = Commands.none();
-  private final SendableChooser<Command> autonomousChooser;
-  private final RobotStateVisualizer robotStateVisualizer;
-  private final Vision vision;
-  private final OperatorBoardServer operatorBoardServer;
-  private boolean autoAllianceZeroed;
+/**
+ * This class is where the bulk of the robot should be declared. Since
+ * Command-based is a
+ * "declarative" paradigm, very little robot logic should actually be handled in
+ * the {@link Robot}
+ * periodic methods (other than the scheduler calls). Instead, the structure of
+ * the robot (including
+ * subsystems, commands, and button mappings) should be declared here.
+ */
+public class RobotContainer {
+  private static final double ODOMETRY_RESET_VISION_SUPPRESS_SECONDS = 0.35;
 
+  // Subsystems
+  private final SwerveSubsystem drive;
+  private final LEDSubsystem leds;
+  private CommandableDriveSimulationAdapter driveSimulation;
+  private TerrainAwareSwerveSimulation mapleDriveSimulation;
+  private final TurretSubsystem turret;
+  private final ShooterPivotSubsystem shooterPivot;
+  private final OperatorBoardTracker operatorBoard;
+
+  // Controller
+  private final DriverMap driver = getDriverController();
+
+  // Dashboard inputs
+  private final LoggedDashboardChooser<Command> characterizationChooser;
+  private final Command characterizationIdleCommand;
+
+  private final Superstructure superstructure;
+  private final Vision vision;
+  private final RobotStateVisualizer robotStateVisualizer;
+  private boolean autoAllianceZeroed = false;
+
+  /**
+   * The container for the robot. Contains subsystems, OI devices, and commands.
+   */
   public RobotContainer() {
+    // Validate the declarative mechanism catalog up front so config errors fail
+    // early.
+    RobotMechanismDefinitions.all();
+    characterizationChooser = new LoggedDashboardChooser<>("Characterization/Diagnostics");
+    characterizationIdleCommand = Commands.none();
     characterizationChooser.addDefaultOption("None", characterizationIdleCommand);
 
-    DriveBuildResult driveBuild =
-        DRIVETRAIN_ENABLED ? buildDrive() : new DriveBuildResult(null, null);
-    drive = driveBuild.subsystem();
-    driveSimulation = driveBuild.simulation();
-    vision =
-        drive != null
-            ? new Vision(drive::accept)
-            : new Vision((pose, timestamp, standardDeviations) -> {});
-    if (drive != null) {
-      drive.setOdometryResetListener(
-          () -> {
-            vision.resetPoseHistory();
-            vision.suppressVisionForSeconds(0.35);
-          });
+    if (DRIVETRAIN_ENABLED) {
+      drive = switch (MODE) {
+        case REAL:
+          // Real robot, instantiate hardware IO implementations
+          yield new SwerveSubsystem(
+              switch (GYRO_TYPE) {
+                case PIGEON -> new GyroIOPigeon2();
+                case NAVX -> new GyroIONavX();
+                case ADIS -> new GyroIO() {
+                };
+              },
+              new ModuleIOFullKraken(FRONT_LEFT),
+              new ModuleIOFullKraken(FRONT_RIGHT),
+              new ModuleIOFullKraken(BACK_LEFT),
+              new ModuleIOFullKraken(BACK_RIGHT));
+        case SIM:
+          MapleArenaSetup.ensure2026RebuiltArena();
+          this.driveSimulation = requireCommandableDriveSimulation(
+              DriveSimulationFactories.mapleTerrainAware(
+                  new SwerveDriveSimulation(
+                      SwerveConstants.MAPLE_SIM_CONFIG, new Pose2d(3, 3, new Rotation2d())),
+                  Rebuilt2026FieldModel.contactModel(),
+                  Rebuilt2026FieldModel.CHASSIS_FOOTPRINT,
+                  Rebuilt2026FieldModel.CHASSIS_MASS_PROPERTIES));
+          this.mapleDriveSimulation = requireMapleTerrainAwareSimulation(driveSimulation);
+          // Add the simulated drivetrain to the simulation field
+          SimulatedArena.getInstance()
+              .addDriveTrainSimulation(mapleDriveSimulation.mapleSimulation());
+
+          // Sim robot, instantiate physics sim IO implementations
+          yield new SwerveSubsystem(
+              new GyroIOSim(mapleDriveSimulation),
+              new ModuleIOSim(
+                  mapleDriveSimulation,
+                  SwerveCorner.FRONT_LEFT,
+                  mapleDriveSimulation.getModules()[0]),
+              new ModuleIOSim(
+                  mapleDriveSimulation,
+                  SwerveCorner.FRONT_RIGHT,
+                  mapleDriveSimulation.getModules()[1]),
+              new ModuleIOSim(
+                  mapleDriveSimulation,
+                  SwerveCorner.REAR_LEFT,
+                  mapleDriveSimulation.getModules()[2]),
+              new ModuleIOSim(
+                  mapleDriveSimulation,
+                  SwerveCorner.REAR_RIGHT,
+                  mapleDriveSimulation.getModules()[3]));
+
+        default:
+          // Replayed robot, disable IO implementations
+          yield new SwerveSubsystem(
+              new GyroIO() {
+              },
+              new ModuleIO() {
+              },
+              new ModuleIO() {
+              },
+              new ModuleIO() {
+              },
+              new ModuleIO() {
+              });
+      };
+      superstructure = new Superstructure(drive);
+
+    } else {
+      drive = null;
+      superstructure = new Superstructure(null);
     }
 
-    robotStateVisualizer =
-        new RobotStateVisualizer(
-            drive,
-            driveSimulation != null
-                ? () -> new Pose3d(driveSimulation.getSimulatedDriveTrainPose())
-                : null);
-    operatorBoardServer = OperatorBoardServer.startDefault();
+    if (SHOOTER_PIVOT_ENABLED) {
+      shooterPivot = switch (MODE) {
+        case REAL -> new ShooterPivotSubsystem("ShooterPivot", new ShooterPivotIOKraken());
+        case SIM -> new ShooterPivotSubsystem("ShooterPivot", new ShooterPivotIOSim());
+        default -> new ShooterPivotSubsystem("ShooterPivot", new ShooterPivotIO() {
+        });
+      };
+    } else {
+      shooterPivot = null;
+    }
 
-    registerCharacterizationOptions();
-    configureDriverButtonBindings();
-    configurePathPlanner();
-    autonomousChooser =
-        AutoBuilder.isConfigured() ? AutoBuilder.buildAutoChooser() : emptyAutoChooser();
-    SmartDashboard.putData("Autonomous", autonomousChooser);
-  }
+    if (TURRET_ENABLED) {
+      turret = switch (MODE) {
+        case REAL -> new TurretSubsystem(new TurretIOKraken());
+        case SIM -> new TurretSubsystem(new TurretIOSim());
+        default -> new TurretSubsystem(new TurretIO() {
+        });
+      };
 
-  private DriveBuildResult buildDrive() {
-    if (MODE == GlobalConstants.RobotMode.REAL)
-      configurationWorker = new ModuleConfigurationWorker(DriverStation::isDisabled);
-    return switch (MODE) {
-      case REAL ->
-          new DriveBuildResult(
-              new SwerveSubsystem(
-                  switch (GYRO_TYPE) {
-                    case PIGEON -> new GyroIOPigeon2();
-                    case NAVX -> new GyroIONavX();
-                    case ADIS -> new GyroIO() {};
+      superstructure.setTurret(turret);
+    } else {
+      turret = null;
+    }
+
+    if (MODE == RobotMode.SIM && turret != null && drive != null) {
+      turret.setDefaultCommand(
+          TurretCommands.autoAimWhileMovingToTarget(
+              turret,
+              drive::getPose,
+              pose -> Optional.of(TurretConstants.getSimTarget()),
+              drive::getFieldVelocity,
+              drive::getFieldAcceleration));
+      superstructure.setTurretExternalControl(true);
+    }
+
+    if (VISION_ENABLED && drive != null) {
+      vision = switch (MODE) {
+        case REAL, SIM ->
+          new Vision(
+              drive,
+              drive::getPose,
+              () -> Math.toRadians(drive.getYawRateDegreesPerSec()),
+              () -> {
+                var speeds = drive.getRobotRelativeSpeeds();
+                return Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+              },
+              LEFT_CAM_ENABLED
+                  ? (IS_LIMELIGHT
+                      ? new AprilTagVisionIOLimelight(LEFT_CAM_CONSTANTS, drive)
+                      : new AprilTagVisionIONorthstar(
+                          LEFT_CAM_CONSTANTS, LEFT_CAM_NORTHSTAR_CONFIG, drive))
+                  : new VisionIO() {
                   },
-                  new ModuleIOFullKraken(FRONT_LEFT, configurationWorker),
-                  new ModuleIOFullKraken(FRONT_RIGHT, configurationWorker),
-                  new ModuleIOFullKraken(BACK_LEFT, configurationWorker),
-                  new ModuleIOFullKraken(BACK_RIGHT, configurationWorker)),
-              null);
-      case SIM -> buildSimDrive();
-      case REPLAY ->
-          new DriveBuildResult(
-              new SwerveSubsystem(
-                  new GyroIO() {},
-                  new ModuleIO() {},
-                  new ModuleIO() {},
-                  new ModuleIO() {},
-                  new ModuleIO() {}),
-              null);
-    };
-  }
+              RIGHT_CAM_ENABLED
+                  ? (IS_LIMELIGHT
+                      ? new AprilTagVisionIOLimelight(RIGHT_CAM_CONSTANTS, drive)
+                      : new AprilTagVisionIONorthstar(
+                          RIGHT_CAM_CONSTANTS, RIGHT_CAM_NORTHSTAR_CONFIG, drive))
+                  : new VisionIO() {
+                  },
+              MIDDLE_RIGHT_CAM_ENABLED
+                  ? (IS_LIMELIGHT
+                      ? new AprilTagVisionIOLimelight(MIDDLE_RIGHT_CAM_CONSTANTS, drive)
+                      : new AprilTagVisionIONorthstar(
+                          MIDDLE_RIGHT_CAM_CONSTANTS,
+                          MIDDLE_RIGHT_CAM_NORTHSTAR_CONFIG,
+                          drive))
+                  : new VisionIO() {
+                  });
+        default -> new Vision(drive, new VisionIO() {
+        }, new VisionIO() {
+        });
+      };
+    } else
+      vision = null;
 
-  private DriveBuildResult buildSimDrive() {
-    GenericSimArena.install();
-    SwerveDriveSimulation simulation =
-        new SwerveDriveSimulation(SwerveConstants.MAPLE_SIM_CONFIG, Pose2d.kZero);
-    SimulatedArena.getInstance().addDriveTrainSimulation(simulation);
+    leds = LEDS_ENABLED ? new LEDSubsystem() : null;
 
-    SwerveSubsystem subsystem =
-        new SwerveSubsystem(
-            new GyroIOSim(simulation.getGyroSimulation()),
-            new ModuleIOSim(simulation.getModules()[0]),
-            new ModuleIOSim(simulation.getModules()[1]),
-            new ModuleIOSim(simulation.getModules()[2]),
-            new ModuleIOSim(simulation.getModules()[3]));
-    return new DriveBuildResult(subsystem, simulation);
-  }
-
-  private void registerCharacterizationOptions() {
-    if (drive == null) {
-      return;
+    if (Config.Subsystems.WEBUI_ENABLED) {
+      operatorBoard = new OperatorBoardTracker(
+          new OperatorBoardIOServer(), superstructure, drive, turret, vision);
+    } else {
+      operatorBoard = null;
     }
-    characterizationChooser.addOption(
-        "Drive | SysId (Full Routine)", drive.sysIdRoutine().ignoringDisable(true));
-    characterizationChooser.addOption(
-        "Drive | Wheel Radius Characterization",
-        DriveCommands.wheelRadiusCharacterization(drive).ignoringDisable(true));
-    characterizationChooser.addOption(
-        "Drive | Feedforward Characterization",
-        DriveCommands.feedforwardCharacterization(drive).ignoringDisable(true));
-    characterizationChooser.addOption(
-        "Drive | SysId (Quasistatic Forward)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward).ignoringDisable(true));
-    characterizationChooser.addOption(
-        "Drive | SysId (Quasistatic Reverse)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse).ignoringDisable(true));
-    characterizationChooser.addOption(
-        "Drive | SysId (Dynamic Forward)",
-        drive.sysIdDynamic(SysIdRoutine.Direction.kForward).ignoringDisable(true));
-    characterizationChooser.addOption(
-        "Drive | SysId (Dynamic Reverse)",
-        drive.sysIdDynamic(SysIdRoutine.Direction.kReverse).ignoringDisable(true));
-    characterizationChooser.addOption(
-        "Turn | SysId (Full Routine)", drive.sysIdTurnRoutine().ignoringDisable(true));
+
+    robotStateVisualizer = new RobotStateVisualizer(drive, turret, superstructure);
+
+    if (drive != null) {
+      drive.setOdometryResetListener(this::handleOdometryReset);
+    }
+
+    if (DRIVETRAIN_ENABLED && drive != null) {
+      characterizationChooser.addOption(
+          "Drive | SysId (Full Routine)", drive.sysIdRoutine().ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Wheel Radius Characterization",
+          DriveCommands.wheelRadiusCharacterization(drive).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Wheel Radius Characterization + Save",
+          DriveCommands.wheelRadiusCharacterization(drive, true).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Clear Saved Wheel Radius",
+          DriveCommands.clearSavedWheelRadius().ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Capture Module Zero Offsets",
+          DriveCommands.captureModuleZeroOffsets(drive).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Capture FL Zero Offset",
+          DriveCommands.captureModuleZeroOffset(drive, 0, "FL").ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Capture FR Zero Offset",
+          DriveCommands.captureModuleZeroOffset(drive, 1, "FR").ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Capture BL Zero Offset",
+          DriveCommands.captureModuleZeroOffset(drive, 2, "BL").ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Capture BR Zero Offset",
+          DriveCommands.captureModuleZeroOffset(drive, 3, "BR").ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Clear Module Zero Offsets",
+          DriveCommands.clearModuleZeroOffsets(drive).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Clear FL Zero Offset",
+          DriveCommands.clearModuleZeroOffset(drive, 0, "FL").ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Clear FR Zero Offset",
+          DriveCommands.clearModuleZeroOffset(drive, 1, "FR").ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Clear BL Zero Offset",
+          DriveCommands.clearModuleZeroOffset(drive, 2, "BL").ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Clear BR Zero Offset",
+          DriveCommands.clearModuleZeroOffset(drive, 3, "BR").ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | Feedforward Characterization",
+          DriveCommands.feedforwardCharacterization(drive).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | SysId (Quasistatic Forward)",
+          drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | SysId (Quasistatic Reverse)",
+          drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | SysId (Dynamic Forward)",
+          drive.sysIdDynamic(SysIdRoutine.Direction.kForward).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Drive | SysId (Dynamic Reverse)",
+          drive.sysIdDynamic(SysIdRoutine.Direction.kReverse).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Turn | SysId (Full Routine)", drive.sysIdTurnRoutine().ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Turn | SysId (Quasistatic Forward)",
+          drive.sysIdTurnQuasistatic(SysIdRoutine.Direction.kForward).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Turn | SysId (Quasistatic Reverse)",
+          drive.sysIdTurnQuasistatic(SysIdRoutine.Direction.kReverse).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Turn | SysId (Dynamic Forward)",
+          drive.sysIdTurnDynamic(SysIdRoutine.Direction.kForward).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Turn | SysId (Dynamic Reverse)",
+          drive.sysIdTurnDynamic(SysIdRoutine.Direction.kReverse).ignoringDisable(true));
+    }
+
+    SmartDashboard.putBoolean("drive/test", DriveCommands.getTest().get());
+
+    superstructure.registerSuperstructureCharacterization(() -> characterizationChooser);
+    if (turret != null) {
+      Command turretSysIdFull = Commands.sequence(
+          turret.sysIdQuasistatic(SysIdRoutine.Direction.kForward),
+          Commands.waitSeconds(0.5),
+          turret.sysIdQuasistatic(SysIdRoutine.Direction.kReverse),
+          Commands.waitSeconds(0.5),
+          turret.sysIdDynamic(SysIdRoutine.Direction.kForward),
+          Commands.waitSeconds(0.5),
+          turret.sysIdDynamic(SysIdRoutine.Direction.kReverse))
+          .ignoringDisable(true);
+      characterizationChooser.addOption("Turret | SysId (Full Routine)", turretSysIdFull);
+      characterizationChooser.addOption(
+          "Turret | SysId (Quasistatic Forward)",
+          turret.sysIdQuasistatic(SysIdRoutine.Direction.kForward).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Turret | SysId (Quasistatic Reverse)",
+          turret.sysIdQuasistatic(SysIdRoutine.Direction.kReverse).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Turret | SysId (Dynamic Forward)",
+          turret.sysIdDynamic(SysIdRoutine.Direction.kForward).ignoringDisable(true));
+      characterizationChooser.addOption(
+          "Turret | SysId (Dynamic Reverse)",
+          turret.sysIdDynamic(SysIdRoutine.Direction.kReverse).ignoringDisable(true));
+    }
+
+    // Configure the button bindings
+    configureDriverButtonBindings();
+    configurePathPlannerAutonomous();
+    configurePathPlannerTelemetry();
+
+    superstructure.setAutoStartPoseSupplier(
+        operatorBoard != null ? operatorBoard::getQueuedStartPose : Optional::empty);
   }
 
+  /**
+   * Use this method to define your button->command mappings. Buttons can be
+   * created by
+   * instantiating a {@link GenericHID} or one of its subclasses ({@link
+   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing
+   * it to a {@link
+   * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
+   */
+  @SuppressWarnings("unused")
   private void configureDriverButtonBindings() {
-    if (drive == null) {
-      return;
+    if (DRIVETRAIN_ENABLED && drive != null) {
+      // Default command, normal field-relative drive
+      drive.setDefaultCommand(
+          DriveCommands.joystickDriveCommand(
+              drive, driver.getYAxis(), driver.getXAxis(), driver.getRotAxis()));
+
+      // Held override: robot-relative drive with the robot front/back and rotation
+      // flipped.
+      driver
+          .alignWithBall()
+          .whileTrue(
+              DriveCommands.joystickDriveRobotRelativeFlippedCommand(
+                  drive, driver.getYAxis(), driver.getXAxis(), driver.getRotAxis()));
+
+      driver
+          .shootToggle()
+          .whileTrue(superstructure.runIndexer(true))
+          .whileFalse(superstructure.runIndexer(false));
+
+      driver
+          .intakeDeployToggle()
+          .onTrue(Commands.runOnce(() -> superstructure.toggleIntakeDeploy()));
+
+      driver
+          .intakeRollersHold()
+          .whileTrue(Commands.runOnce(() -> superstructure.setIntakeRollersHeld(true)))
+          .whileFalse(Commands.runOnce(() -> superstructure.setIntakeRollersHeld(false)));
+
+      driver
+          .shooterPivotUp()
+          .whileTrue(ShooterCommands.pivotOpenLoop(shooterPivot, 0.1))
+          .whileFalse(ShooterCommands.pivotOpenLoop(shooterPivot, 0));
+
+      driver
+          .shooterPivotUp()
+          .whileTrue(ShooterCommands.pivotOpenLoop(shooterPivot, -0.1))
+          .whileFalse(ShooterCommands.pivotOpenLoop(shooterPivot, 0));
+
+      driver
+          .turretLeft()
+          .whileTrue(TurretCommands.turretOpenLoop(turret, 0.1))
+          .whileFalse(TurretCommands.turretOpenLoop(turret, 0));
+
+      driver
+          .turretRight()
+          .whileTrue(TurretCommands.turretOpenLoop(turret, -0.1))
+          .whileFalse(TurretCommands.turretOpenLoop(turret, 0));
+
+      Command resetOdometryCmd = Commands.runOnce(
+          () -> {
+            if (drive == null) {
+              return;
+            }
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isEmpty()) {
+              Logger.recordOutput("Odometry/AllianceZero/Failed", true);
+              Logger.recordOutput("Odometry/AllianceZero/Reason", "ALLIANCE_UNKNOWN");
+              return;
+            }
+            drive.zeroGyroAndOdometryToAllianceWall(alliance.get());
+          },
+          drive);
+      if (LEDS_ENABLED && leds != null) {
+        resetOdometryCmd = resetOdometryCmd.andThen(leds.whiteFlash().repeatedly().withTimeout(2.0));
+      }
+      driver.resetOdometry().onTrue(resetOdometryCmd.ignoringDisable(true));
     }
-    drive.setDefaultCommand(
-        DriveCommands.joystickDriveCommand(
-            drive, driver.getYAxis(), driver.getXAxis(), driver.getRotAxis()));
-    driver
-        .robotRelativeOverride()
-        .whileTrue(
-            DriveCommands.joystickDriveRobotRelativeFlippedCommand(
-                drive, driver.getYAxis(), driver.getXAxis(), driver.getRotAxis()));
-    driver.resetHeading().onTrue(DriveCommands.resetHeadingToAllianceForwardCommand(drive));
-    driver
-        .resetOdometry()
-        .onTrue(
-            Commands.runOnce(
-                    () -> {
-                      Optional<Alliance> alliance = DriverStation.getAlliance();
-                      if (alliance.isEmpty()) {
-                        Logger.recordOutput("Odometry/AllianceZero/Failed", true);
-                        return;
-                      }
-                      drive.zeroGyroAndOdometryToAllianceWall(alliance.get());
-                    },
-                    drive)
-                .ignoringDisable(true));
+
+    if (LEDS_ENABLED && leds != null) {
+      leds.setDefaultCommand(
+          leds.allianceColor(
+              () -> DriverStation.getAlliance().orElse(Alliance.Red).equals(Alliance.Red))
+              .repeatedly());
+
+      new Trigger(() -> DriverStation.isTeleop() && DriverStation.getMatchTime() < 25)
+          .whileTrue(leds.rainbow().repeatedly());
+    }
   }
 
-  private void configurePathPlanner() {
+  private void configurePathPlannerAutonomous() {
+    AutoCommands.registerAutoCommands(superstructure, drive, leds);
     if (drive == null) {
       return;
     }
-    RobotConfig robotConfig = createPathPlannerRobotConfig();
+    try {
+      RobotConfig robotConfig = RobotConfig.fromGUISettings();
+      AutoBuilder.configure(
+          drive::getPose,
+          pose -> resetRobotToPose(pose, MODE == RobotMode.SIM),
+          drive::getRobotRelativeSpeeds,
+          drive::runVelocity,
+          new PPHolonomicDriveController(new PIDConstants(5.0), new PIDConstants(5.0)),
+          robotConfig,
+          () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+          drive);
+    } catch (IOException | ParseException ex) {
+      DriverStation.reportError(
+          "Failed to configure PathPlanner autonomous: " + ex.getMessage(), ex.getStackTrace());
+    }
+  }
 
-    AutoBuilder.configure(
-        drive::getPose,
-        drive::resetOdometry,
-        drive::getRobotRelativeSpeeds,
-        drive::runVelocity,
-        new PPHolonomicDriveController(new PIDConstants(5.0), new PIDConstants(5.0)),
-        robotConfig,
-        () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
-        drive);
+  private void configurePathPlannerTelemetry() {
+    if (drive == null) {
+      return;
+    }
+
     PathPlannerLogging.setLogCurrentPoseCallback(
         pose -> Logger.recordOutput("PathPlanner/CurrentPose", pose));
     PathPlannerLogging.setLogTargetPoseCallback(
@@ -225,30 +511,31 @@ public final class RobotContainer implements AutoCloseable {
         poses -> Logger.recordOutput("PathPlanner/ActivePath", poses.toArray(Pose2d[]::new)));
   }
 
-  static RobotConfig createPathPlannerRobotConfig() {
-    ModuleConfig moduleConfig =
-        new ModuleConfig(
-            SwerveConstants.getWheelRadiusMeters(),
-            SwerveConstants.MAX_LINEAR_SPEED,
-            SwerveConstants.WHEEL_FRICTION_COEFF,
-            SwerveConstants.DRIVE_GEARBOX.withReduction(SwerveConstants.KRAKEN_DRIVE_GEAR_RATIO),
-            SwerveConstants.KRAKEN_DRIVE_CURRENT_LIMIT,
-            1);
-    return new RobotConfig(
-        SwerveConstants.ROBOT_MASS,
-        SwerveConstants.ROBOT_INERTIA,
-        moduleConfig,
-        SwerveConstants.MODULE_TRANSLATIONS);
-  }
-
-  private static SendableChooser<Command> emptyAutoChooser() {
-    SendableChooser<Command> chooser = new SendableChooser<>();
-    chooser.setDefaultOption("None", Commands.none());
-    return chooser;
-  }
-
+  /**
+   * Use this to pass the autonomwous command to the main {@link Robot} class.
+   *
+   * @return the command to run in autonomous, or null if the auto chooser is not
+   *         initialized.
+   */
   public Command getAutonomousCommand() {
-    return AUTONOMOUS_ENABLED ? autonomousChooser.getSelected() : null;
+    if (!AUTONOMOUS_ENABLED)
+      return null;
+    Command selected = operatorBoard != null ? operatorBoard.getAutonomousCommand() : null;
+    superstructure.setAutonomousHoldEnabled(selected == null);
+    return selected;
+  }
+
+  public void applyQueuedAutonomousStartPose() {
+    if (!AUTONOMOUS_ENABLED || drive == null) {
+      return;
+    }
+
+    getQueuedAutonomousStartPose()
+        .ifPresent(
+            pose -> {
+              resetRobotToPose(pose, MODE == RobotMode.SIM);
+              Logger.recordOutput("Autonomous/QueuedStartPoseApplied", pose);
+            });
   }
 
   public Command getCharacterizationCommand() {
@@ -256,42 +543,101 @@ public final class RobotContainer implements AutoCloseable {
     return selected == characterizationIdleCommand ? null : selected;
   }
 
-  public void tryAutoZeroOdometryToAllianceWall() {
-    if (autoAllianceZeroed || drive == null || !DriverStation.isDisabled()) {
-      return;
+  public Command getDriveSysIdCommand() {
+    if (!DRIVETRAIN_ENABLED || drive == null) {
+      return Commands.none();
     }
-    DriverStation.getAlliance()
-        .ifPresent(
-            alliance -> {
-              drive.zeroGyroAndOdometryToAllianceWall(alliance);
-              autoAllianceZeroed = true;
-            });
+    return drive.sysIdRoutine().ignoringDisable(true);
   }
 
   public void resetSimulationField() {
-    if (MODE != RobotMode.SIM || driveSimulation == null || drive == null) {
+    if (MODE != RobotMode.SIM || driveSimulation == null || drive == null)
+      return;
+
+    resetRobotToPose(new Pose2d(3, 3, new Rotation2d()), true);
+  }
+
+  /** Auto-zero gyro/odometry once when disabled and alliance is known. */
+  public void tryAutoZeroOdometryToAllianceWall() {
+    if (autoAllianceZeroed || drive == null) {
       return;
     }
-    driveSimulation.setSimulationWorldPose(Pose2d.kZero);
-    drive.resetOdometry(Pose2d.kZero, true);
-    SimulatedArena.getInstance().resetFieldForAuto();
+    if (!DriverStation.isDisabled()) {
+      return;
+    }
+    Optional<Alliance> alliance = DriverStation.getAlliance();
+    if (alliance.isEmpty()) {
+      return;
+    }
+    drive.zeroGyroAndOdometryToAllianceWall(alliance.get());
+    autoAllianceZeroed = true;
+    Logger.recordOutput("Odometry/AutoAllianceZeroed", true);
+  }
+
+  private void handleOdometryReset() {
+    if (vision == null) {
+      return;
+    }
+    vision.resetPoseHistory();
+    vision.suppressVisionForSeconds(ODOMETRY_RESET_VISION_SUPPRESS_SECONDS);
+  }
+
+  public void displaySimFieldToAdvantageScope() {
+    if (drive != null && turret != null && MODE == RobotMode.SIM) {
+      Translation2d turretTarget = TurretCommands.predictShootingWhileMoving(
+          drive::getPose,
+          TurretConstants::getSimTarget,
+          drive::getFieldVelocity,
+          drive::getFieldAcceleration);
+      Logger.recordOutput(
+          "FieldSimulation/TurretTarget", new Pose2d(turretTarget, new Rotation2d()));
+    }
+  }
+
+  public void setTeleopState() {
+    superstructure.setAutonomousHoldEnabled(false);
+    superstructure.setAutoStateEnabled(true);
   }
 
   public void periodic() {
-    if (drive != null) {
+    if (drive != null && MODE != RobotMode.REPLAY) {
       PPLibTelemetry.setCurrentPose(drive.getPose());
     }
     robotStateVisualizer.periodic();
   }
 
-  @Override
-  public void close() {
-    if (configurationWorker != null) configurationWorker.close();
-    if (drive != null) drive.close();
-    if (operatorBoardServer != null) {
-      operatorBoardServer.close();
-    }
+  private Optional<Pose2d> getQueuedAutonomousStartPose() {
+    return operatorBoard != null ? operatorBoard.getQueuedStartPose() : Optional.empty();
   }
 
-  private record DriveBuildResult(SwerveSubsystem subsystem, SwerveDriveSimulation simulation) {}
+  private void resetRobotToPose(Pose2d pose, boolean resetSimulationField) {
+    if (drive == null || pose == null) {
+      return;
+    }
+
+    if (resetSimulationField && MODE == RobotMode.SIM && driveSimulation != null) {
+      driveSimulation.resetState(pose, new ChassisSpeeds());
+      SimulatedArena.getInstance().resetFieldForAuto();
+      robotStateVisualizer.reset();
+    }
+
+    drive.resetOdometry(pose, true);
+  }
+
+  private static CommandableDriveSimulationAdapter requireCommandableDriveSimulation(
+      DriveSimulationAdapter driveSimulation) {
+    if (driveSimulation instanceof CommandableDriveSimulationAdapter commandableDriveSimulation) {
+      return commandableDriveSimulation;
+    }
+    throw new IllegalStateException("Selected GriffinSim backend does not expose command hooks.");
+  }
+
+  private static TerrainAwareSwerveSimulation requireMapleTerrainAwareSimulation(
+      DriveSimulationAdapter driveSimulation) {
+    if (driveSimulation instanceof TerrainAwareSwerveSimulation terrainAwareDriveSimulation) {
+      return terrainAwareDriveSimulation;
+    }
+    throw new IllegalStateException(
+        "Current SIM IO wiring still requires the Maple-backed TerrainAwareSwerveSimulation.");
+  }
 }

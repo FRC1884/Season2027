@@ -1,0 +1,17 @@
+package org.Griffins1884.frc2027.subsystems.shooter;
+
+import org.Griffins1884.frc2027.mechanisms.rollers.MechanismRollerIOKraken;
+
+public class ShooterIOKraken extends MechanismRollerIOKraken implements ShooterIO {
+  public ShooterIOKraken() {
+    super(
+        ShooterConstants.SHOOTER_IDS,
+        ShooterConstants.CURRENT_LIMIT_AMPS,
+        ShooterConstants.SHOOTER_INVERTED,
+        ShooterConstants.BRAKE_MODE,
+        ShooterConstants.REDUCTION,
+        ShooterConstants.CAN_BUS,
+        ShooterConstants.CLOSED_LOOP_RAMP_SECONDS,
+        ShooterConstants.KRAKEN_FEATURES);
+  }
+}

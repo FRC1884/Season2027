@@ -4,7 +4,8 @@ import java.util.Locale;
 
 /** Resolves which Limelight profile should be used for a camera. */
 public final class LimelightProfileResolver {
-  private LimelightProfileResolver() {}
+  private LimelightProfileResolver() {
+  }
 
   public static VisionIO.LimelightProfile fromOverrideValue(double value) {
     long rounded = Math.round(value);

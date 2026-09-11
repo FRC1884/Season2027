@@ -8,7 +8,6 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -16,24 +15,35 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.Griffins1884.frc2027.GlobalConstants;
 import org.Griffins1884.frc2027.subsystems.swerve.SwerveCalibration;
 import org.Griffins1884.frc2027.subsystems.swerve.SwerveConstants;
 import org.Griffins1884.frc2027.subsystems.swerve.SwerveSubsystem;
-import org.Griffins1884.frc2027.util.AllianceUtil;
+import org.Griffins1884.frc2027.util.AllianceFlipUtil;
 import org.Griffins1884.frc2027.util.RobotLogging;
-import org.littletonrobotics.junction.Logger;
 
 public class DriveCommands {
-  private DriveCommands() {}
+  private static final Pose2d DEPOT_ALIGN_POSE = new Pose2d(0.7, 5.94, Rotation2d.fromDegrees(0.0));
+  private static final Pose2d HP_ALIGN_POSE = new Pose2d(3.0, 2.4, Rotation2d.fromDegrees(45.0));
+
+  private DriveCommands() {
+  }
+
+  private static boolean test = false;
+
+  public static Supplier<Boolean> getTest() {
+    return () -> test;
+  }
+
+  public static void setTest(boolean newTest) {
+    test = newTest;
+  }
 
   private static Translation2d getLinearVelocityFromJoysticks(double x, double y) {
     // Apply deadband
-    double linearMagnitude =
-        MathUtil.applyDeadband(Math.hypot(x, y), AlignConstants.Manual.DEADBAND.get());
+    double linearMagnitude = MathUtil.applyDeadband(Math.hypot(x, y), AlignConstants.Manual.DEADBAND.get());
     Rotation2d linearDirection = new Rotation2d(Math.atan2(y, x));
 
     // Square magnitude for more precise control
@@ -54,27 +64,29 @@ public class DriveCommands {
   }
 
   /**
-   * Field relative drive command using two joysticks (controlling linear and angular velocities).
+   * Field relative drive command using two joysticks (controlling linear and
+   * angular velocities).
    */
   public static void joystickDrive(
       SwerveSubsystem drive,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
+    if (drive == null) {
+      return;
+    }
     // Get linear velocity
-    Translation2d linearVelocity =
-        getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+    Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
 
     // Apply rotation deadband
     double omega = getAngularVelocityCommand(omegaSupplier.getAsDouble());
 
     // Convert to field relative speeds & send command
-    ChassisSpeeds speeds =
-        new ChassisSpeeds(
-            linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
-            linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
-            omega * drive.getMaxAngularSpeedRadPerSec());
-    boolean isFlipped = AllianceUtil.shouldFlip();
+    ChassisSpeeds speeds = new ChassisSpeeds(
+        linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+        linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+        omega * drive.getMaxAngularSpeedRadPerSec());
+    boolean isFlipped = AllianceFlipUtil.shouldFlip(drive.getPose());
     drive.runVelocity(
         ChassisSpeeds.fromFieldRelativeSpeeds(
             speeds,
@@ -86,11 +98,15 @@ public class DriveCommands {
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
+    if (drive == null) {
+      return Commands.none();
+    }
     return Commands.run(() -> joystickDrive(drive, xSupplier, ySupplier, omegaSupplier), drive);
   }
 
   /**
-   * Robot-relative drive command with driver controls flipped so the back of the robot behaves as
+   * Robot-relative drive command with driver controls flipped so the back of the
+   * robot behaves as
    * the front while the override is held.
    */
   public static Command joystickDriveRobotRelativeFlippedCommand(
@@ -98,10 +114,13 @@ public class DriveCommands {
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
+    if (drive == null) {
+      return Commands.none();
+    }
     return Commands.run(
         () -> {
-          Translation2d linearVelocity =
-              getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+          Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(),
+              ySupplier.getAsDouble());
 
           double omega = getAngularVelocityCommand(omegaSupplier.getAsDouble());
 
@@ -114,34 +133,30 @@ public class DriveCommands {
         drive);
   }
 
-  /** Resets heading to alliance-relative forward while preserving the current field translation. */
-  public static Command resetHeadingToAllianceForwardCommand(SwerveSubsystem drive) {
-    return resetHeadingToAllianceForwardCommand(drive, AllianceUtil::getAlliance);
+  public static Command alignToDepot(SwerveSubsystem drive) {
+    if (drive == null) {
+      return Commands.none();
+    }
+    return new AutoAlignToPoseCommand(drive, DEPOT_ALIGN_POSE);
   }
 
-  static Command resetHeadingToAllianceForwardCommand(
-      SwerveSubsystem drive, Supplier<Optional<Alliance>> allianceSupplier) {
-    return Commands.runOnce(
-            () -> {
-              Optional<Alliance> alliance = allianceSupplier.get();
-              if (alliance.isEmpty()) {
-                Logger.recordOutput("Odometry/AllianceForwardReset/Failed", true);
-                return;
-              }
-
-              drive.resetHeadingToAllianceForward(alliance.get());
-              Logger.recordOutput("Odometry/AllianceForwardReset/Failed", false);
-            },
-            drive)
-        .ignoringDisable(true);
+  public static Command alignToHPd(SwerveSubsystem drive) {
+    if (drive == null) {
+      return Commands.none();
+    }
+    return new AutoAlignToPoseCommand(drive, HP_ALIGN_POSE);
   }
 
   /**
    * Measures the velocity feedforward constants for the drive motors.
    *
-   * <p>This command should only be used in voltage control mode.
+   * <p>
+   * This command should only be used in voltage control mode.
    */
   public static Command feedforwardCharacterization(SwerveSubsystem drive) {
+    if (drive == null) {
+      return Commands.none();
+    }
     List<Double> velocitySamples = new LinkedList<>();
     List<Double> voltageSamples = new LinkedList<>();
     Timer timer = new Timer();
@@ -156,10 +171,10 @@ public class DriveCommands {
 
         // Allow modules to orient
         Commands.run(
-                () -> {
-                  drive.runCharacterization(0.0);
-                },
-                drive)
+            () -> {
+              drive.runCharacterization(0.0);
+            },
+            drive)
             .withTimeout(AlignConstants.Characterization.FF_START_DELAY_SEC.get()),
 
         // Start timer
@@ -167,15 +182,14 @@ public class DriveCommands {
 
         // Accelerate and gather data
         Commands.run(
-                () -> {
-                  double voltage =
-                      timer.get()
-                          * AlignConstants.Characterization.FF_RAMP_RATE_VOLTS_PER_SEC.get();
-                  drive.runCharacterization(voltage);
-                  velocitySamples.add(drive.getFFCharacterizationVelocity());
-                  voltageSamples.add(voltage);
-                },
-                drive)
+            () -> {
+              double voltage = timer.get()
+                  * AlignConstants.Characterization.FF_RAMP_RATE_VOLTS_PER_SEC.get();
+              drive.runCharacterization(voltage);
+              velocitySamples.add(drive.getFFCharacterizationVelocity());
+              voltageSamples.add(voltage);
+            },
+            drive)
 
             // When cancelled, calculate and print results
             .finallyDo(
@@ -206,11 +220,16 @@ public class DriveCommands {
     return wheelRadiusCharacterization(drive, false);
   }
 
-  /** Measures the robot's wheel radius by spinning in a circle and optionally saves the result. */
+  /**
+   * Measures the robot's wheel radius by spinning in a circle and optionally
+   * saves the result.
+   */
   public static Command wheelRadiusCharacterization(SwerveSubsystem drive, boolean saveResult) {
-    SlewRateLimiter limiter =
-        new SlewRateLimiter(
-            AlignConstants.Characterization.WHEEL_RADIUS_RAMP_RATE_RAD_PER_SEC2.get());
+    if (drive == null) {
+      return Commands.none();
+    }
+    SlewRateLimiter limiter = new SlewRateLimiter(
+        AlignConstants.Characterization.WHEEL_RADIUS_RAMP_RATE_RAD_PER_SEC2.get());
     WheelRadiusCharacterizationState state = new WheelRadiusCharacterizationState();
 
     return Commands.parallel(
@@ -225,10 +244,9 @@ public class DriveCommands {
             // Turn in place, accelerating up to full speed
             Commands.run(
                 () -> {
-                  double speed =
-                      limiter.calculate(
-                          AlignConstants.Characterization.WHEEL_RADIUS_MAX_VELOCITY_RAD_PER_SEC
-                              .get());
+                  double speed = limiter.calculate(
+                      AlignConstants.Characterization.WHEEL_RADIUS_MAX_VELOCITY_RAD_PER_SEC
+                          .get());
                   drive.runVelocity(new ChassisSpeeds(0.0, 0.0, speed));
                 },
                 drive)),
@@ -248,11 +266,11 @@ public class DriveCommands {
 
             // Update gyro delta
             Commands.run(
-                    () -> {
-                      var rotation = drive.getRotation();
-                      state.gyroDelta += Math.abs(rotation.minus(state.lastAngle).getRadians());
-                      state.lastAngle = rotation;
-                    })
+                () -> {
+                  var rotation = drive.getRotation();
+                  state.gyroDelta += Math.abs(rotation.minus(state.lastAngle).getRadians());
+                  state.lastAngle = rotation;
+                })
 
                 // When cancelled, calculate and print results
                 .finallyDo(
@@ -262,8 +280,7 @@ public class DriveCommands {
                       for (int i = 0; i < 4; i++) {
                         wheelDelta += Math.abs(positions[i] - state.positions[i]) / 4.0;
                       }
-                      double wheelRadius =
-                          (state.gyroDelta * SwerveConstants.DRIVE_BASE_RADIUS) / wheelDelta;
+                      double wheelRadius = (state.gyroDelta * SwerveConstants.DRIVE_BASE_RADIUS) / wheelDelta;
 
                       NumberFormat formatter = new DecimalFormat("#0.000");
                       RobotLogging.debug(
@@ -287,6 +304,9 @@ public class DriveCommands {
   }
 
   public static Command captureModuleZeroOffsets(SwerveSubsystem drive) {
+    if (drive == null) {
+      return Commands.none();
+    }
     return Commands.runOnce(
         () -> {
           drive.captureModuleZeroOffsets();
@@ -298,6 +318,9 @@ public class DriveCommands {
 
   public static Command captureModuleZeroOffset(
       SwerveSubsystem drive, int moduleIndex, String label) {
+    if (drive == null) {
+      return Commands.none();
+    }
     return Commands.runOnce(
         () -> {
           drive.captureModuleZeroOffset(moduleIndex);
@@ -308,6 +331,9 @@ public class DriveCommands {
   }
 
   public static Command clearModuleZeroOffsets(SwerveSubsystem drive) {
+    if (drive == null) {
+      return Commands.none();
+    }
     return Commands.runOnce(
         () -> {
           drive.clearModuleZeroOffsets();
@@ -318,6 +344,9 @@ public class DriveCommands {
 
   public static Command clearModuleZeroOffset(
       SwerveSubsystem drive, int moduleIndex, String label) {
+    if (drive == null) {
+      return Commands.none();
+    }
     return Commands.runOnce(
         () -> {
           drive.clearModuleZeroOffset(moduleIndex);

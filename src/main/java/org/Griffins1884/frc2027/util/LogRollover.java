@@ -38,7 +38,8 @@ public final class LogRollover {
   private static String lastCleanKeepNtSession = "";
   private static String lastCleanKeepWpilib = "";
 
-  private LogRollover() {}
+  private LogRollover() {
+  }
 
   public static synchronized void init(RollingWPILOGWriter writer) {
     rollingWriter = writer;
@@ -194,10 +195,9 @@ public final class LogRollover {
       return 0;
     }
 
-    Path keepNtSession =
-        activeNetworkTablesSessionDir != null && Files.exists(activeNetworkTablesSessionDir)
-            ? activeNetworkTablesSessionDir
-            : newestPath(entries, LogRollover::isNetworkTablesSessionDir);
+    Path keepNtSession = activeNetworkTablesSessionDir != null && Files.exists(activeNetworkTablesSessionDir)
+        ? activeNetworkTablesSessionDir
+        : newestPath(entries, LogRollover::isNetworkTablesSessionDir);
     lastCleanKeepNtSession = keepNtSession != null ? keepNtSession.toString() : "";
 
     int deletedEntries = 0;
@@ -269,13 +269,13 @@ public final class LogRollover {
     }
     filtered.sort(
         Comparator.comparingLong(
-                (Path path) -> {
-                  try {
-                    return Files.getLastModifiedTime(path).toMillis();
-                  } catch (IOException ex) {
-                    return Long.MIN_VALUE;
-                  }
-                })
+            (Path path) -> {
+              try {
+                return Files.getLastModifiedTime(path).toMillis();
+              } catch (IOException ex) {
+                return Long.MIN_VALUE;
+              }
+            })
             .reversed());
     return filtered.get(0);
   }

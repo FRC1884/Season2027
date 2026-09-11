@@ -9,7 +9,8 @@ import org.Griffins1884.frc2027.runtime.RuntimeModeManager;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 /**
- * Class for a tunable number. Gets value from dashboard in tuning mode, returns default if not or
+ * Class for a tunable number. Gets value from dashboard in tuning mode, returns
+ * default if not or
  * value not in dashboard.
  */
 public class LoggedTunableNumber implements DoubleSupplier {
@@ -33,7 +34,7 @@ public class LoggedTunableNumber implements DoubleSupplier {
   /**
    * Create a new LoggedTunableNumber
    *
-   * @param dashboardKey Key on dashboard
+   * @param dashboardKey    Key on dashboard
    * @param allowInCompMode True to keep this number live in COMP logging mode
    */
   public LoggedTunableNumber(String dashboardKey, boolean allowInCompMode) {
@@ -54,8 +55,8 @@ public class LoggedTunableNumber implements DoubleSupplier {
   /**
    * Create a new LoggedTunableNumber with the default value
    *
-   * @param dashboardKey Key on dashboard
-   * @param defaultValue Default value
+   * @param dashboardKey    Key on dashboard
+   * @param defaultValue    Default value
    * @param allowInCompMode True to keep this number live in COMP logging mode
    */
   public LoggedTunableNumber(String dashboardKey, double defaultValue, boolean allowInCompMode) {
@@ -73,7 +74,7 @@ public class LoggedTunableNumber implements DoubleSupplier {
       hasDefault = true;
       this.defaultValue = defaultValue;
       if (isDashboardEnabled()) {
-        initializeDashboardNumber();
+        dashboardNumber = new LoggedNetworkNumber(key, defaultValue);
       }
     }
   }
@@ -87,20 +88,7 @@ public class LoggedTunableNumber implements DoubleSupplier {
     if (!hasDefault) {
       return 0.0;
     } else {
-      if (isDashboardEnabled()) {
-        initializeDashboardNumber();
-        return dashboardNumber.get();
-      }
-      return defaultValue;
-    }
-  }
-
-  private void initializeDashboardNumber() {
-    if (dashboardNumber == null) {
-      dashboardNumber = new LoggedNetworkNumber(key, defaultValue);
-      // The constructor preserves an existing NT entry but initially returns the default.
-      // Acquire through AdvantageKit so the first enabled read also respects replay inputs.
-      dashboardNumber.periodic();
+      return isDashboardEnabled() ? dashboardNumber.get() : defaultValue;
     }
   }
 
@@ -111,10 +99,12 @@ public class LoggedTunableNumber implements DoubleSupplier {
   /**
    * Checks whether the number has changed since our last check
    *
-   * @param id Unique identifier for the caller to avoid conflicts when shared between multiple
-   *     objects. Recommended approach is to pass the result of "hashCode()"
-   * @return True if the number has changed since the last time this method was called, false
-   *     otherwise.
+   * @param id Unique identifier for the caller to avoid conflicts when shared
+   *           between multiple
+   *           objects. Recommended approach is to pass the result of "hashCode()"
+   * @return True if the number has changed since the last time this method was
+   *         called, false
+   *         otherwise.
    */
   public boolean hasChanged(int id) {
     double currentValue = get();
@@ -130,20 +120,18 @@ public class LoggedTunableNumber implements DoubleSupplier {
   /**
    * Runs action if any of the tunableNumbers have changed
    *
-   * @param id Unique identifier for the caller to avoid conflicts when shared between multiple *
-   *     objects. Recommended approach is to pass the result of "hashCode()"
-   * @param action Callback to run when any of the tunable numbers have changed. Access tunable
-   *     numbers in order inputted in method
+   * @param id             Unique identifier for the caller to avoid conflicts
+   *                       when shared between multiple *
+   *                       objects. Recommended approach is to pass the result of
+   *                       "hashCode()"
+   * @param action         Callback to run when any of the tunable numbers have
+   *                       changed. Access tunable
+   *                       numbers in order inputted in method
    * @param tunableNumbers All tunable numbers to check
    */
   public static void ifChanged(
       int id, Consumer<double[]> action, LoggedTunableNumber... tunableNumbers) {
-    boolean changed = false;
-    for (LoggedTunableNumber number : tunableNumbers) {
-      // Each number owns state: do not short-circuit later change-tracking updates.
-      changed |= number.hasChanged(id);
-    }
-    if (changed) {
+    if (Arrays.stream(tunableNumbers).anyMatch(tunableNumber -> tunableNumber.hasChanged(id))) {
       action.accept(Arrays.stream(tunableNumbers).mapToDouble(LoggedTunableNumber::get).toArray());
     }
   }

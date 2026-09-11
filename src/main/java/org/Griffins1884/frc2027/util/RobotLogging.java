@@ -5,7 +5,8 @@ import org.Griffins1884.frc2027.runtime.RuntimeModeManager;
 
 /** Shared runtime logging helpers for debug/competition behavior. */
 public final class RobotLogging {
-  private RobotLogging() {}
+  private RobotLogging() {
+  }
 
   public static boolean isDebugMode() {
     return RuntimeModeManager.isDebugEnabled();
