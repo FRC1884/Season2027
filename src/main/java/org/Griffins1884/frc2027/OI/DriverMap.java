@@ -1,11 +1,11 @@
 package org.Griffins1884.frc2027.OI;
 
+import static edu.wpi.first.wpilibj2.command.Commands.none;
+
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import java.util.function.DoubleSupplier;
 
-/** Driver-input abstraction containing only reusable drivetrain controls. */
 public interface DriverMap {
   DoubleSupplier getXAxis();
 
@@ -15,13 +15,16 @@ public interface DriverMap {
 
   Trigger resetOdometry();
 
-  /** Resets the robot heading to the current alliance-relative forward direction. */
-  Trigger resetHeading();
+  Trigger alignWithBall();
 
-  /** Optional hold control for robot-relative reverse driving. */
-  default Trigger robotRelativeOverride() {
-    return new Trigger(() -> false);
-  }
+  // Placeholder mapping for "start/stop shooting" control.
+  Trigger shootToggle();
+
+  // Placeholder mapping for "run intake rollers while held" control.
+  Trigger intakeRollersHold();
+
+  // Placeholder mapping for "toggle intake deploy" control.
+  Trigger intakeDeployToggle();
 
   default Trigger leftBackButton() {
     return new Trigger(() -> false);
@@ -32,6 +35,14 @@ public interface DriverMap {
   }
 
   default Command rumble() {
-    return Commands.none();
+    return none();
   }
+
+  Trigger shooterPivotUp();
+
+  Trigger shooterPivotDown();
+
+  Trigger turretLeft();
+
+  public Trigger turretRight();
 }

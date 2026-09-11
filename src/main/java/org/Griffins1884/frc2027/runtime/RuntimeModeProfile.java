@@ -1,39 +1,22 @@
 package org.Griffins1884.frc2027.runtime;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import org.Griffins1884.frc2027.GlobalConstants;
+import org.Griffins1884.frc2027.mechanisms.MechanismTelemetry;
 
-/** Runtime logging/tuning profile shared by the dashboard config UI and robot code. */
+/**
+ * Runtime logging/tuning profile shared by mechanisms and future dashboard
+ * config UI.
+ */
 public record RuntimeModeProfile(
     GlobalConstants.LoggingMode loggingMode,
     boolean tuningEnabled,
     Set<String> debugSubsystems,
-    Set<String> loggedSignals,
-    Set<String> publishedSignals) {
-
-  private static final Set<String> DEBUG_SIGNAL_SET =
-      Set.of(
-          "IDENTITY",
-          "CONNECTION",
-          "FAULTS",
-          "TEMPERATURE",
-          "VOLTAGE",
-          "CURRENT",
-          "POSITION",
-          "VELOCITY",
-          "APPLIED_OUTPUT",
-          "TARGET",
-          "CLOSED_LOOP",
-          "LIMIT_SWITCH",
-          "SENSOR_STATE",
-          "HEALTH",
-          "CONFIG_SNAPSHOT");
-
-  private static final Set<String> COMP_SIGNAL_SET =
-      Set.of("IDENTITY", "CONNECTION", "FAULTS", "HEALTH", "TARGET");
+    Set<MechanismTelemetry.Signal> loggedSignals,
+    Set<MechanismTelemetry.Signal> publishedSignals) {
 
   public RuntimeModeProfile {
     loggingMode = loggingMode != null ? loggingMode : GlobalConstants.LoggingMode.COMP;
@@ -69,16 +52,14 @@ public record RuntimeModeProfile(
     return tuningEnabled || (allowInCompMode && loggingMode == GlobalConstants.LoggingMode.COMP);
   }
 
-  public boolean shouldLog(String signal, String subsystemKey) {
-    String normalizedSignal = normalizeSignal(signal);
-    return loggedSignals.contains(normalizedSignal)
-        || (isDebugEnabled(subsystemKey) && DEBUG_SIGNAL_SET.contains(normalizedSignal));
+  public boolean shouldLog(MechanismTelemetry.Signal signal, String subsystemKey) {
+    return loggedSignals.contains(signal)
+        || (isDebugEnabled(subsystemKey) && debugSignalSet().contains(signal));
   }
 
-  public boolean shouldPublish(String signal, String subsystemKey) {
-    String normalizedSignal = normalizeSignal(signal);
-    return publishedSignals.contains(normalizedSignal)
-        || (isDebugEnabled(subsystemKey) && DEBUG_SIGNAL_SET.contains(normalizedSignal));
+  public boolean shouldPublish(MechanismTelemetry.Signal signal, String subsystemKey) {
+    return publishedSignals.contains(signal)
+        || (isDebugEnabled(subsystemKey) && debugSignalSet().contains(signal));
   }
 
   private static Set<String> normalizeSubsystems(Set<String> subsystems) {
@@ -94,23 +75,26 @@ public record RuntimeModeProfile(
     return Collections.unmodifiableSet(normalized);
   }
 
-  private static Set<String> normalizeSignals(
-      Set<String> signals, GlobalConstants.LoggingMode loggingMode) {
+  private static Set<MechanismTelemetry.Signal> normalizeSignals(
+      Set<MechanismTelemetry.Signal> signals, GlobalConstants.LoggingMode loggingMode) {
     if (signals == null || signals.isEmpty()) {
-      return loggingMode == GlobalConstants.LoggingMode.DEBUG ? DEBUG_SIGNAL_SET : COMP_SIGNAL_SET;
+      return loggingMode == GlobalConstants.LoggingMode.DEBUG
+          ? Collections.unmodifiableSet(debugSignalSet())
+          : Collections.unmodifiableSet(compSignalSet());
     }
-
-    LinkedHashSet<String> normalized = new LinkedHashSet<>();
-    for (String signal : signals) {
-      String normalizedSignal = normalizeSignal(signal);
-      if (!normalizedSignal.isEmpty()) {
-        normalized.add(normalizedSignal);
-      }
-    }
-    return Collections.unmodifiableSet(normalized);
+    return Collections.unmodifiableSet(EnumSet.copyOf(signals));
   }
 
-  private static String normalizeSignal(String signal) {
-    return signal == null ? "" : signal.trim().toUpperCase();
+  private static EnumSet<MechanismTelemetry.Signal> compSignalSet() {
+    return EnumSet.of(
+        MechanismTelemetry.Signal.IDENTITY,
+        MechanismTelemetry.Signal.CONNECTION,
+        MechanismTelemetry.Signal.FAULTS,
+        MechanismTelemetry.Signal.HEALTH,
+        MechanismTelemetry.Signal.TARGET);
+  }
+
+  private static EnumSet<MechanismTelemetry.Signal> debugSignalSet() {
+    return EnumSet.allOf(MechanismTelemetry.Signal.class);
   }
 }

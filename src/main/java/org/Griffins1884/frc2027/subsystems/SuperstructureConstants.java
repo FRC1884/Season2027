@@ -1,0 +1,21 @@
+package org.Griffins1884.frc2027.subsystems;
+
+import org.Griffins1884.frc2027.util.LoggedTunableNumber;
+
+public final class SuperstructureConstants {
+    public static final LoggedTunableNumber BALL_PRESENT_CURRENT_AMPS = new LoggedTunableNumber(
+            "Superstructure/BallCurrentAmps", 15.0);
+    public static final LoggedTunableNumber BALL_PRESENCE_DEBOUNCE_SEC = new LoggedTunableNumber(
+            "Superstructure/BallPresenceDebounceSec", 0.15);
+    public static final boolean AUTO_STOP_ON_EMPTY = false;
+
+    public static final double MANUAL_JOG_VOLTAGE = 0.5;
+    public static final double AUTO_STATE_SHOOTING_X_MAX_METERS = 4.0;
+    public static final double AUTO_STATE_IDLE_X_MAX_METERS = 5.4;
+    public static final double AUTO_STATE_INTAKE_X_MAX_METERS = 11.0;
+    public static final LoggedTunableNumber ALLIANCE_ZONE_MAX_X_METERS = new LoggedTunableNumber(
+            "Superstructure/AllianceZoneMaxXMeters", 5.4);
+
+    private SuperstructureConstants() {
+    }
+}

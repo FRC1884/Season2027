@@ -3,10 +3,12 @@ package org.Griffins1884.frc2027.subsystems.vision;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import org.littletonrobotics.junction.AutoLog;
 
 public interface VisionIO {
   /**
-   * An enum containing every type of camera we might have on our robot, and thresholds of distances
+   * An enum containing every type of camera we might have on our robot, and
+   * thresholds of distances
    * to tags at which we think they will provide meaningful data on a target.
    */
   enum CameraType {
@@ -54,12 +56,12 @@ public interface VisionIO {
     ACCEPTED
   }
 
+  @AutoLog
   public static class VisionIOInputs {
     public boolean connected = false;
     public boolean seesTarget = false;
     public int megatagCount = 0;
-    public TargetObservation latestTargetObservation =
-        new TargetObservation(new Rotation2d(), new Rotation2d());
+    public TargetObservation latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
     public Pose3d pose3d = null;
     public MegatagPoseEstimate megatagPoseEstimate = null;
     public FiducialObservation[] fiducialObservations = new FiducialObservation[0];
@@ -72,7 +74,8 @@ public interface VisionIO {
     public String limelightProfileSource = "DEFAULT";
   }
 
-  public default void updateInputs(VisionIOInputs inputs) {}
+  public default void updateInputs(VisionIOInputs inputs) {
+  }
 
   public default CameraConstants getCameraConstants() {
     return new CameraConstants("UNKNOWN", new Transform3d(), CameraType.UNKNOWN);
@@ -81,34 +84,70 @@ public interface VisionIO {
   /**
    * Represents the angle to a tag, not used for pose estimation.
    *
-   * @param tx the horizontal angle (yaw) to the target, in degrees. Positive-right, center-zero.
-   * @param ty the vertical angle (pitch) to the target, in degrees. Positive-down, center-zero.
+   * @param tx the horizontal angle (yaw) to the target, in degrees.
+   *           Positive-right, center-zero.
+   * @param ty the vertical angle (pitch) to the target, in degrees.
+   *           Positive-down, center-zero.
    */
-  public static record TargetObservation(Rotation2d tx, Rotation2d ty) {}
+  public static record TargetObservation(Rotation2d tx, Rotation2d ty) {
+  }
 
   /**
    * Represents a robot pose sample used for pose estimation.
    *
-   * @param timestamp the timestamp of the estimate, in seconds.
-   * @param pose the estimated pose, in meters.
-   * @param ambiguity the ambiguity factor of the pose estimate.
-   * @param tagCount the total number of tags seen.
-   * @param averageTagDistance the average distance to all tags in frame, in meters.
+   * @param timestamp          the timestamp of the estimate, in seconds.
+   * @param pose               the estimated pose, in meters.
+   * @param ambiguity          the ambiguity factor of the pose estimate.
+   * @param tagCount           the total number of tags seen.
+   * @param averageTagDistance the average distance to all tags in frame, in
+   *                           meters.
    */
   public static record PoseObservation(
-      double timestamp, Pose3d pose, double ambiguity, int tagCount, double averageTagDistance) {}
+      double timestamp, Pose3d pose, double ambiguity, int tagCount, double averageTagDistance) {
+  }
 
   /**
-   * A data class representing all the information we need on a camera to get us from it being
-   * connected and streaming, to a filtered pose estimate we can fuse with other cameras' estimates
+   * A data class representing all the information we need on a camera to get us
+   * from it being
+   * connected and streaming, to a filtered pose estimate we can fuse with other
+   * cameras' estimates
    * and the drivetrain's odometry.
    *
-   * @param cameraName the NetworkTables name for this camera. This is what will help us identify
-   *     each camera on AdvantageScope and Elastic, to help with debugging.
-   * @param robotToCamera the transformation representing the camera's position relative to the
-   *     center of the robot. Translations are in meters.
-   * @param cameraType the type of hardware camera we are using. See {@link CameraType}.
+   * @param cameraName    the NetworkTables name for this camera. This is what
+   *                      will help us identify
+   *                      each camera on AdvantageScope and Elastic, to help with
+   *                      debugging.
+   * @param robotToCamera the transformation representing the camera's position
+   *                      relative to the
+   *                      center of the robot. Translations are in meters.
+   * @param cameraType    the type of hardware camera we are using. See
+   *                      {@link CameraType}.
    */
   public static record CameraConstants(
-      String cameraName, Transform3d robotToCamera, CameraType cameraType) {}
+      String cameraName, Transform3d robotToCamera, CameraType cameraType) {
+  }
+
+  /**
+   * Describes the remote config values the robot publishes to a Northstar
+   * instance.
+   *
+   * @param deviceId     NT client ID for the Northstar process
+   * @param cameraId     capture source identifier consumed by OpenCV/Pylon/etc.
+   * @param width        requested frame width
+   * @param height       requested frame height
+   * @param autoExposure capture auto exposure mode
+   * @param exposure     capture exposure value
+   * @param gain         capture gain value
+   * @param denoise      capture denoise value
+   */
+  public static record NorthstarConfig(
+      String deviceId,
+      String cameraId,
+      int width,
+      int height,
+      int autoExposure,
+      int exposure,
+      double gain,
+      double denoise) {
+  }
 }

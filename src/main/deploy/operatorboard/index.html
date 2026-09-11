@@ -39,9 +39,6 @@
       <button id="tab-auto" class="tabbar__button" type="button" data-tab-target="auto">
         Auto
       </button>
-      <button id="tab-joystick" class="tabbar__button" type="button" data-tab-target="joystick">
-        Joystick
-      </button>
       <button id="tab-systems" class="tabbar__button" type="button" data-tab-target="systems">
         Systems
       </button>
@@ -260,74 +257,6 @@
             </section>
 
           </div>
-        </div>
-      </section>
-
-      <section class="tab-page" data-tab-page="joystick">
-        <div class="layout layout--joystick">
-          <section class="panel">
-            <div class="panel__title">Joystick Profiles</div>
-            <div class="queue-card queue-card--compact">
-              <div class="queue-meta">
-                <div class="queue-meta__item">
-                  <div class="queue-meta__k">Profile</div>
-                  <select id="joystick-profile-select" class="queue-inline-select"></select>
-                </div>
-                <div class="queue-meta__item">
-                  <div class="queue-meta__k">Status</div>
-                  <div id="joystick-profile-status" class="queue-meta__v">Loading...</div>
-                </div>
-                <div class="queue-meta__item">
-                  <div class="queue-meta__k">Controller</div>
-                  <div id="joystick-controller-status" class="queue-meta__v">--</div>
-                </div>
-                <div class="queue-meta__item">
-                  <div class="queue-meta__k">Device</div>
-                  <div id="joystick-device-id" class="queue-meta__v queue-meta__v--mono">--</div>
-                </div>
-                <div class="queue-meta__item">
-                  <div class="queue-meta__k">Conflicts</div>
-                  <div id="joystick-conflict-status" class="queue-meta__v">--</div>
-                </div>
-              </div>
-              <div class="queue-actions">
-                <button id="joystick-save-button" class="state-button state-button--auto" type="button">
-                  Save Profile
-                </button>
-                <button id="joystick-reload-button" class="state-button" type="button">
-                  Reload
-                </button>
-                <button id="joystick-reset-button" class="state-button" type="button">
-                  Reset
-                </button>
-                <button id="joystick-export-button" class="state-button" type="button">
-                  Export JSON
-                </button>
-              </div>
-              <div id="joystick-warning-list" class="checks-list">
-                <div class="checks-list__empty">Loading profile warnings...</div>
-              </div>
-            </div>
-          </section>
-
-          <section class="panel">
-            <div class="panel__title">Mapping Editor</div>
-            <div class="mapping-table__header">
-              <div>Input</div>
-              <div>Target</div>
-              <div>Enabled</div>
-            </div>
-            <div id="joystick-binding-table" class="mapping-table">
-              <div class="checks-list__empty">Loading bindings...</div>
-            </div>
-          </section>
-
-          <section class="panel">
-            <div class="panel__title">Live Inputs</div>
-            <div id="joystick-live-inputs" class="checks-list">
-              <div class="checks-list__empty">Connect a controller to inspect live input data.</div>
-            </div>
-          </section>
         </div>
       </section>
 
@@ -587,8 +516,9 @@
                     </button>
                   </div>
                   <div class="queue-form__note">
-                    Reads PathPlanA autos from `/deploy/pathplana/autos`. Preview here, select one,
-                    and that selection is what autonomous will run.
+                    Reads PathPlanner autos from `/deploy/pathplanner/autos` and follows choreo
+                    trajectories referenced by those autos. Preview on the left, choose one, then
+                    enable autonomous to run that selected auto.
                   </div>
                   <div id="planner-autos-import-status" class="queue-form__note">Loading deploy autos...</div>
                   <div id="preset-empty-state" class="queue-empty-state queue-empty-state--small">
@@ -610,7 +540,8 @@
                     </div>
                   </div>
                   <div class="queue-form__note">
-                    Blue-side authored autos are mirrored for red automatically at runtime.
+                    The highlighted card on the left is the previewed auto. The selected auto here is
+                    what the robot will run in autonomous.
                   </div>
                   <div class="queue-actions">
                     <button id="select-selected-auto-button" class="state-button state-button--auto" type="button">

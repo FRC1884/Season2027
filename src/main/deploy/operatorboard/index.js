@@ -197,12 +197,9 @@ const state = {
   lastSystemCheckReport: null,
   lastAutoCheckReport: null,
   lastAutoQuickRunReport: null,
-  joystickMappings: null,
-  joystickMappingsBaseline: null,
   subsystemDescriptions: null,
   storageInventory: null,
   latestDiagnosticBundle: null,
-  selectedJoystickProfileId: "",
 };
 
 const queueModel = {
@@ -370,18 +367,6 @@ const ui = {
   autoQuickRunList: null,
   mechanismStatusList: null,
   actionTraceList: null,
-  joystickProfileSelect: null,
-  joystickProfileStatus: null,
-  joystickControllerStatus: null,
-  joystickDeviceId: null,
-  joystickConflictStatus: null,
-  joystickWarningList: null,
-  joystickLiveInputs: null,
-  joystickBindingTable: null,
-  joystickSaveButton: null,
-  joystickReloadButton: null,
-  joystickResetButton: null,
-  joystickExportButton: null,
   systemsCatalog: null,
   systemsStorageInventory: null,
   systemsDiagnosticSummary: null,
@@ -602,18 +587,6 @@ function cacheUi() {
   ui.autoQuickRunList = document.getElementById("auto-quick-run-list");
   ui.mechanismStatusList = document.getElementById("mechanism-status-list");
   ui.actionTraceList = document.getElementById("action-trace-list");
-  ui.joystickProfileSelect = document.getElementById("joystick-profile-select");
-  ui.joystickProfileStatus = document.getElementById("joystick-profile-status");
-  ui.joystickControllerStatus = document.getElementById("joystick-controller-status");
-  ui.joystickDeviceId = document.getElementById("joystick-device-id");
-  ui.joystickConflictStatus = document.getElementById("joystick-conflict-status");
-  ui.joystickWarningList = document.getElementById("joystick-warning-list");
-  ui.joystickLiveInputs = document.getElementById("joystick-live-inputs");
-  ui.joystickBindingTable = document.getElementById("joystick-binding-table");
-  ui.joystickSaveButton = document.getElementById("joystick-save-button");
-  ui.joystickReloadButton = document.getElementById("joystick-reload-button");
-  ui.joystickResetButton = document.getElementById("joystick-reset-button");
-  ui.joystickExportButton = document.getElementById("joystick-export-button");
   ui.systemsCatalog = document.getElementById("systems-catalog");
   ui.systemsStorageInventory = document.getElementById("systems-storage-inventory");
   ui.systemsDiagnosticSummary = document.getElementById("systems-diagnostic-summary");
@@ -762,10 +735,6 @@ function activateTab(tabName) {
       renderField();
     });
   }
-  if (target === "joystick") {
-    renderJoystickEditor();
-    renderJoystickLiveInputs();
-  }
   if (target === "systems") {
     renderSystemsCatalog();
     renderStorageInventory();
@@ -777,9 +746,6 @@ function normalizeTabName(tabName) {
   const normalized = String(tabName || "")
     .trim()
     .toLowerCase();
-  if (normalized === "joystick" || normalized === "controls") {
-    return "joystick";
-  }
   if (normalized === "systems" || normalized === "system") {
     return "systems";
   }
@@ -884,28 +850,6 @@ function setupQueueBuilder() {
   }
   if (ui.runAutoQuickRunButton) {
     ui.runAutoQuickRunButton.addEventListener("click", runAutoQuickRun);
-  }
-  if (ui.joystickProfileSelect) {
-    ui.joystickProfileSelect.addEventListener("change", () => {
-      state.selectedJoystickProfileId = ui.joystickProfileSelect.value || "";
-      renderJoystickEditor();
-    });
-  }
-  if (ui.joystickSaveButton) {
-    ui.joystickSaveButton.addEventListener("click", () => {
-      void saveJoystickMappings();
-    });
-  }
-  if (ui.joystickReloadButton) {
-    ui.joystickReloadButton.addEventListener("click", () => {
-      void loadPersistedOperatorBoardData(true);
-    });
-  }
-  if (ui.joystickResetButton) {
-    ui.joystickResetButton.addEventListener("click", resetJoystickMappings);
-  }
-  if (ui.joystickExportButton) {
-    ui.joystickExportButton.addEventListener("click", exportJoystickMappings);
   }
   if (ui.systemsExportButton) {
     ui.systemsExportButton.addEventListener("click", () => {
@@ -1031,23 +975,11 @@ function updateMusicVolumeUi(value) {
 }
 
 async function loadPersistedOperatorBoardData(showToastOnSuccess = false) {
-  const [joystickMappings, subsystemDescriptions, storageInventory, latestDiagnosticBundle] =
-    await Promise.all([
-      fetchJsonDocument("./api/joystick-mappings"),
-      fetchJsonDocument("./api/subsystem-descriptions"),
-      fetchJsonDocument("./api/storage/inventory"),
-      fetchJsonDocument("./api/diagnostics/latest"),
-    ]);
-
-  if (joystickMappings) {
-    state.joystickMappings = joystickMappings;
-    state.joystickMappingsBaseline = cloneJson(joystickMappings);
-    const availableProfiles = Array.isArray(joystickMappings.profiles) ? joystickMappings.profiles : [];
-    const existingProfile = availableProfiles.find((entry) => entry.id === state.selectedJoystickProfileId);
-    state.selectedJoystickProfileId = existingProfile
-      ? existingProfile.id
-      : joystickMappings.activeProfileId || availableProfiles[0]?.id || "";
-  }
+  const [subsystemDescriptions, storageInventory, latestDiagnosticBundle] = await Promise.all([
+    fetchJsonDocument("./api/subsystem-descriptions"),
+    fetchJsonDocument("./api/storage/inventory"),
+    fetchJsonDocument("./api/diagnostics/latest"),
+  ]);
   if (subsystemDescriptions) {
     state.subsystemDescriptions = subsystemDescriptions;
   }
@@ -1058,8 +990,6 @@ async function loadPersistedOperatorBoardData(showToastOnSuccess = false) {
     state.latestDiagnosticBundle = latestDiagnosticBundle;
   }
 
-  renderJoystickEditor();
-  renderJoystickLiveInputs();
   renderSystemsCatalog();
   renderStorageInventory();
   renderDiagnosticBundleSummary();
@@ -1086,238 +1016,6 @@ async function fetchJsonDocument(url, options) {
 
 function cloneJson(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
-}
-
-function getActiveJoystickProfile() {
-  const profiles = state.joystickMappings?.profiles;
-  if (!Array.isArray(profiles) || profiles.length === 0) {
-    return null;
-  }
-  return (
-    profiles.find((entry) => entry.id === state.selectedJoystickProfileId) ||
-    profiles.find((entry) => entry.id === state.joystickMappings?.activeProfileId) ||
-    profiles[0]
-  );
-}
-
-function computeJoystickConflicts(profile) {
-  if (!profile || !Array.isArray(profile.bindings)) {
-    return [];
-  }
-  const seen = new Map();
-  const conflicts = [];
-  profile.bindings.forEach((binding) => {
-    if (!binding?.enabled) {
-      return;
-    }
-    const key = `${binding.inputKind}:${binding.inputId}`;
-    const existing = seen.get(key);
-    if (existing) {
-      conflicts.push(
-        `${binding.displayLabel || key} is assigned to both ${existing.targetLabel || existing.targetId} and ${binding.targetLabel || binding.targetId}.`
-      );
-      return;
-    }
-    seen.set(key, binding);
-  });
-  return conflicts;
-}
-
-function syncActiveJoystickProfileWarnings() {
-  const profile = getActiveJoystickProfile();
-  if (!profile) {
-    return [];
-  }
-  const conflicts = computeJoystickConflicts(profile);
-  profile.warnings = conflicts.length
-    ? conflicts
-    : ["No conflicting enabled bindings detected in the selected profile."];
-  return conflicts;
-}
-
-function renderJoystickEditor() {
-  const doc = state.joystickMappings;
-  const profile = getActiveJoystickProfile();
-
-  if (ui.joystickProfileSelect) {
-    ui.joystickProfileSelect.innerHTML = "";
-    const profiles = Array.isArray(doc?.profiles) ? doc.profiles : [];
-    profiles.forEach((entry) => {
-      const option = document.createElement("option");
-      option.value = entry.id;
-      option.textContent = entry.name || entry.id;
-      option.selected = entry.id === profile?.id;
-      ui.joystickProfileSelect.append(option);
-    });
-  }
-
-  setText(ui.joystickProfileStatus, doc ? `Loaded ${doc.profiles?.length || 0} profile(s)` : "Unavailable");
-  const conflicts = syncActiveJoystickProfileWarnings();
-  setText(
-    ui.joystickConflictStatus,
-    !profile
-      ? "No profile selected"
-      : conflicts.length
-        ? `${conflicts.length} conflict(s)`
-        : "No conflicts"
-  );
-  if (ui.joystickWarningList) {
-    ui.joystickWarningList.innerHTML = "";
-    const warnings = Array.isArray(profile?.warnings) ? profile.warnings : ["No warnings available."];
-    warnings.forEach((warning) => {
-      const item = document.createElement("div");
-      item.className = "checks-list__empty";
-      item.textContent = warning;
-      ui.joystickWarningList.append(item);
-    });
-  }
-
-  if (!ui.joystickBindingTable) {
-    return;
-  }
-  ui.joystickBindingTable.innerHTML = "";
-  if (!profile || !Array.isArray(profile.bindings) || profile.bindings.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "checks-list__empty";
-    empty.textContent = "No bindings available.";
-    ui.joystickBindingTable.append(empty);
-    return;
-  }
-
-  const targets = Array.isArray(doc?.targets) ? doc.targets : [];
-  profile.bindings.forEach((binding, index) => {
-    const row = document.createElement("div");
-    row.className = "mapping-row";
-
-    const input = document.createElement("div");
-    input.className = "mapping-row__cell";
-    input.textContent = binding.displayLabel || `${binding.inputKind}:${binding.inputId}`;
-
-    const targetSelect = document.createElement("select");
-    targetSelect.className = "mapping-row__select";
-    targets.forEach((target) => {
-      const option = document.createElement("option");
-      option.value = target.id;
-      option.textContent = `${target.label} • ${target.category}`;
-      option.selected = target.id === binding.targetId;
-      targetSelect.append(option);
-    });
-    targetSelect.addEventListener("change", () => {
-      binding.targetId = targetSelect.value;
-      const selectedTarget = targets.find((entry) => entry.id === targetSelect.value);
-      binding.targetLabel = selectedTarget?.label || targetSelect.value;
-      binding.targetType = selectedTarget?.category || binding.targetType;
-      renderJoystickEditor();
-    });
-
-    const enabled = document.createElement("input");
-    enabled.type = "checkbox";
-    enabled.checked = !!binding.enabled;
-    enabled.addEventListener("change", () => {
-      binding.enabled = enabled.checked;
-      renderJoystickEditor();
-    });
-
-    const notes = document.createElement("div");
-    notes.className = "mapping-row__detail";
-    notes.textContent = binding.notes || "No notes";
-
-    const targetCell = document.createElement("div");
-    targetCell.className = "mapping-row__cell mapping-row__cell--wide";
-    targetCell.append(targetSelect, notes);
-
-    const enabledCell = document.createElement("label");
-    enabledCell.className = "mapping-row__toggle";
-    enabledCell.append(enabled, document.createTextNode(binding.enabled ? "Enabled" : "Disabled"));
-    enabled.addEventListener("change", () => {
-      enabledCell.lastChild.textContent = enabled.checked ? "Enabled" : "Disabled";
-    });
-
-    row.append(input, targetCell, enabledCell);
-    row.dataset.bindingIndex = String(index);
-    ui.joystickBindingTable.append(row);
-  });
-}
-
-function renderJoystickLiveInputs() {
-  const gamepads = Array.from(navigator.getGamepads?.() || []).filter(Boolean);
-  const primaryGamepad = gamepads[0] || null;
-  setText(ui.joystickControllerStatus, primaryGamepad ? "Controller online" : "Controller offline");
-  setText(
-    ui.joystickDeviceId,
-    primaryGamepad?.id || getActiveJoystickProfile()?.deviceName || "--"
-  );
-  if (!ui.joystickLiveInputs) {
-    return;
-  }
-  ui.joystickLiveInputs.innerHTML = "";
-  if (!primaryGamepad) {
-    const empty = document.createElement("div");
-    empty.className = "checks-list__empty";
-    empty.textContent = "Connect a controller to inspect live button and axis values.";
-    ui.joystickLiveInputs.append(empty);
-    return;
-  }
-  primaryGamepad.axes.forEach((axisValue, index) => {
-    const row = document.createElement("div");
-    row.className = "check-row";
-    row.innerHTML = `<div class="check-row__badge check-row__badge--pass">AXIS</div><div class="check-row__body"><div class="check-row__title">Axis ${index}</div><div class="check-row__detail">${axisValue.toFixed(3)}</div></div>`;
-    ui.joystickLiveInputs.append(row);
-  });
-  primaryGamepad.buttons.forEach((button, index) => {
-    if (!button.pressed && Math.abs(button.value) < 0.05) {
-      return;
-    }
-    const row = document.createElement("div");
-    row.className = "check-row";
-    row.innerHTML = `<div class="check-row__badge check-row__badge--warn">BTN</div><div class="check-row__body"><div class="check-row__title">Button ${index}</div><div class="check-row__detail">pressed=${button.pressed} value=${Number(button.value).toFixed(2)}</div></div>`;
-    ui.joystickLiveInputs.append(row);
-  });
-}
-
-async function saveJoystickMappings() {
-  if (!state.joystickMappings) {
-    showToast("No joystick mappings loaded");
-    return;
-  }
-  syncActiveJoystickProfileWarnings();
-  const saved = await fetchJsonDocument("./api/joystick-mappings", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(state.joystickMappings),
-  });
-  if (!saved) {
-    showToast("Failed to save joystick mappings");
-    return;
-  }
-  state.joystickMappings = saved;
-  state.joystickMappingsBaseline = cloneJson(saved);
-  renderJoystickEditor();
-  showToast("Joystick mappings saved");
-}
-
-function resetJoystickMappings() {
-  if (!state.joystickMappingsBaseline) {
-    return;
-  }
-  state.joystickMappings = cloneJson(state.joystickMappingsBaseline);
-  renderJoystickEditor();
-  showToast("Joystick mappings reset");
-}
-
-function exportJoystickMappings() {
-  if (!state.joystickMappings) {
-    return;
-  }
-  const blob = new Blob([JSON.stringify(state.joystickMappings, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "joystick-mappings.json";
-  link.click();
-  URL.revokeObjectURL(url);
 }
 
 function renderSystemsCatalog() {
@@ -1918,7 +1616,6 @@ function render() {
   renderQueueStatus();
   renderQueueMeta();
   renderField();
-  renderJoystickLiveInputs();
   renderDiagnosticBundleSummary();
 }
 
@@ -2499,12 +2196,14 @@ function renderQueueStatus() {
   const selectedAuto = state.selectedAutoState;
   setText(ui.queuePhase, queueState.phase);
   setText(ui.queueRunning, queueState.running ? "YES" : "NO");
-  setText(ui.queueActiveLabel, queueState.activeLabel || "--");
+  setText(ui.queueActiveLabel, queueState.activeLabel || selectedAuto?.name || "--");
   setText(ui.queueRevision, Number.isFinite(queueState.revision) ? String(queueState.revision) : "--");
   setText(ui.queueMessage, selectedAuto?.message || queueState.message || "--");
   setText(
     ui.queueStatusMessage,
-    selectedAuto?.message || queueState.message || "Select a deployed PathPlanA auto to preview it here."
+    selectedAuto?.message ||
+      queueState.message ||
+      "Select a deployed PathPlanner auto to preview it here."
   );
   setText(ui.fieldPreviewPose, formatAuthoringPose(getQueueStartPose()));
   setText(ui.startPoseSummary, formatAuthoringPose(queueModel.startPose));
@@ -2599,6 +2298,7 @@ function renderPresets() {
     const item = document.createElement("div");
     item.className = "preset";
     item.classList.toggle("is-active", preset.id === queueModel.currentPresetId);
+    item.classList.toggle("is-selected-for-robot", state.selectedAutoState?.id === preset.id);
 
     const title = document.createElement("div");
     title.className = "preset__title";
@@ -2609,6 +2309,11 @@ function renderPresets() {
     const metaParts = [`${preset.steps.length} steps`, formatPresetTimestamp(preset.updatedAt)];
     if (preset.folder) {
       metaParts.unshift(preset.folder);
+    }
+    if (state.selectedAutoState?.id === preset.id) {
+      metaParts.unshift("CHOSEN");
+    } else if (preset.id === queueModel.currentPresetId) {
+      metaParts.unshift("PREVIEW");
     }
     meta.innerText = metaParts.join(" • ");
 
@@ -2758,24 +2463,31 @@ function clearSelectedAutoOnRobot() {
 
 function renderSelectedAutoSummary() {
   const preset = queueModel.presets.find((entry) => entry.id === queueModel.currentPresetId) || null;
-  setText(ui.selectedAutoName, preset ? preset.name : "--");
-  if (!preset) {
+  const chosenAuto =
+    queueModel.presets.find((entry) => entry.id === state.selectedAutoState?.id) || null;
+  setText(ui.selectedAutoName, chosenAuto ? chosenAuto.name : preset ? `${preset.name} (Preview Only)` : "--");
+  if (!preset && !chosenAuto) {
     setText(ui.selectedAutoSummary, "--");
     return;
   }
-  const states = Array.from(new Set((preset.steps || []).map((step) => getStepActionLabel(step)).filter(Boolean)));
-  const parts = [`${preset.steps.length} steps`];
-  if (preset.folder) {
-    parts.unshift(preset.folder);
+  const summaryTarget = chosenAuto || preset;
+  const states = Array.from(
+    new Set((summaryTarget.steps || []).map((step) => getStepActionLabel(step)).filter(Boolean))
+  );
+  const parts = [`${summaryTarget.steps.length} steps`];
+  if (summaryTarget.folder) {
+    parts.unshift(summaryTarget.folder);
   }
-  if (preset.startPose) {
-    parts.push(formatAuthoringPose(preset.startPose));
+  if (summaryTarget.startPose) {
+    parts.push(formatAuthoringPose(summaryTarget.startPose));
   }
   if (states.length > 0) {
     parts.push(states.join(", "));
   }
-  if (state.selectedAutoState && state.selectedAutoState.id === preset.id) {
-    parts.push(state.selectedAutoState.loaded ? "Robot selected" : "Robot rejected");
+  if (chosenAuto) {
+    parts.push(state.selectedAutoState?.loaded ? "Robot selected" : "Robot rejected");
+  } else if (preset) {
+    parts.push("Preview only");
   }
   setText(ui.selectedAutoSummary, parts.join(" • "));
 }
@@ -3704,7 +3416,7 @@ function getEffectiveQueueState() {
         ? ntConnected
           ? "Auto selected on dashboard."
           : "Planner auto loaded from deploy. Connect the robot to select it live."
-        : "Select a deployed PathPlanA auto.",
+        : "Select a deployed PathPlanner auto.",
     activeLabel: "",
     startPose: queueModel.startPose,
     noGoZones: getAllNoGoZones(),

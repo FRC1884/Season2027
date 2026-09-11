@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test;
 class VisionExclusiveTagIdTest {
   @Test
   void clearExclusiveTagId_resetsFilter() throws Exception {
-    Vision vision = new Vision((pose, timestamp, stdDevs) -> {});
+    Vision vision = new Vision((pose, timestamp, stdDevs) -> {
+    });
     vision.setExclusiveTagId(6);
     vision.clearExclusiveTagId();
 
@@ -20,7 +21,8 @@ class VisionExclusiveTagIdTest {
 
   @Test
   void setExclusiveTagId_setsRequestedValue() throws Exception {
-    Vision vision = new Vision((pose, timestamp, stdDevs) -> {});
+    Vision vision = new Vision((pose, timestamp, stdDevs) -> {
+    });
     vision.setExclusiveTagId(17);
 
     Field exclusiveTagIdField = Vision.class.getDeclaredField("exclusiveTagId");

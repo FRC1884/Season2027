@@ -4,16 +4,9 @@ import edu.wpi.first.wpilibj.Preferences;
 
 public final class SwerveCalibration {
   private static final String WHEEL_RADIUS_KEY = "Swerve/Calibration/WheelRadiusMeters";
-  private static final String MODULE_ZERO_TRIM_PREFIX =
-      "Swerve/Calibration/ModuleZeroTrimRotations/";
+  private static final String MODULE_ZERO_TRIM_PREFIX = "Swerve/Calibration/ModuleZeroTrimRotations/";
 
-  private static final java.util.concurrent.atomic.AtomicLong revision =
-      new java.util.concurrent.atomic.AtomicLong();
-
-  private SwerveCalibration() {}
-
-  static long revision() {
-    return revision.get();
+  private SwerveCalibration() {
   }
 
   public static double getWheelRadiusMeters(double fallbackMeters) {
@@ -22,12 +15,10 @@ public final class SwerveCalibration {
 
   public static void setWheelRadiusMeters(double wheelRadiusMeters) {
     Preferences.setDouble(WHEEL_RADIUS_KEY, wheelRadiusMeters);
-    revision.incrementAndGet();
   }
 
   public static void clearWheelRadiusMeters() {
     Preferences.remove(WHEEL_RADIUS_KEY);
-    revision.incrementAndGet();
   }
 
   public static double getModuleZeroTrimRotations(String moduleKey) {
@@ -36,12 +27,10 @@ public final class SwerveCalibration {
 
   public static void setModuleZeroTrimRotations(String moduleKey, double rotations) {
     Preferences.setDouble(moduleZeroTrimKey(moduleKey), rotations);
-    revision.incrementAndGet();
   }
 
   public static void clearModuleZeroTrimRotations(String moduleKey) {
     Preferences.remove(moduleZeroTrimKey(moduleKey));
-    revision.incrementAndGet();
   }
 
   public static String moduleKey(String moduleName) {
