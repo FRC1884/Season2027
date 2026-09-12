@@ -19,26 +19,29 @@ class LimelightProfileResolverTest {
 
   @Test
   void resolve_prefersExplicitOverride() {
-    VisionIO.LimelightProfile resolved = LimelightProfileResolver.resolve(
-        VisionIO.LimelightProfile.LL3, VisionIO.CameraType.LIMELIGHT, "Limelight 4");
+    VisionIO.LimelightProfile resolved =
+        LimelightProfileResolver.resolve(
+            VisionIO.LimelightProfile.LL3, VisionIO.CameraType.LIMELIGHT, "Limelight 4");
 
     assertEquals(VisionIO.LimelightProfile.LL3, resolved);
   }
 
   @Test
   void resolve_usesCameraIdBeforeFallback() {
-    VisionIO.LimelightProfile resolved = LimelightProfileResolver.resolve(
-        VisionIO.LimelightProfile.AUTO, VisionIO.CameraType.LIMELIGHT, "My LL3G camera");
+    VisionIO.LimelightProfile resolved =
+        LimelightProfileResolver.resolve(
+            VisionIO.LimelightProfile.AUTO, VisionIO.CameraType.LIMELIGHT, "My LL3G camera");
 
     assertEquals(VisionIO.LimelightProfile.LL3, resolved);
   }
 
   @Test
   void resolve_fallsBackToCameraTypeWhenIdUnknown() {
-    VisionIO.LimelightProfile resolved = LimelightProfileResolver.resolve(
-        VisionIO.LimelightProfile.AUTO,
-        VisionIO.CameraType.TELEPHOTO_LIMELIGHT_3G,
-        "mystery-camera");
+    VisionIO.LimelightProfile resolved =
+        LimelightProfileResolver.resolve(
+            VisionIO.LimelightProfile.AUTO,
+            VisionIO.CameraType.TELEPHOTO_LIMELIGHT_3G,
+            "mystery-camera");
 
     assertEquals(VisionIO.LimelightProfile.LL3, resolved);
   }

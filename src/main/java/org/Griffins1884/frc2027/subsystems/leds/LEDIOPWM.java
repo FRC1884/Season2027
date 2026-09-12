@@ -14,10 +14,8 @@ import org.littletonrobotics.junction.Logger;
 /**
  * Contains the methods that dictate simulated behavior for LEDs. <br>
  * <br>
- * Interestingly, you can read AddressableLED data directly from the sim GUI,
- * without a roboRIO – no
- * need for AddressableLEDSim or the byte-conversion nonsense it warrants.
- * Therefore, this is a
+ * Interestingly, you can read AddressableLED data directly from the sim GUI, without a roboRIO – no
+ * need for AddressableLEDSim or the byte-conversion nonsense it warrants. Therefore, this is a
  * direct copy of LEDIOPWM.
  */
 public class LEDIOPWM implements LEDIO {
@@ -45,7 +43,8 @@ public class LEDIOPWM implements LEDIO {
 
       for (int i = 0; i < LEDConstants.SEGMENTS.length; i++) {
         LEDConstants.Segment segment = LEDConstants.SEGMENTS[i];
-        viewsLocal[i] = bufferLocal.createView(segment.start(), segment.start() + segment.length() - 1);
+        viewsLocal[i] =
+            bufferLocal.createView(segment.start(), segment.start() + segment.length() - 1);
 
         if (segment.reversed()) {
           viewsLocal[i] = viewsLocal[i].reversed();

@@ -18,39 +18,29 @@ import org.Griffins1884.frc2027.util.EqualsUtil;
 import org.Griffins1884.frc2027.util.GeomUtil;
 
 /**
- * "Inspired" by FRC team 254. See the license file in the root directory of
- * this project.
+ * "Inspired" by FRC team 254. See the license file in the root directory of this project.
  *
- * <p>
- * Takes a prior setpoint (ChassisSpeeds), a desired setpoint (from a driver, or
- * from a path
- * follower), and outputs a new setpoint that respects all of the kinematic
- * constraints on module
- * rotation speed and wheel velocity/acceleration. By generating a new setpoint
- * every iteration, the
- * robot will converge to the desired setpoint quickly while avoiding any
- * intermediate state that is
- * kinematically infeasible (and can result in wheel slip or robot heading drift
- * as a result).
+ * <p>Takes a prior setpoint (ChassisSpeeds), a desired setpoint (from a driver, or from a path
+ * follower), and outputs a new setpoint that respects all of the kinematic constraints on module
+ * rotation speed and wheel velocity/acceleration. By generating a new setpoint every iteration, the
+ * robot will converge to the desired setpoint quickly while avoiding any intermediate state that is
+ * kinematically infeasible (and can result in wheel slip or robot heading drift as a result).
  */
 @Builder
 @RequiredArgsConstructor
-@ExtensionMethod({ GeomUtil.class, EqualsUtil.GeomExtensions.class })
+@ExtensionMethod({GeomUtil.class, EqualsUtil.GeomExtensions.class})
 public class SwerveSetpointGenerator {
   private final SwerveDriveKinematics kinematics;
   private final Translation2d[] moduleLocations;
 
   /**
-   * Check if it would be faster to go to the opposite of the goal heading (and
-   * reverse drive
+   * Check if it would be faster to go to the opposite of the goal heading (and reverse drive
    * direction).
    *
-   * @param prevToGoal The rotation from the previous state to the goal state
-   *                   (i.e.
-   *                   prev.inverse().rotateBy(goal)).
-   * @return True if the shortest path to achieve this rotation involves flipping
-   *         the drive
-   *         direction.
+   * @param prevToGoal The rotation from the previous state to the goal state (i.e.
+   *     prev.inverse().rotateBy(goal)).
+   * @return True if the shortest path to achieve this rotation involves flipping the drive
+   *     direction.
    */
   private boolean flipHeading(Rotation2d prevToGoal) {
     return Math.abs(prevToGoal.getRadians()) > Math.PI / 2.0;
@@ -73,27 +63,22 @@ public class SwerveSetpointGenerator {
   }
 
   /**
-   * Find the root of the generic 2D parametric function 'func' using the regula
-   * falsi technique.
-   * This is a pretty naive way to do root finding, but it's usually faster than
-   * simple bisection
+   * Find the root of the generic 2D parametric function 'func' using the regula falsi technique.
+   * This is a pretty naive way to do root finding, but it's usually faster than simple bisection
    * while being robust in ways that e.g. the Newton-Raphson method isn't.
    *
-   * @param func            The Function2d to take the root of.
-   * @param x_0             x value of the lower bracket.
-   * @param y_0             y value of the lower bracket.
-   * @param f_0             value of 'func' at x_0, y_0 (passed in by caller to
-   *                        save a call to 'func' during
-   *                        recursion)
-   * @param x_1             x value of the upper bracket.
-   * @param y_1             y value of the upper bracket.
-   * @param f_1             value of 'func' at x_1, y_1 (passed in by caller to
-   *                        save a call to 'func' during
-   *                        recursion)
+   * @param func The Function2d to take the root of.
+   * @param x_0 x value of the lower bracket.
+   * @param y_0 y value of the lower bracket.
+   * @param f_0 value of 'func' at x_0, y_0 (passed in by caller to save a call to 'func' during
+   *     recursion)
+   * @param x_1 x value of the upper bracket.
+   * @param y_1 y value of the upper bracket.
+   * @param f_1 value of 'func' at x_1, y_1 (passed in by caller to save a call to 'func' during
+   *     recursion)
    * @param iterations_left Number of iterations of root finding left.
-   * @return The parameter value 's' that interpolating between 0 and 1 that
-   *         corresponds to the
-   *         (approximate) root.
+   * @return The parameter value 's' that interpolating between 0 and 1 that corresponds to the
+   *     (approximate) root.
    */
   private double findRoot(
       Function2d func,
@@ -139,9 +124,10 @@ public class SwerveSetpointGenerator {
       return 1.0;
     }
     double offset = f_0 + Math.signum(diff) * max_deviation;
-    Function2d func = (x, y) -> {
-      return unwrapAngle(f_0, Math.atan2(y, x)) - offset;
-    };
+    Function2d func =
+        (x, y) -> {
+          return unwrapAngle(f_0, Math.atan2(y, x)) - offset;
+        };
     return findRoot(func, x_0, y_0, f_0 - offset, x_1, y_1, f_1 - offset, max_iterations);
   }
 
@@ -160,27 +146,24 @@ public class SwerveSetpointGenerator {
       return 1.0;
     }
     double offset = f_0 + Math.signum(diff) * max_vel_step;
-    Function2d func = (x, y) -> {
-      return Math.hypot(x, y) - offset;
-    };
+    Function2d func =
+        (x, y) -> {
+          return Math.hypot(x, y) - offset;
+        };
     return findRoot(func, x_0, y_0, f_0 - offset, x_1, y_1, f_1 - offset, max_iterations);
   }
 
   /**
    * Generate a new setpoint.
    *
-   * @param limits       The kinematic limits to respect for this setpoint.
-   * @param prevSetpoint The previous setpoint motion. Normally, you'd pass in the
-   *                     previous
-   *                     iteration setpoint instead of the actual
-   *                     measured/estimated kinematic state.
-   * @param desiredState The desired state of motion, such as from the driver
-   *                     sticks or a path
-   *                     following algorithm.
-   * @param dt           The loop time.
-   * @return A Setpoint object that satisfies all of the KinematicLimits while
-   *         converging to
-   *         desiredState quickly.
+   * @param limits The kinematic limits to respect for this setpoint.
+   * @param prevSetpoint The previous setpoint motion. Normally, you'd pass in the previous
+   *     iteration setpoint instead of the actual measured/estimated kinematic state.
+   * @param desiredState The desired state of motion, such as from the driver sticks or a path
+   *     following algorithm.
+   * @param dt The loop time.
+   * @return A Setpoint object that satisfies all of the KinematicLimits while converging to
+   *     desiredState quickly.
    */
   public SwerveSetpoint generateSetpoint(
       final ModuleLimits limits,
@@ -217,22 +200,27 @@ public class SwerveSetpointGenerator {
     Rotation2d[] desired_heading = new Rotation2d[modules.length];
     boolean all_modules_should_flip = true;
     for (int i = 0; i < modules.length; ++i) {
-      prev_vx[i] = prevSetpoint.moduleStates()[i].angle.getCos()
-          * prevSetpoint.moduleStates()[i].speedMetersPerSecond;
-      prev_vy[i] = prevSetpoint.moduleStates()[i].angle.getSin()
-          * prevSetpoint.moduleStates()[i].speedMetersPerSecond;
+      prev_vx[i] =
+          prevSetpoint.moduleStates()[i].angle.getCos()
+              * prevSetpoint.moduleStates()[i].speedMetersPerSecond;
+      prev_vy[i] =
+          prevSetpoint.moduleStates()[i].angle.getSin()
+              * prevSetpoint.moduleStates()[i].speedMetersPerSecond;
       prev_heading[i] = prevSetpoint.moduleStates()[i].angle;
       if (prevSetpoint.moduleStates()[i].speedMetersPerSecond < 0.0) {
         prev_heading[i] = prev_heading[i].rotateBy(Rotation2d.fromRadians(Math.PI));
       }
-      desired_vx[i] = desiredModuleState[i].angle.getCos() * desiredModuleState[i].speedMetersPerSecond;
-      desired_vy[i] = desiredModuleState[i].angle.getSin() * desiredModuleState[i].speedMetersPerSecond;
+      desired_vx[i] =
+          desiredModuleState[i].angle.getCos() * desiredModuleState[i].speedMetersPerSecond;
+      desired_vy[i] =
+          desiredModuleState[i].angle.getSin() * desiredModuleState[i].speedMetersPerSecond;
       desired_heading[i] = desiredModuleState[i].angle;
       if (desiredModuleState[i].speedMetersPerSecond < 0.0) {
         desired_heading[i] = desired_heading[i].rotateBy(Rotation2d.fromRadians(Math.PI));
       }
       if (all_modules_should_flip) {
-        double required_rotation_rad = Math.abs(prev_heading[i].unaryMinus().rotateBy(desired_heading[i]).getRadians());
+        double required_rotation_rad =
+            Math.abs(prev_heading[i].unaryMinus().rotateBy(desired_heading[i]).getRadians());
         if (required_rotation_rad < Math.PI / 2.0) {
           all_modules_should_flip = false;
         }
@@ -256,7 +244,8 @@ public class SwerveSetpointGenerator {
     // limit is exceeded.
     double dx = desiredState.vxMetersPerSecond - prevSetpoint.chassisSpeeds().vxMetersPerSecond;
     double dy = desiredState.vyMetersPerSecond - prevSetpoint.chassisSpeeds().vyMetersPerSecond;
-    double dtheta = desiredState.omegaRadiansPerSecond - prevSetpoint.chassisSpeeds().omegaRadiansPerSecond;
+    double dtheta =
+        desiredState.omegaRadiansPerSecond - prevSetpoint.chassisSpeeds().omegaRadiansPerSecond;
 
     // 's' interpolates between start and goal. At 0, we are at prevState and at 1,
     // we are at
@@ -294,7 +283,8 @@ public class SwerveSetpointGenerator {
           continue;
         }
 
-        var necessaryRotation = prevSetpoint.moduleStates()[i].angle.unaryMinus().rotateBy(desiredModuleState[i].angle);
+        var necessaryRotation =
+            prevSetpoint.moduleStates()[i].angle.unaryMinus().rotateBy(desiredModuleState[i].angle);
         if (flipHeading(necessaryRotation)) {
           necessaryRotation = necessaryRotation.rotateBy(Rotation2d.fromRadians(Math.PI));
         }
@@ -324,15 +314,16 @@ public class SwerveSetpointGenerator {
       }
 
       final int kMaxIterations = 8;
-      double s = findSteeringMaxS(
-          prev_vx[i],
-          prev_vy[i],
-          prev_heading[i].getRadians(),
-          desired_vx[i],
-          desired_vy[i],
-          desired_heading[i].getRadians(),
-          max_theta_step,
-          kMaxIterations);
+      double s =
+          findSteeringMaxS(
+              prev_vx[i],
+              prev_vy[i],
+              prev_heading[i].getRadians(),
+              desired_vx[i],
+              desired_vy[i],
+              desired_heading[i].getRadians(),
+              max_theta_step,
+              kMaxIterations);
       min_s = Math.min(min_s, s);
     }
 
@@ -343,30 +334,34 @@ public class SwerveSetpointGenerator {
         // No need to carry on.
         break;
       }
-      double vx_min_s = min_s == 1.0 ? desired_vx[i] : (desired_vx[i] - prev_vx[i]) * min_s + prev_vx[i];
-      double vy_min_s = min_s == 1.0 ? desired_vy[i] : (desired_vy[i] - prev_vy[i]) * min_s + prev_vy[i];
+      double vx_min_s =
+          min_s == 1.0 ? desired_vx[i] : (desired_vx[i] - prev_vx[i]) * min_s + prev_vx[i];
+      double vy_min_s =
+          min_s == 1.0 ? desired_vy[i] : (desired_vy[i] - prev_vy[i]) * min_s + prev_vy[i];
       // Find the max s for this drive wheel. Search on the interval between 0 and
       // min_s, because we
       // already know we can't go faster
       // than that.
       final int kMaxIterations = 10;
-      double s = min_s
-          * findDriveMaxS(
-              prev_vx[i],
-              prev_vy[i],
-              Math.hypot(prev_vx[i], prev_vy[i]),
-              vx_min_s,
-              vy_min_s,
-              Math.hypot(vx_min_s, vy_min_s),
-              max_vel_step,
-              kMaxIterations);
+      double s =
+          min_s
+              * findDriveMaxS(
+                  prev_vx[i],
+                  prev_vy[i],
+                  Math.hypot(prev_vx[i], prev_vy[i]),
+                  vx_min_s,
+                  vy_min_s,
+                  Math.hypot(vx_min_s, vy_min_s),
+                  max_vel_step,
+                  kMaxIterations);
       min_s = Math.min(min_s, s);
     }
 
-    ChassisSpeeds retSpeeds = new ChassisSpeeds(
-        prevSetpoint.chassisSpeeds().vxMetersPerSecond + min_s * dx,
-        prevSetpoint.chassisSpeeds().vyMetersPerSecond + min_s * dy,
-        prevSetpoint.chassisSpeeds().omegaRadiansPerSecond + min_s * dtheta);
+    ChassisSpeeds retSpeeds =
+        new ChassisSpeeds(
+            prevSetpoint.chassisSpeeds().vxMetersPerSecond + min_s * dx,
+            prevSetpoint.chassisSpeeds().vyMetersPerSecond + min_s * dy,
+            prevSetpoint.chassisSpeeds().omegaRadiansPerSecond + min_s * dtheta);
     var retStates = kinematics.toSwerveModuleStates(retSpeeds);
     for (int i = 0; i < modules.length; ++i) {
       final var maybeOverride = overrideSteering.get(i);
@@ -377,7 +372,8 @@ public class SwerveSetpointGenerator {
         }
         retStates[i].angle = override;
       }
-      final var deltaRotation = prevSetpoint.moduleStates()[i].angle.unaryMinus().rotateBy(retStates[i].angle);
+      final var deltaRotation =
+          prevSetpoint.moduleStates()[i].angle.unaryMinus().rotateBy(retStates[i].angle);
       if (flipHeading(deltaRotation)) {
         retStates[i].angle = retStates[i].angle.rotateBy(Rotation2d.fromRadians(Math.PI));
         retStates[i].speedMetersPerSecond *= -1.0;

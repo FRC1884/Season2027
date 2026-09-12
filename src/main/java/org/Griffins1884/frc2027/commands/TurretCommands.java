@@ -22,8 +22,7 @@ import org.littletonrobotics.junction.Logger;
 
 @SuppressWarnings("unused")
 public final class TurretCommands {
-  private TurretCommands() {
-  }
+  private TurretCommands() {}
 
   public static Command turretToZero(TurretSubsystem turret) {
     if (turret == null) {
@@ -45,7 +44,8 @@ public final class TurretCommands {
           if (robotPose == null) {
             return;
           }
-          Optional<Translation2d> target = targetSupplier != null ? targetSupplier.apply(robotPose) : Optional.empty();
+          Optional<Translation2d> target =
+              targetSupplier != null ? targetSupplier.apply(robotPose) : Optional.empty();
           if (RobotLogging.isDebugMode("turret")) {
             Logger.recordOutput("Turret/AutoAim/HasTarget", target.isPresent());
           }
@@ -78,9 +78,10 @@ public final class TurretCommands {
     return Commands.run(
         () -> {
           Pose2d robotPose = robotPoseSupplier != null ? robotPoseSupplier.get() : null;
-          Optional<Translation2d> target = robotPose == null || targetSupplier == null
-              ? Optional.empty()
-              : targetSupplier.apply(robotPose);
+          Optional<Translation2d> target =
+              robotPose == null || targetSupplier == null
+                  ? Optional.empty()
+                  : targetSupplier.apply(robotPose);
           if (RobotLogging.isDebugMode("turret")) {
             Logger.recordOutput("Turret/AutoAim/HasTarget", target.isPresent());
           }
@@ -91,8 +92,9 @@ public final class TurretCommands {
             }
             return;
           }
-          Translation2d aimPoint = shootingWhileMoving(
-              robotPoseSupplier, target::get, fieldVelocitySupplier, fieldAccelerationSupplier);
+          Translation2d aimPoint =
+              shootingWhileMoving(
+                  robotPoseSupplier, target::get, fieldVelocitySupplier, fieldAccelerationSupplier);
           double goalRad = TurretUtil.turretAngleToTarget(robotPose, aimPoint);
           turret.setGoalRad(goalRad);
           if (RobotLogging.isDebugMode("turret")) {
@@ -158,12 +160,14 @@ public final class TurretCommands {
     if (currentPose == null || target == null) {
       return new Translation2d();
     }
-    Translation2d fieldVelocity = sanitizeVector(fieldVelocitySupplier != null ? fieldVelocitySupplier.get() : null);
+    Translation2d fieldVelocity =
+        sanitizeVector(fieldVelocitySupplier != null ? fieldVelocitySupplier.get() : null);
     Translation2d aimPoint = ShotMath.compensateTarget(currentPose, target, fieldVelocity);
     if (logOutputs && RobotLogging.isDebugMode("turret")) {
       double distance = currentPose.getTranslation().getDistance(aimPoint);
-      Rotation2d angle = new Rotation2d(
-          aimPoint.getX() - currentPose.getX(), aimPoint.getY() - currentPose.getY());
+      Rotation2d angle =
+          new Rotation2d(
+              aimPoint.getX() - currentPose.getX(), aimPoint.getY() - currentPose.getY());
       Logger.recordOutput("Turret/AutoAim/ShotTime", ShotMath.getTimeOfFlightSeconds(distance));
       Logger.recordOutput("Turret/AutoAim/Distance", distance);
       Logger.recordOutput(
@@ -199,16 +203,18 @@ public final class TurretCommands {
     if (distanceMeters <= 0.0) {
       return new ShooterCommands.ShotTimeEstimate(0.0, 0.0, shooterExitHeightMeters, 0.0, false);
     }
-    double exitVelocity = (wheelRpm / 60.0) * (2.0 * Math.PI) * wheelRadiusMeters * gearRatio * slipFactor;
+    double exitVelocity =
+        (wheelRpm / 60.0) * (2.0 * Math.PI) * wheelRadiusMeters * gearRatio * slipFactor;
     double cos = Math.cos(hoodAngleRad);
     if (Math.abs(cos) < 1e-6 || exitVelocity <= 1e-6) {
       return new ShooterCommands.ShotTimeEstimate(
           0.0, exitVelocity, shooterExitHeightMeters, 0.0, false);
     }
     double timeSeconds = distanceMeters / (exitVelocity * cos);
-    double predictedHeight = shooterExitHeightMeters
-        + exitVelocity * Math.sin(hoodAngleRad) * timeSeconds
-        - 0.5 * GRAVITY * timeSeconds * timeSeconds;
+    double predictedHeight =
+        shooterExitHeightMeters
+            + exitVelocity * Math.sin(hoodAngleRad) * timeSeconds
+            - 0.5 * GRAVITY * timeSeconds * timeSeconds;
     double heightError = targetHeightMeters - predictedHeight;
     boolean feasible = !Double.isNaN(timeSeconds) && timeSeconds > 0.0;
     return new ShooterCommands.ShotTimeEstimate(
@@ -220,15 +226,16 @@ public final class TurretCommands {
       return ShotMath.getTimeOfFlightSeconds(distanceMeters);
     }
 
-    ShooterCommands.ShotTimeEstimate estimate = estimateShotTimeDetailed(
-        distanceMeters,
-        (Math.PI / 2) - ShooterCommands.getPivotAngleRad(distanceMeters),
-        ShooterConstants.EXIT_HEIGHT_METERS,
-        ShooterConstants.TARGET_HEIGHT_METERS,
-        getShooterRpm(distanceMeters),
-        ShooterConstants.FLYWHEEL_RADIUS_METERS,
-        ShooterConstants.FLYWHEEL_GEAR_RATIO,
-        ShooterConstants.SLIP_FACTOR.get());
+    ShooterCommands.ShotTimeEstimate estimate =
+        estimateShotTimeDetailed(
+            distanceMeters,
+            (Math.PI / 2) - ShooterCommands.getPivotAngleRad(distanceMeters),
+            ShooterConstants.EXIT_HEIGHT_METERS,
+            ShooterConstants.TARGET_HEIGHT_METERS,
+            getShooterRpm(distanceMeters),
+            ShooterConstants.FLYWHEEL_RADIUS_METERS,
+            ShooterConstants.FLYWHEEL_GEAR_RATIO,
+            ShooterConstants.SLIP_FACTOR.get());
     return estimate.timeSeconds();
   }
 

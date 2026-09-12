@@ -61,8 +61,8 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   private final SysIdRoutine driveSysId;
   private final SysIdRoutine turnSysId;
-  private final Alert gyroDisconnectedAlert = new Alert("Disconnected gyro, using kinematics as fallback.",
-      AlertType.kError);
+  private final Alert gyroDisconnectedAlert =
+      new Alert("Disconnected gyro, using kinematics as fallback.", AlertType.kError);
   private final SwerveMusicPlayer musicPlayer;
   private double requestedTranslationalMps = 0.0;
   private double requestedOmegaRadPerSec = 0.0;
@@ -76,30 +76,30 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
   private int observerLatchedModule = -1;
   private double observerHoldUntilSec = 0.0;
 
-  private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(SwerveConstants.MODULE_TRANSLATIONS);
-  @Getter
-  private Rotation2d rawGyroRotation = new Rotation2d();
-  @Getter
-  private Rotation2d rawestGyroRotation = new Rotation2d();
+  private SwerveDriveKinematics kinematics =
+      new SwerveDriveKinematics(SwerveConstants.MODULE_TRANSLATIONS);
+  @Getter private Rotation2d rawGyroRotation = new Rotation2d();
+  @Getter private Rotation2d rawestGyroRotation = new Rotation2d();
   private SwerveModulePosition[] lastModulePositions = // For delta tracking
       new SwerveModulePosition[] {
-          new SwerveModulePosition(),
-          new SwerveModulePosition(),
-          new SwerveModulePosition(),
-          new SwerveModulePosition()
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition()
       };
-  private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
-      lastModulePositions, new Pose2d());
-  private final SwerveSetpointGenerator krakenSetpointGenerator = new SwerveSetpointGenerator(kinematics,
-      SwerveConstants.MODULE_TRANSLATIONS);
-  private SwerveSetpoint krakenCurrentSetpoint = new SwerveSetpoint(
-      new ChassisSpeeds(),
-      new SwerveModuleState[] {
-          new SwerveModuleState(),
-          new SwerveModuleState(),
-          new SwerveModuleState(),
-          new SwerveModuleState()
-      });
+  private SwerveDrivePoseEstimator poseEstimator =
+      new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+  private final SwerveSetpointGenerator krakenSetpointGenerator =
+      new SwerveSetpointGenerator(kinematics, SwerveConstants.MODULE_TRANSLATIONS);
+  private SwerveSetpoint krakenCurrentSetpoint =
+      new SwerveSetpoint(
+          new ChassisSpeeds(),
+          new SwerveModuleState[] {
+            new SwerveModuleState(),
+            new SwerveModuleState(),
+            new SwerveModuleState(),
+            new SwerveModuleState()
+          });
   private boolean krakenVelocityMode = false;
   private String driveSysIdPhase = "IDLE";
   private boolean driveSysIdActive = false;
@@ -109,8 +109,7 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
   private boolean turnSysIdActive = false;
   private double turnSysIdLastCompleted = Double.NaN;
   private String turnSysIdLastCompletedPhase = "NONE";
-  private Runnable odometryResetListener = () -> {
-  };
+  private Runnable odometryResetListener = () -> {};
 
   private Translation2d fieldAcceleration = new Translation2d();
   private Translation2d lastFieldVelocity = new Translation2d();
@@ -145,55 +144,59 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
     // Start odometry thread
     PhoenixOdometryThread.getInstance().start();
 
-    Consumer<SysIdRoutineLog> sysIdLogCallbackDrive = (log) -> {
-      // Log per-module telemetry in linear units (meters, m/s).
-      for (int i = 0; i < 4; i++) {
-        Module module = modules[i];
-        log.motor("DriveM" + i)
-            .voltage(Volts.of(module.getDriveVoltage()))
-            .linearVelocity(MetersPerSecond.of(module.getVelocityMetersPerSec()))
-            .linearPosition(Meters.of(module.getPositionMeters()));
-      }
-    };
+    Consumer<SysIdRoutineLog> sysIdLogCallbackDrive =
+        (log) -> {
+          // Log per-module telemetry in linear units (meters, m/s).
+          for (int i = 0; i < 4; i++) {
+            Module module = modules[i];
+            log.motor("DriveM" + i)
+                .voltage(Volts.of(module.getDriveVoltage()))
+                .linearVelocity(MetersPerSecond.of(module.getVelocityMetersPerSec()))
+                .linearPosition(Meters.of(module.getPositionMeters()));
+          }
+        };
 
-    Consumer<SysIdRoutineLog> sysIdLogCallbackTurn = (log) -> {
-      // Log per-module telemetry in angular units (radians, rad/s).
-      for (int i = 0; i < 4; i++) {
-        Module module = modules[i];
-        log.motor("TurnM" + i)
-            .voltage(Volts.of(module.getTurnVoltage()))
-            .angularVelocity(RadiansPerSecond.of(module.getTurnVelocityRadPerSec()))
-            .angularPosition(Radian.of(module.getTurnPositionRad()));
-      }
-    };
+    Consumer<SysIdRoutineLog> sysIdLogCallbackTurn =
+        (log) -> {
+          // Log per-module telemetry in angular units (radians, rad/s).
+          for (int i = 0; i < 4; i++) {
+            Module module = modules[i];
+            log.motor("TurnM" + i)
+                .voltage(Volts.of(module.getTurnVoltage()))
+                .angularVelocity(RadiansPerSecond.of(module.getTurnVelocityRadPerSec()))
+                .angularPosition(Radian.of(module.getTurnPositionRad()));
+          }
+        };
 
     // Configure drive SysId
-    driveSysId = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            null,
-            null,
-            Seconds.of(2.5),
-            (state) -> {
-              if (GlobalConstants.isDebugMode()) {
-                Logger.recordOutput("Drive/SysIdState", state.toString());
-              }
-            }),
-        new SysIdRoutine.Mechanism(
-            (voltage) -> runDriveSysIdVoltage(voltage.in(Volts)), sysIdLogCallbackDrive, this));
+    driveSysId =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                null,
+                Seconds.of(2.5),
+                (state) -> {
+                  if (GlobalConstants.isDebugMode()) {
+                    Logger.recordOutput("Drive/SysIdState", state.toString());
+                  }
+                }),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> runDriveSysIdVoltage(voltage.in(Volts)), sysIdLogCallbackDrive, this));
 
     // Configure turn SysId
-    turnSysId = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            null,
-            null,
-            Seconds.of(2.5),
-            (state) -> {
-              if (GlobalConstants.isDebugMode()) {
-                Logger.recordOutput("Drive/TurnSysIdState", state.toString());
-              }
-            }),
-        new SysIdRoutine.Mechanism(
-            (voltage) -> runTurnSysIdVoltage(voltage.in(Volts)), sysIdLogCallbackTurn, this));
+    turnSysId =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                null,
+                Seconds.of(2.5),
+                (state) -> {
+                  if (GlobalConstants.isDebugMode()) {
+                    Logger.recordOutput("Drive/TurnSysIdState", state.toString());
+                  }
+                }),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> runTurnSysIdVoltage(voltage.in(Volts)), sysIdLogCallbackTurn, this));
   }
 
   @Override
@@ -233,7 +236,8 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
     }
 
     // Update odometry
-    double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
+    double[] sampleTimestamps =
+        modules[0].getOdometryTimestamps(); // All signals are sampled together
     int sampleCount = sampleTimestamps.length;
     int gyroSampleCount = gyroInputs.odometryYawPositions.length;
     for (int i = 0; i < sampleCount; i++) {
@@ -242,10 +246,11 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
       SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
       for (int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
         modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
-        moduleDeltas[moduleIndex] = new SwerveModulePosition(
-            modulePositions[moduleIndex].distanceMeters
-                - lastModulePositions[moduleIndex].distanceMeters,
-            modulePositions[moduleIndex].angle);
+        moduleDeltas[moduleIndex] =
+            new SwerveModulePosition(
+                modulePositions[moduleIndex].distanceMeters
+                    - lastModulePositions[moduleIndex].distanceMeters,
+                modulePositions[moduleIndex].angle);
         lastModulePositions[moduleIndex] = modulePositions[moduleIndex];
       }
 
@@ -253,7 +258,8 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
       if (gyroInputs.connected) {
         // Use the real gyro angle
         rawestGyroRotation = gyroInputs.yawPosition;
-        rawGyroRotation = i < gyroSampleCount ? gyroInputs.odometryYawPositions[i] : rawGyroRotation;
+        rawGyroRotation =
+            i < gyroSampleCount ? gyroInputs.odometryYawPositions[i] : rawGyroRotation;
       } else {
         // Use the angle delta from the kinematics and module deltas
         Twist2d twist = kinematics.toTwist2d(moduleDeltas);
@@ -266,7 +272,8 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
 
     Pose2d estimatedPose = poseEstimator.getEstimatedPosition();
     if (!isFinitePose(estimatedPose)) {
-      Rotation2d safeRotation = isValidRotation(rawGyroRotation) ? rawGyroRotation : new Rotation2d();
+      Rotation2d safeRotation =
+          isValidRotation(rawGyroRotation) ? rawGyroRotation : new Rotation2d();
       poseEstimator.resetPosition(safeRotation, getModulePositions(), new Pose2d());
     }
 
@@ -274,8 +281,9 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
     Pose2d pose = getPose();
     ChassisSpeeds speeds = getRobotRelativeSpeeds();
 
-    Translation2d currentVelocity = new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond)
-        .rotateBy(pose.getRotation());
+    Translation2d currentVelocity =
+        new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond)
+            .rotateBy(pose.getRotation());
 
     if (!Double.isFinite(lastFieldVelTimestamp)) {
       lastFieldVelTimestamp = now;
@@ -286,19 +294,23 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
     } else {
       double dt = now - lastFieldVelTimestamp;
       fieldMotionSampleDtSec = dt;
-      double maxMotionSpeedMps = sanitizePositiveOrInfinite(AlignConstants.TurretAutoAim.MAX_MOTION_SPEED_MPS.get());
-      double maxMotionAccelMps2 = sanitizePositiveOrInfinite(AlignConstants.TurretAutoAim.MAX_MOTION_ACCEL_MPS2.get());
+      double maxMotionSpeedMps =
+          sanitizePositiveOrInfinite(AlignConstants.TurretAutoAim.MAX_MOTION_SPEED_MPS.get());
+      double maxMotionAccelMps2 =
+          sanitizePositiveOrInfinite(AlignConstants.TurretAutoAim.MAX_MOTION_ACCEL_MPS2.get());
       if (dt > 1e-4 && dt < 0.25) {
         Translation2d acceleration = currentVelocity.minus(lastFieldVelocity).times(1 / dt);
         double speedNorm = currentVelocity.getNorm();
         double accelNorm = acceleration.getNorm();
 
-        fieldAcceleration = new Translation2d(
-            axFilter.calculate(acceleration.getX()), ayFilter.calculate(acceleration.getY()));
-        fieldMotionSampleValid = isFiniteTranslation(currentVelocity)
-            && isFiniteTranslation(fieldAcceleration)
-            && speedNorm <= maxMotionSpeedMps
-            && accelNorm <= maxMotionAccelMps2;
+        fieldAcceleration =
+            new Translation2d(
+                axFilter.calculate(acceleration.getX()), ayFilter.calculate(acceleration.getY()));
+        fieldMotionSampleValid =
+            isFiniteTranslation(currentVelocity)
+                && isFiniteTranslation(fieldAcceleration)
+                && speedNorm <= maxMotionSpeedMps
+                && accelNorm <= maxMotionAccelMps2;
         Logger.recordOutput("Swerve/FieldMotionSpeedInRange", speedNorm <= maxMotionSpeedMps);
         Logger.recordOutput("Swerve/FieldMotionAccelInRange", accelNorm <= maxMotionAccelMps2);
         Logger.recordOutput("Swerve/FieldMotionMaxSpeedMps", maxMotionSpeedMps);
@@ -338,16 +350,18 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
       krakenCurrentSetpoint = new SwerveSetpoint(getChassisSpeeds(), getModuleStates());
     }
 
-    double commandedTranslationalMps = Math.hypot(
-        krakenCurrentSetpoint.chassisSpeeds().vxMetersPerSecond,
-        krakenCurrentSetpoint.chassisSpeeds().vyMetersPerSecond);
-    double measuredTranslationalMps = Math.hypot(getChassisSpeeds().vxMetersPerSecond,
-        getChassisSpeeds().vyMetersPerSecond);
+    double commandedTranslationalMps =
+        Math.hypot(
+            krakenCurrentSetpoint.chassisSpeeds().vxMetersPerSecond,
+            krakenCurrentSetpoint.chassisSpeeds().vyMetersPerSecond);
+    double measuredTranslationalMps =
+        Math.hypot(getChassisSpeeds().vxMetersPerSecond, getChassisSpeeds().vyMetersPerSecond);
     double commandedOmega = krakenCurrentSetpoint.chassisSpeeds().omegaRadiansPerSecond;
     double measuredOmega = getChassisSpeeds().omegaRadiansPerSecond;
-    double overallSpeedRatio = commandedTranslationalMps > 0.15
-        ? measuredTranslationalMps / commandedTranslationalMps
-        : 1.0;
+    double overallSpeedRatio =
+        commandedTranslationalMps > 0.15
+            ? measuredTranslationalMps / commandedTranslationalMps
+            : 1.0;
     int badModule = -1;
     String badReason = "NONE";
     double worstScore = 0.0;
@@ -420,16 +434,18 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
       double commandedOmega,
       double measuredOmega) {
     var canStatus = RobotController.getCANStatus();
-    int canErrorDelta = (canStatus.txFullCount - lastCanTxFullCount)
-        + (canStatus.receiveErrorCount - lastCanReceiveErrorCount)
-        + (canStatus.transmitErrorCount - lastCanTransmitErrorCount);
+    int canErrorDelta =
+        (canStatus.txFullCount - lastCanTxFullCount)
+            + (canStatus.receiveErrorCount - lastCanReceiveErrorCount)
+            + (canStatus.transmitErrorCount - lastCanTransmitErrorCount);
     lastCanTxFullCount = canStatus.txFullCount;
     lastCanReceiveErrorCount = canStatus.receiveErrorCount;
     lastCanTransmitErrorCount = canStatus.transmitErrorCount;
 
     boolean commandedFast = requestedTranslationalMps > 1.5;
     boolean slowdown = commandedFast && overallSpeedRatio < 0.75;
-    boolean softwareLimit = commandedFast && commandedTranslationalMps < requestedTranslationalMps * 0.8;
+    boolean softwareLimit =
+        commandedFast && commandedTranslationalMps < requestedTranslationalMps * 0.8;
 
     String candidateIssue = "OK";
     int candidateModule = -1;
@@ -509,8 +525,9 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
     requestedOmegaRadPerSec = speeds.omegaRadiansPerSecond;
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
     SwerveModuleState[] setpointStatesUnoptimized = kinematics.toSwerveModuleStates(discreteSpeeds);
-    krakenCurrentSetpoint = krakenSetpointGenerator.generateSetpoint(
-        SwerveConstants.KRAKEN_MODULE_LIMITS_FREE, krakenCurrentSetpoint, discreteSpeeds, 0.02);
+    krakenCurrentSetpoint =
+        krakenSetpointGenerator.generateSetpoint(
+            SwerveConstants.KRAKEN_MODULE_LIMITS_FREE, krakenCurrentSetpoint, discreteSpeeds, 0.02);
     SwerveModuleState[] setpointStates = krakenCurrentSetpoint.moduleStates();
 
     Logger.recordOutput("SwerveStates/SetpointsUnoptimized", setpointStatesUnoptimized);
@@ -626,10 +643,8 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
   }
 
   /**
-   * Stops the drive and turns the modules to an X arrangement to resist movement.
-   * The modules will
-   * return to their normal orientations the next time a nonzero velocity is
-   * requested.
+   * Stops the drive and turns the modules to an X arrangement to resist movement. The modules will
+   * return to their normal orientations the next time a nonzero velocity is requested.
    */
   public void stopWithX() {
     Rotation2d[] headings = new Rotation2d[4];
@@ -646,166 +661,174 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
   /** Returns a command to run a quasistatic test in the specified direction. */
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     String phase = direction == SysIdRoutine.Direction.kForward ? "SINGLE_QS_FWD" : "SINGLE_QS_REV";
-    Command run = Commands.sequence(
-        Commands.runOnce(
-            () -> {
-              runCharacterization(0.0);
-              setDriveSysIdPhase(phase, true);
-            },
-            this),
-        driveSysIdQuasistaticRaw(direction),
-        Commands.runOnce(
-            () -> {
-              runCharacterization(0.0);
-              setDriveSysIdPhase("DONE", false);
-            },
-            this));
+    Command run =
+        Commands.sequence(
+            Commands.runOnce(
+                () -> {
+                  runCharacterization(0.0);
+                  setDriveSysIdPhase(phase, true);
+                },
+                this),
+            driveSysIdQuasistaticRaw(direction),
+            Commands.runOnce(
+                () -> {
+                  runCharacterization(0.0);
+                  setDriveSysIdPhase("DONE", false);
+                },
+                this));
     return withFreshSysIdLogs("DriveSysIdQuasistatic", run);
   }
 
   /** Returns a command to run a dynamic test in the specified direction. */
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    String phase = direction == SysIdRoutine.Direction.kForward ? "SINGLE_DYN_FWD" : "SINGLE_DYN_REV";
-    Command run = Commands.sequence(
-        Commands.runOnce(
-            () -> {
-              runCharacterization(0.0);
-              setDriveSysIdPhase(phase, true);
-            },
-            this),
-        driveSysIdDynamicRaw(direction),
-        Commands.runOnce(
-            () -> {
-              runCharacterization(0.0);
-              setDriveSysIdPhase("DONE", false);
-            },
-            this));
+    String phase =
+        direction == SysIdRoutine.Direction.kForward ? "SINGLE_DYN_FWD" : "SINGLE_DYN_REV";
+    Command run =
+        Commands.sequence(
+            Commands.runOnce(
+                () -> {
+                  runCharacterization(0.0);
+                  setDriveSysIdPhase(phase, true);
+                },
+                this),
+            driveSysIdDynamicRaw(direction),
+            Commands.runOnce(
+                () -> {
+                  runCharacterization(0.0);
+                  setDriveSysIdPhase("DONE", false);
+                },
+                this));
     return withFreshSysIdLogs("DriveSysIdDynamic", run);
   }
 
   /** Runs the full SysId routine (quasistatic + dynamic, forward + reverse). */
   public Command sysIdRoutine() {
-    Command run = Commands.sequence(
-        Commands.runOnce(
-            () -> {
-              RobotLogging.debug("[SysId] Drive Subsystem - Quasistatic (Forward) starting.");
-              setDriveSysIdPhase("QS_FWD", true);
-            },
-            this),
-        driveSysIdQuasistaticRaw(SysIdRoutine.Direction.kForward),
-        Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
-        Commands.runOnce(
-            () -> {
-              RobotLogging.debug("[SysId] Drive Subsystem - Quasistatic (Reverse) starting.");
-              setDriveSysIdPhase("QS_REV", true);
-            },
-            this),
-        driveSysIdQuasistaticRaw(SysIdRoutine.Direction.kReverse),
-        Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
-        Commands.runOnce(
-            () -> {
-              RobotLogging.debug("[SysId] Drive Subsystem - Dynamic (Forward) starting.");
-              setDriveSysIdPhase("DYN_FWD", true);
-            },
-            this),
-        driveSysIdDynamicRaw(SysIdRoutine.Direction.kForward),
-        Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
-        Commands.runOnce(
-            () -> {
-              RobotLogging.debug("[SysId] Drive Subsystem - Dynamic (Reverse) starting.");
-              setDriveSysIdPhase("DYN_REV", true);
-            },
-            this),
-        driveSysIdDynamicRaw(SysIdRoutine.Direction.kReverse),
-        Commands.runOnce(
-            () -> {
-              runCharacterization(0.0);
-              setDriveSysIdPhase("DONE", false);
-            },
-            this));
+    Command run =
+        Commands.sequence(
+            Commands.runOnce(
+                () -> {
+                  RobotLogging.debug("[SysId] Drive Subsystem - Quasistatic (Forward) starting.");
+                  setDriveSysIdPhase("QS_FWD", true);
+                },
+                this),
+            driveSysIdQuasistaticRaw(SysIdRoutine.Direction.kForward),
+            Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
+            Commands.runOnce(
+                () -> {
+                  RobotLogging.debug("[SysId] Drive Subsystem - Quasistatic (Reverse) starting.");
+                  setDriveSysIdPhase("QS_REV", true);
+                },
+                this),
+            driveSysIdQuasistaticRaw(SysIdRoutine.Direction.kReverse),
+            Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
+            Commands.runOnce(
+                () -> {
+                  RobotLogging.debug("[SysId] Drive Subsystem - Dynamic (Forward) starting.");
+                  setDriveSysIdPhase("DYN_FWD", true);
+                },
+                this),
+            driveSysIdDynamicRaw(SysIdRoutine.Direction.kForward),
+            Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
+            Commands.runOnce(
+                () -> {
+                  RobotLogging.debug("[SysId] Drive Subsystem - Dynamic (Reverse) starting.");
+                  setDriveSysIdPhase("DYN_REV", true);
+                },
+                this),
+            driveSysIdDynamicRaw(SysIdRoutine.Direction.kReverse),
+            Commands.runOnce(
+                () -> {
+                  runCharacterization(0.0);
+                  setDriveSysIdPhase("DONE", false);
+                },
+                this));
     return withFreshSysIdLogs("DriveSysIdRoutine", run);
   }
 
   /** Returns a command to run a steer-motor quasistatic test. */
   public Command sysIdTurnQuasistatic(SysIdRoutine.Direction direction) {
     String phase = direction == SysIdRoutine.Direction.kForward ? "SINGLE_QS_FWD" : "SINGLE_QS_REV";
-    Command run = Commands.sequence(
-        Commands.runOnce(
-            () -> {
-              runTurnCharacterization(0.0);
-              setTurnSysIdPhase(phase, true);
-            },
-            this),
-        turnSysIdQuasistaticRaw(direction),
-        Commands.runOnce(
-            () -> {
-              runTurnCharacterization(0.0);
-              setTurnSysIdPhase("DONE", false);
-            },
-            this));
+    Command run =
+        Commands.sequence(
+            Commands.runOnce(
+                () -> {
+                  runTurnCharacterization(0.0);
+                  setTurnSysIdPhase(phase, true);
+                },
+                this),
+            turnSysIdQuasistaticRaw(direction),
+            Commands.runOnce(
+                () -> {
+                  runTurnCharacterization(0.0);
+                  setTurnSysIdPhase("DONE", false);
+                },
+                this));
     return withFreshSysIdLogs("TurnSysIdQuasistatic", run);
   }
 
   /** Returns a command to run a steer-motor dynamic test. */
   public Command sysIdTurnDynamic(SysIdRoutine.Direction direction) {
-    String phase = direction == SysIdRoutine.Direction.kForward ? "SINGLE_DYN_FWD" : "SINGLE_DYN_REV";
-    Command run = Commands.sequence(
-        Commands.runOnce(
-            () -> {
-              runTurnCharacterization(0.0);
-              setTurnSysIdPhase(phase, true);
-            },
-            this),
-        turnSysIdDynamicRaw(direction),
-        Commands.runOnce(
-            () -> {
-              runTurnCharacterization(0.0);
-              setTurnSysIdPhase("DONE", false);
-            },
-            this));
+    String phase =
+        direction == SysIdRoutine.Direction.kForward ? "SINGLE_DYN_FWD" : "SINGLE_DYN_REV";
+    Command run =
+        Commands.sequence(
+            Commands.runOnce(
+                () -> {
+                  runTurnCharacterization(0.0);
+                  setTurnSysIdPhase(phase, true);
+                },
+                this),
+            turnSysIdDynamicRaw(direction),
+            Commands.runOnce(
+                () -> {
+                  runTurnCharacterization(0.0);
+                  setTurnSysIdPhase("DONE", false);
+                },
+                this));
     return withFreshSysIdLogs("TurnSysIdDynamic", run);
   }
 
   /** Runs the full SysId routine for the steer motors. */
   public Command sysIdTurnRoutine() {
-    Command run = Commands.sequence(
-        Commands.runOnce(
-            () -> {
-              RobotLogging.debug("[SysId] Turn Subsystem - Quasistatic (Forward) starting.");
-              setTurnSysIdPhase("QS_FWD", true);
-            },
-            this),
-        turnSysIdQuasistaticRaw(SysIdRoutine.Direction.kForward),
-        Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
-        Commands.runOnce(
-            () -> {
-              RobotLogging.debug("[SysId] Turn Subsystem - Quasistatic (Reverse) starting.");
-              setTurnSysIdPhase("QS_REV", true);
-            },
-            this),
-        turnSysIdQuasistaticRaw(SysIdRoutine.Direction.kReverse),
-        Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
-        Commands.runOnce(
-            () -> {
-              RobotLogging.debug("[SysId] Turn Subsystem - Dynamic (Forward) starting.");
-              setTurnSysIdPhase("DYN_FWD", true);
-            },
-            this),
-        turnSysIdDynamicRaw(SysIdRoutine.Direction.kForward),
-        Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
-        Commands.runOnce(
-            () -> {
-              RobotLogging.debug("[SysId] Turn Subsystem - Dynamic (Reverse) starting.");
-              setTurnSysIdPhase("DYN_REV", true);
-            },
-            this),
-        turnSysIdDynamicRaw(SysIdRoutine.Direction.kReverse),
-        Commands.runOnce(
-            () -> {
-              runTurnCharacterization(0.0);
-              setTurnSysIdPhase("DONE", false);
-            },
-            this));
+    Command run =
+        Commands.sequence(
+            Commands.runOnce(
+                () -> {
+                  RobotLogging.debug("[SysId] Turn Subsystem - Quasistatic (Forward) starting.");
+                  setTurnSysIdPhase("QS_FWD", true);
+                },
+                this),
+            turnSysIdQuasistaticRaw(SysIdRoutine.Direction.kForward),
+            Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
+            Commands.runOnce(
+                () -> {
+                  RobotLogging.debug("[SysId] Turn Subsystem - Quasistatic (Reverse) starting.");
+                  setTurnSysIdPhase("QS_REV", true);
+                },
+                this),
+            turnSysIdQuasistaticRaw(SysIdRoutine.Direction.kReverse),
+            Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
+            Commands.runOnce(
+                () -> {
+                  RobotLogging.debug("[SysId] Turn Subsystem - Dynamic (Forward) starting.");
+                  setTurnSysIdPhase("DYN_FWD", true);
+                },
+                this),
+            turnSysIdDynamicRaw(SysIdRoutine.Direction.kForward),
+            Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
+            Commands.runOnce(
+                () -> {
+                  RobotLogging.debug("[SysId] Turn Subsystem - Dynamic (Reverse) starting.");
+                  setTurnSysIdPhase("DYN_REV", true);
+                },
+                this),
+            turnSysIdDynamicRaw(SysIdRoutine.Direction.kReverse),
+            Commands.runOnce(
+                () -> {
+                  runTurnCharacterization(0.0);
+                  setTurnSysIdPhase("DONE", false);
+                },
+                this));
     return withFreshSysIdLogs("TurnSysIdRoutine", run);
   }
 
@@ -844,10 +867,7 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
         .andThen(turnSysId.dynamic(direction));
   }
 
-  /**
-   * Returns the module states (turn angles and drive velocities) for all of the
-   * modules.
-   */
+  /** Returns the module states (turn angles and drive velocities) for all of the modules. */
   @AutoLogOutput(key = "SwerveStates/Measured")
   private SwerveModuleState[] getModuleStates() {
     SwerveModuleState[] states = new SwerveModuleState[4];
@@ -857,10 +877,7 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
     return states;
   }
 
-  /**
-   * Returns the module positions (turn angles and drive positions) for all of the
-   * modules.
-   */
+  /** Returns the module positions (turn angles and drive positions) for all of the modules. */
   private SwerveModulePosition[] getModulePositions() {
     SwerveModulePosition[] states = new SwerveModulePosition[4];
     for (int i = 0; i < 4; i++) {
@@ -936,9 +953,7 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
   /**
    * Zeros the gyro and odometry heading to the alliance wall.
    *
-   * <p>
-   * Red alliance: facing the red wall = 0 degrees. Blue alliance: facing the blue
-   * wall = 180
+   * <p>Red alliance: facing the red wall = 0 degrees. Blue alliance: facing the blue wall = 180
    * degrees (WPI blue field coordinates).
    */
   public void zeroGyroAndOdometryToAllianceWall(Alliance alliance) {
@@ -948,9 +963,7 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
     Logger.recordOutput("Odometry/AllianceZero/Alliance", alliance.name());
   }
 
-  /**
-   * Returns the field heading used when the robot is facing its alliance wall.
-   */
+  /** Returns the field heading used when the robot is facing its alliance wall. */
   public static Rotation2d getAllianceWallFacingRotation(Alliance alliance) {
     return alliance == Alliance.Blue ? Rotation2d.fromDegrees(180.0) : new Rotation2d();
   }
@@ -962,8 +975,7 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
 
   /** Registers a callback to run after any odometry reset. */
   public void setOdometryResetListener(Runnable odometryResetListener) {
-    this.odometryResetListener = odometryResetListener != null ? odometryResetListener : () -> {
-    };
+    this.odometryResetListener = odometryResetListener != null ? odometryResetListener : () -> {};
   }
 
   public void captureModuleZeroOffsets() {
@@ -993,12 +1005,10 @@ public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsu
   }
 
   /**
-   * Resets the current odometry pose and optionally aligns the gyro to the
-   * provided field heading.
+   * Resets the current odometry pose and optionally aligns the gyro to the provided field heading.
    *
-   * @param pose      Field-relative pose to reset to.
-   * @param resetGyro If true, reset the gyro yaw to pose rotation (field
-   *                  heading).
+   * @param pose Field-relative pose to reset to.
+   * @param resetGyro If true, reset the gyro yaw to pose rotation (field heading).
    */
   public void resetOdometry(Pose2d pose, boolean resetGyro) {
     if (resetGyro) {

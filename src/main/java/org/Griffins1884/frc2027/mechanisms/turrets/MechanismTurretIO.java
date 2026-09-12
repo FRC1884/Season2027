@@ -20,11 +20,9 @@ public interface MechanismTurretIO {
     public double motorGoalTicks = Double.NaN;
   }
 
-  default void updateInputs(MechanismTurretIOInputs inputs) {
-  }
+  default void updateInputs(MechanismTurretIOInputs inputs) {}
 
-  default void setVoltage(double volts) {
-  }
+  default void setVoltage(double volts) {}
 
   /** Whether this IO supports internal position control. */
   default boolean usesInternalPositionControl() {
@@ -32,12 +30,9 @@ public interface MechanismTurretIO {
   }
 
   /** Run turret to a position using internal controller. */
-  default void setPositionSetpoint(double positionRad, double kP, double kI, double kD) {
-  }
+  default void setPositionSetpoint(double positionRad, double kP, double kI, double kD) {}
 
-  default void setBrakeMode(boolean enabled) {
-  }
+  default void setBrakeMode(boolean enabled) {}
 
-  default void setPosition(double positionRad) {
-  }
+  default void setPosition(double positionRad) {}
 }

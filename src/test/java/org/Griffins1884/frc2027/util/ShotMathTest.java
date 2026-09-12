@@ -22,7 +22,8 @@ class ShotMathTest {
     Pose2d robotPose = new Pose2d(1.0, 2.0, new Rotation2d());
     Translation2d target = new Translation2d(5.0, 6.0);
 
-    Translation2d compensated = ShotMath.compensateTarget(robotPose, target, new Translation2d(0.05, 0.0));
+    Translation2d compensated =
+        ShotMath.compensateTarget(robotPose, target, new Translation2d(0.05, 0.0));
 
     assertEquals(target.getX(), compensated.getX(), EPSILON);
     assertEquals(target.getY(), compensated.getY(), EPSILON);
@@ -33,7 +34,8 @@ class ShotMathTest {
     Pose2d robotPose = new Pose2d();
     Translation2d target = new Translation2d(5.0, 0.0);
 
-    Translation2d compensated = ShotMath.compensateTarget(robotPose, target, new Translation2d(1.0, 0.0));
+    Translation2d compensated =
+        ShotMath.compensateTarget(robotPose, target, new Translation2d(1.0, 0.0));
 
     assertEquals(3.796408914197519, compensated.getX(), EPSILON);
     assertEquals(0.0, compensated.getY(), EPSILON);

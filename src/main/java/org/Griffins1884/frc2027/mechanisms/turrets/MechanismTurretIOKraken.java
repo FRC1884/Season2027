@@ -20,8 +20,10 @@ public class MechanismTurretIOKraken implements MechanismTurretIO {
   private final TalonFX motor;
   private final TalonFXConfiguration config = new TalonFXConfiguration();
   private final VoltageOut voltageRequest = new VoltageOut(0.0);
-  private final PositionTorqueCurrentFOC positionRequest = new PositionTorqueCurrentFOC(0.0).withUpdateFreqHz(0);
-  private final PositionVoltage positionVoltageRequest = new PositionVoltage(0.0).withUpdateFreqHz(0);
+  private final PositionTorqueCurrentFOC positionRequest =
+      new PositionTorqueCurrentFOC(0.0).withUpdateFreqHz(0);
+  private final PositionVoltage positionVoltageRequest =
+      new PositionVoltage(0.0).withUpdateFreqHz(0);
   private final double gearRatio;
   private final MechanismDefinition.KrakenFeatureConfig krakenFeatures;
   private double lastKP = Double.NaN;
@@ -74,13 +76,15 @@ public class MechanismTurretIOKraken implements MechanismTurretIO {
       CANBus canBus,
       MechanismDefinition.KrakenFeatureConfig krakenFeatures) {
     this.gearRatio = gearRatio;
-    this.krakenFeatures = krakenFeatures != null
-        ? krakenFeatures
-        : MechanismDefinition.KrakenFeatureConfig.disabled();
+    this.krakenFeatures =
+        krakenFeatures != null
+            ? krakenFeatures
+            : MechanismDefinition.KrakenFeatureConfig.disabled();
     motor = new TalonFX(id, canBus);
 
     config.MotorOutput.NeutralMode = brake ? NeutralModeValue.Brake : NeutralModeValue.Coast;
-    config.MotorOutput.Inverted = invert ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
+    config.MotorOutput.Inverted =
+        invert ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
     config.CurrentLimits.SupplyCurrentLimit = currentLimitAmps;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
     config.CurrentLimits.StatorCurrentLimit = currentLimitAmps;
@@ -129,7 +133,7 @@ public class MechanismTurretIOKraken implements MechanismTurretIO {
         tempSignal);
 
     if (inputs.connected.length != 1) {
-      inputs.connected = new boolean[] { true };
+      inputs.connected = new boolean[] {true};
     } else {
       inputs.connected[0] = positionSignal.getStatus().isOK();
     }

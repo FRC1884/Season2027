@@ -23,8 +23,8 @@ import org.Griffins1884.frc2027.subsystems.swerve.SwerveSubsystem;
 import org.littletonrobotics.junction.Logger;
 
 final class RebuiltAutoQueue {
-  private static final ObjectMapper JSON = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper JSON =
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private static final double EPSILON_METERS = 1e-6;
 
   private final RebuiltSpotLibrary spotLibrary;
@@ -43,14 +43,16 @@ final class RebuiltAutoQueue {
   private String queueMessage = "Select a deployed PathPlanner auto to preview and run.";
   private String lastQueueStateJson = "";
   private String lastQuickRunStateJson = "";
-  private SelectedAutoState selectedAutoState = new SelectedAutoState(
-      "", "", "", "", false, "No auto selected.", false, 0, Timer.getFPGATimestamp(), null);
-  private QueueActionTrace lastActionTrace = new QueueActionTrace(
-      Timer.getFPGATimestamp(),
-      "QUEUE_INIT",
-      true,
-      "Queue initialized.",
-      "Select a deployed PathPlanner auto to preview and run.");
+  private SelectedAutoState selectedAutoState =
+      new SelectedAutoState(
+          "", "", "", "", false, "No auto selected.", false, 0, Timer.getFPGATimestamp(), null);
+  private QueueActionTrace lastActionTrace =
+      new QueueActionTrace(
+          Timer.getFPGATimestamp(),
+          "QUEUE_INIT",
+          true,
+          "Queue initialized.",
+          "Select a deployed PathPlanner auto to preview and run.");
 
   RebuiltAutoQueue(
       RebuiltSpotLibrary spotLibrary,
@@ -159,9 +161,10 @@ final class RebuiltAutoQueue {
               queueRunning = false;
               activeLabel = "";
               phase = interrupted ? QueuePhase.READY : QueuePhase.COMPLETE;
-              queueMessage = interrupted
-                  ? "Autonomous was interrupted."
-                  : "Completed " + selectedAutoState.name() + ".";
+              queueMessage =
+                  interrupted
+                      ? "Autonomous was interrupted."
+                      : "Completed " + selectedAutoState.name() + ".";
               recordAction("AUTO_RUN", !interrupted, queueMessage);
             });
   }
@@ -193,25 +196,27 @@ final class RebuiltAutoQueue {
       queueRunning = false;
       phase = queueSteps.isEmpty() ? QueuePhase.IDLE : QueuePhase.READY;
       activeLabel = "";
-      queueMessage = queueSteps.isEmpty()
-          ? "Queue cleared."
-          : "Queue updated. Press Start or enable autonomous.";
-      selectedAutoState = new SelectedAutoState(
-          selectedAutoState.id(),
-          selectedAutoState.name(),
-          selectedAutoState.folder(),
-          selectedAutoState.relativePath(),
-          selectedAutoState.loaded(),
-          queueMessage,
-          selectedAutoState.selected(),
-          queueSteps.size(),
-          Timer.getFPGATimestamp(),
-          queuedStartPose == null
-              ? null
-              : new PoseState(
-                  queuedStartPose.xMeters,
-                  queuedStartPose.yMeters,
-                  queuedStartPose.headingDeg));
+      queueMessage =
+          queueSteps.isEmpty()
+              ? "Queue cleared."
+              : "Queue updated. Press Start or enable autonomous.";
+      selectedAutoState =
+          new SelectedAutoState(
+              selectedAutoState.id(),
+              selectedAutoState.name(),
+              selectedAutoState.folder(),
+              selectedAutoState.relativePath(),
+              selectedAutoState.loaded(),
+              queueMessage,
+              selectedAutoState.selected(),
+              queueSteps.size(),
+              Timer.getFPGATimestamp(),
+              queuedStartPose == null
+                  ? null
+                  : new PoseState(
+                      queuedStartPose.xMeters,
+                      queuedStartPose.yMeters,
+                      queuedStartPose.headingDeg));
       recordAction("QUEUE_SPEC_APPLY", true, queueMessage);
     } catch (Exception ex) {
       recordAction("QUEUE_SPEC_APPLY", false, "Failed to parse queue spec.");
@@ -318,40 +323,43 @@ final class RebuiltAutoQueue {
     }
     if (normalizedId == null) {
       clearQueue("No auto selected.");
-      selectedAutoState = new SelectedAutoState(
-          "", "", "", "", false, "No auto selected.", false, 0, Timer.getFPGATimestamp(), null);
+      selectedAutoState =
+          new SelectedAutoState(
+              "", "", "", "", false, "No auto selected.", false, 0, Timer.getFPGATimestamp(), null);
       recordAction("AUTO_SELECT", true, "Cleared selected auto.");
       return;
     }
     if (autoLibrary == null) {
-      selectedAutoState = new SelectedAutoState(
-          normalizedId,
-          normalizedId,
-          "",
-          "",
-          false,
-          "Auto library unavailable.",
-          true,
-          0,
-          Timer.getFPGATimestamp(),
-          null);
+      selectedAutoState =
+          new SelectedAutoState(
+              normalizedId,
+              normalizedId,
+              "",
+              "",
+              false,
+              "Auto library unavailable.",
+              true,
+              0,
+              Timer.getFPGATimestamp(),
+              null);
       clearQueue("Auto library unavailable.");
       recordAction("AUTO_SELECT", false, "Auto library unavailable.");
       return;
     }
     Optional<DeployAutoLibrary.LoadedAuto> loadedAuto = autoLibrary.loadAuto(normalizedId);
     if (loadedAuto.isEmpty()) {
-      selectedAutoState = new SelectedAutoState(
-          normalizedId,
-          normalizedId,
-          "",
-          "",
-          false,
-          "Selected auto was not found in deploy.",
-          true,
-          0,
-          Timer.getFPGATimestamp(),
-          null);
+      selectedAutoState =
+          new SelectedAutoState(
+              normalizedId,
+              normalizedId,
+              "",
+              "",
+              false,
+              "Selected auto was not found in deploy.",
+              true,
+              0,
+              Timer.getFPGATimestamp(),
+              null);
       clearQueue("Selected auto was not found in deploy.");
       recordAction("AUTO_SELECT", false, "Selected auto was not found in deploy.");
       return;
@@ -374,23 +382,25 @@ final class RebuiltAutoQueue {
     queueRunning = false;
     phase = queueSteps.isEmpty() ? QueuePhase.IDLE : QueuePhase.READY;
     activeLabel = "";
-    queueMessage = queueSteps.isEmpty()
-        ? "Selected auto has no runnable steps."
-        : "Selected " + defaultAutoName(loadedAuto) + " for autonomous.";
-    selectedAutoState = new SelectedAutoState(
-        nullToEmpty(loadedAuto.id()),
-        defaultAutoName(loadedAuto),
-        nullToEmpty(loadedAuto.folder()),
-        nullToEmpty(loadedAuto.relativePath()),
-        !queueSteps.isEmpty(),
-        queueMessage,
-        true,
-        queueSteps.size(),
-        Timer.getFPGATimestamp(),
-        queuedStartPose == null
-            ? null
-            : new PoseState(
-                queuedStartPose.xMeters, queuedStartPose.yMeters, queuedStartPose.headingDeg));
+    queueMessage =
+        queueSteps.isEmpty()
+            ? "Selected auto has no runnable steps."
+            : "Selected " + defaultAutoName(loadedAuto) + " for autonomous.";
+    selectedAutoState =
+        new SelectedAutoState(
+            nullToEmpty(loadedAuto.id()),
+            defaultAutoName(loadedAuto),
+            nullToEmpty(loadedAuto.folder()),
+            nullToEmpty(loadedAuto.relativePath()),
+            !queueSteps.isEmpty(),
+            queueMessage,
+            true,
+            queueSteps.size(),
+            Timer.getFPGATimestamp(),
+            queuedStartPose == null
+                ? null
+                : new PoseState(
+                    queuedStartPose.xMeters, queuedStartPose.yMeters, queuedStartPose.headingDeg));
     recordAction("AUTO_SELECT", !queueSteps.isEmpty(), queueMessage);
   }
 
@@ -483,29 +493,32 @@ final class RebuiltAutoQueue {
     double alignToleranceMeters = RebuiltAutoConstants.QUEUE_ALIGN_TOLERANCE_METERS.get();
     double alignTimeoutSeconds = RebuiltAutoConstants.QUEUE_ALIGN_TIMEOUT_SEC.get();
     double flowThroughEndVelocity = RebuiltAutoConstants.QUEUE_FLOW_THROUGH_END_VELOCITY_MPS.get();
-    double stepConstraintFactor = step.constraintFactor != null
-        ? Math.max(0.05, step.constraintFactor)
-        : alignConstraintFactor;
-    double stepToleranceMeters = step.toleranceMeters != null ? Math.max(0.01, step.toleranceMeters)
-        : alignToleranceMeters;
-    double stepTimeoutSeconds = step.timeoutSeconds != null ? Math.max(0.05, step.timeoutSeconds) : alignTimeoutSeconds;
+    double stepConstraintFactor =
+        step.constraintFactor != null
+            ? Math.max(0.05, step.constraintFactor)
+            : alignConstraintFactor;
+    double stepToleranceMeters =
+        step.toleranceMeters != null ? Math.max(0.01, step.toleranceMeters) : alignToleranceMeters;
+    double stepTimeoutSeconds =
+        step.timeoutSeconds != null ? Math.max(0.05, step.timeoutSeconds) : alignTimeoutSeconds;
     boolean stepStopOnEnd = step.stopOnEnd == null ? finalStep : step.stopOnEnd.booleanValue();
 
     ArrayList<Command> routeCommands = new ArrayList<>();
     for (int i = 0; i < routePoses.size(); i++) {
       boolean finalRoutePose = i == routePoses.size() - 1;
-      double endVelocity = step.endVelocityMps != null
-          ? step.endVelocityMps
-          : (finalStep && finalRoutePose ? 0.0 : flowThroughEndVelocity);
+      double endVelocity =
+          step.endVelocityMps != null
+              ? step.endVelocityMps
+              : (finalStep && finalRoutePose ? 0.0 : flowThroughEndVelocity);
       routeCommands.add(
           new AutoAlignToPoseCommand(
-              drive,
-              routePoses.get(i),
-              stepConstraintFactor,
-              endVelocity,
-              stepToleranceMeters,
-              false,
-              finalRoutePose && stepStopOnEnd)
+                  drive,
+                  routePoses.get(i),
+                  stepConstraintFactor,
+                  endVelocity,
+                  stepToleranceMeters,
+                  false,
+                  finalRoutePose && stepStopOnEnd)
               .withTimeout(stepTimeoutSeconds));
     }
 
@@ -609,9 +622,10 @@ final class RebuiltAutoQueue {
           waypoint
               .resolvePose(spotLibrary, alliance)
               .ifPresent(
-                  pose -> routeWaypoints.add(
-                      new PoseState(
-                          pose.getX(), pose.getY(), pose.getRotation().getDegrees())));
+                  pose ->
+                      routeWaypoints.add(
+                          new PoseState(
+                              pose.getX(), pose.getY(), pose.getRotation().getDegrees())));
         }
         steps.add(
             new QueueStateStep(
@@ -640,21 +654,22 @@ final class RebuiltAutoQueue {
                 zone.locked));
       }
 
-      QueueStatePayload payload = new QueueStatePayload(
-          selectedAutoState.id(),
-          selectedAutoState.name(),
-          queueRevision,
-          queueRunning,
-          phase.name(),
-          queueRunning && !queueSteps.isEmpty() ? 0 : -1,
-          queueMessage,
-          activeLabel,
-          queuedStartPose == null
-              ? null
-              : new PoseState(
-                  queuedStartPose.xMeters, queuedStartPose.yMeters, queuedStartPose.headingDeg),
-          zoneStates,
-          steps);
+      QueueStatePayload payload =
+          new QueueStatePayload(
+              selectedAutoState.id(),
+              selectedAutoState.name(),
+              queueRevision,
+              queueRunning,
+              phase.name(),
+              queueRunning && !queueSteps.isEmpty() ? 0 : -1,
+              queueMessage,
+              activeLabel,
+              queuedStartPose == null
+                  ? null
+                  : new PoseState(
+                      queuedStartPose.xMeters, queuedStartPose.yMeters, queuedStartPose.headingDeg),
+              zoneStates,
+              steps);
       return JSON.writeValueAsString(payload);
     } catch (JsonProcessingException ex) {
       DriverStation.reportError("Failed to serialize queue state", ex.getStackTrace());
@@ -743,7 +758,8 @@ final class RebuiltAutoQueue {
           items.add(new QuickRunItem(label, "fail", "Step entry path is blocked."));
           continue;
         }
-        Command command = buildCommand(step, i == queueSteps.size() - 1, Optional.ofNullable(previous));
+        Command command =
+            buildCommand(step, i == queueSteps.size() - 1, Optional.ofNullable(previous));
         if (command == null) {
           items.add(new QuickRunItem(label, "fail", "Unable to build command."));
           continue;
@@ -764,9 +780,10 @@ final class RebuiltAutoQueue {
       long failCount = items.stream().filter(item -> "fail".equals(item.status())).count();
       long warnCount = items.stream().filter(item -> "warn".equals(item.status())).count();
       String status = failCount > 0 ? "fail" : warnCount > 0 ? "warn" : "pass";
-      String summary = failCount > 0
-          ? failCount + " fail, " + warnCount + " warn"
-          : warnCount > 0 ? warnCount + " warning" + (warnCount == 1 ? "" : "s") : "READY";
+      String summary =
+          failCount > 0
+              ? failCount + " fail, " + warnCount + " warn"
+              : warnCount > 0 ? warnCount + " warning" + (warnCount == 1 ? "" : "s") : "READY";
       return JSON.writeValueAsString(
           new QuickRunReport(Timer.getFPGATimestamp(), status, summary, items));
     } catch (JsonProcessingException ex) {
@@ -785,8 +802,9 @@ final class RebuiltAutoQueue {
   }
 
   private void recordAction(String action, boolean accepted, String detail) {
-    lastActionTrace = new QueueActionTrace(
-        Timer.getFPGATimestamp(), action, accepted, detail == null ? "" : detail, queueMessage);
+    lastActionTrace =
+        new QueueActionTrace(
+            Timer.getFPGATimestamp(), action, accepted, detail == null ? "" : detail, queueMessage);
   }
 
   private static Rotation2d headingDegrees(double headingDeg) {
@@ -1026,12 +1044,13 @@ final class RebuiltAutoQueue {
           .getSpot(spotId)
           .map(RebuiltSpot::toPose)
           .map(
-              pose -> alliance == Alliance.Red
-                  ? new Pose2d(
-                      spotLibrary.getFieldLengthMeters() - pose.getX(),
-                      pose.getY(),
-                      headingDegrees(mirrorHeading(pose.getRotation().getDegrees())))
-                  : pose);
+              pose ->
+                  alliance == Alliance.Red
+                      ? new Pose2d(
+                          spotLibrary.getFieldLengthMeters() - pose.getX(),
+                          pose.getY(),
+                          headingDegrees(mirrorHeading(pose.getRotation().getDegrees())))
+                      : pose);
     }
 
     Optional<SuperState> resolveRequestedState() {
@@ -1055,9 +1074,10 @@ final class RebuiltAutoQueue {
       return spotLibrary
           .getSpot(spotId)
           .map(
-              spot -> requestedStateName == null
-                  ? spot.displayLabel()
-                  : spot.displayLabel() + " • " + requestedStateName)
+              spot ->
+                  requestedStateName == null
+                      ? spot.displayLabel()
+                      : spot.displayLabel() + " • " + requestedStateName)
           .orElse(spotId);
     }
   }
@@ -1176,7 +1196,7 @@ final class RebuiltAutoQueue {
     double cdB = cross(cx, cy, dx, dy, bx, by);
 
     if ((abC > EPSILON_METERS && abD < -EPSILON_METERS
-        || abC < -EPSILON_METERS && abD > EPSILON_METERS)
+            || abC < -EPSILON_METERS && abD > EPSILON_METERS)
         && (cdA > EPSILON_METERS && cdB < -EPSILON_METERS
             || cdA < -EPSILON_METERS && cdB > EPSILON_METERS)) {
       return true;
@@ -1239,8 +1259,7 @@ final class RebuiltAutoQueue {
   }
 
   record QueueActionTrace(
-      double timestampSec, String action, boolean accepted, String detail, String queueMessage) {
-  }
+      double timestampSec, String action, boolean accepted, String detail, String queueMessage) {}
 
   private record SelectedAutoState(
       String id,
@@ -1252,18 +1271,14 @@ final class RebuiltAutoQueue {
       boolean selected,
       int stepCount,
       double timestampSec,
-      PoseState startPose) {
-  }
+      PoseState startPose) {}
 
-  private record QuickRunItem(String label, String status, String detail) {
-  }
+  private record QuickRunItem(String label, String status, String detail) {}
 
   private record QuickRunReport(
-      double timestampSec, String status, String summary, ArrayList<QuickRunItem> items) {
-  }
+      double timestampSec, String status, String summary, ArrayList<QuickRunItem> items) {}
 
-  private record PoseState(Double xMeters, Double yMeters, Double headingDeg) {
-  }
+  private record PoseState(Double xMeters, Double yMeters, Double headingDeg) {}
 
   private record NoGoZoneState(
       String id,
@@ -1272,8 +1287,7 @@ final class RebuiltAutoQueue {
       Double yMinMeters,
       Double xMaxMeters,
       Double yMaxMeters,
-      boolean locked) {
-  }
+      boolean locked) {}
 
   private record QueueStateStep(
       String spotId,
@@ -1285,8 +1299,7 @@ final class RebuiltAutoQueue {
       Double xMeters,
       Double yMeters,
       Double headingDeg,
-      List<PoseState> routeWaypoints) {
-  }
+      List<PoseState> routeWaypoints) {}
 
   private record QueueStatePayload(
       String selectedAutoId,
@@ -1299,6 +1312,5 @@ final class RebuiltAutoQueue {
       String activeLabel,
       PoseState startPose,
       List<NoGoZoneState> noGoZones,
-      List<QueueStateStep> steps) {
-  }
+      List<QueueStateStep> steps) {}
 }

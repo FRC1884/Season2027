@@ -7,17 +7,14 @@ import org.Griffins1884.frc2027.mechanisms.MechanismTelemetry;
 /**
  * Central runtime profile holder.
  *
- * <p>
- * This is the mode/config seam that the future config dashboard will update
- * instead of every
+ * <p>This is the mode/config seam that the future config dashboard will update instead of every
  * subsystem reading globals independently.
  */
 public final class RuntimeModeManager {
-  private static final AtomicReference<RuntimeModeProfile> activeProfile = new AtomicReference<>(
-      RuntimeModeProfile.fromGlobals());
+  private static final AtomicReference<RuntimeModeProfile> activeProfile =
+      new AtomicReference<>(RuntimeModeProfile.fromGlobals());
 
-  private RuntimeModeManager() {
-  }
+  private RuntimeModeManager() {}
 
   public static RuntimeModeProfile getActiveProfile() {
     return activeProfile.get();

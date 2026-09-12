@@ -27,16 +27,14 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import org.littletonrobotics.urcl.URCL;
 
 /**
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the
- * name of this class or
- * the package after creating this project, you must also update the
- * build.gradle file in the
+ * The VM is configured to automatically run this class, and to call the functions corresponding to
+ * each mode, as described in the TimedRobot documentation. If you change the name of this class or
+ * the package after creating this project, you must also update the build.gradle file in the
  * project.
  */
 public class Robot extends LoggedRobot {
-  private static final DateTimeFormatter LOG_DIR_FORMAT = DateTimeFormatter.ofPattern("'nt_'yyyy-MM-dd_HH-mm-ss");
+  private static final DateTimeFormatter LOG_DIR_FORMAT =
+      DateTimeFormatter.ofPattern("'nt_'yyyy-MM-dd_HH-mm-ss");
 
   private Command autonomousCommand;
   private Command characterizationCommand;
@@ -133,13 +131,9 @@ public class Robot extends LoggedRobot {
 
   /** This function is called periodically when disabled. */
   @Override
-  public void disabledPeriodic() {
-  }
+  public void disabledPeriodic() {}
 
-  /**
-   * This autonomous runs the autonomous command selected by your
-   * {@link RobotContainer} class.
-   */
+  /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
     if (characterizationCommand != null) {
@@ -159,8 +153,7 @@ public class Robot extends LoggedRobot {
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {
-  }
+  public void autonomousPeriodic() {}
 
   /** This function is called once when teleop is enabled. */
   @Override
@@ -181,8 +174,7 @@ public class Robot extends LoggedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {
-  }
+  public void teleopPeriodic() {}
 
   /** This function is called once when test mode is enabled. */
   @Override
@@ -201,13 +193,11 @@ public class Robot extends LoggedRobot {
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {
-  }
+  public void testPeriodic() {}
 
   /** This function is called once when the robot is first started up. */
   @Override
-  public void simulationInit() {
-  }
+  public void simulationInit() {}
 
   /** This function is called periodically whilst in simulation. */
   @Override
@@ -223,7 +213,8 @@ public class Robot extends LoggedRobot {
       return;
     }
 
-    Path baseDir = Filesystem.getOperatingDirectory().toPath().resolve("logs").resolve("networktables");
+    Path baseDir =
+        Filesystem.getOperatingDirectory().toPath().resolve("logs").resolve("networktables");
     Path sessionDir = baseDir.resolve(LOG_DIR_FORMAT.format(LocalDateTime.now()));
     LogRollover.setActiveNetworkTablesSessionDir(sessionDir);
 

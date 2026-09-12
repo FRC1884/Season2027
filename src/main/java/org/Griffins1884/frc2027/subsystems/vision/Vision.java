@@ -23,7 +23,6 @@ import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import lombok.Setter;
 import org.Griffins1884.frc2027.GlobalConstants;
-import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase implements VisionTargetProvider {
@@ -45,8 +44,7 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
   private final boolean[] wasConnected;
   private final boolean useLimelightFusion;
   private final PoseHistory poseHistory;
-  @Setter
-  private boolean useVision = true;
+  @Setter private boolean useVision = true;
   private final DoubleSupplier yawRateRadPerSecSupplier;
   private final DoubleSupplier translationalSpeedMetersPerSecSupplier;
   private Integer exclusiveTagId = null;
@@ -63,14 +61,11 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
   /**
    * Creates a Vision system for Limelight inputs using pose-fusion.
    *
-   * @param consumer                 an object that processes the vision pose
-   *                                 estimate (should be the drivetrain)
-   * @param poseSupplier             robot pose supplier for pose-history
-   *                                 alignment
+   * @param consumer an object that processes the vision pose estimate (should be the drivetrain)
+   * @param poseSupplier robot pose supplier for pose-history alignment
    * @param yawRateRadPerSecSupplier yaw-rate supplier for alignment gating
-   * @param io                       the collection of {@link VisionIO}s instances
-   *                                 that represent the cameras in the
-   *                                 system.
+   * @param io the collection of {@link VisionIO}s instances that represent the cameras in the
+   *     system.
    */
   public Vision(
       VisionConsumer consumer,
@@ -81,9 +76,10 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
     this.consumer = consumer;
     this.io = io;
     this.useLimelightFusion = poseSupplier != null && yawRateRadPerSecSupplier != null;
-    this.poseHistory = useLimelightFusion
-        ? new PoseHistory(HISTORY_WINDOW_SEC, poseSupplier, yawRateRadPerSecSupplier)
-        : null;
+    this.poseHistory =
+        useLimelightFusion
+            ? new PoseHistory(HISTORY_WINDOW_SEC, poseSupplier, yawRateRadPerSecSupplier)
+            : null;
     this.yawRateRadPerSecSupplier = yawRateRadPerSecSupplier;
     this.translationalSpeedMetersPerSecSupplier = translationalSpeedMetersPerSecSupplier;
 
@@ -102,37 +98,38 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
 
     this.disconnectedAlerts = new Alert[io.length];
     for (int i = 0; i < inputs.length; i++) {
-      disconnectedAlerts[i] = new Alert(
-          "Vision camera \"" + io[i].getCameraConstants().cameraName() + "\" is disconnected.",
-          Alert.AlertType.kWarning);
+      disconnectedAlerts[i] =
+          new Alert(
+              "Vision camera \"" + io[i].getCameraConstants().cameraName() + "\" is disconnected.",
+              Alert.AlertType.kWarning);
     }
     this.outlierAlerts = new Alert[io.length];
     for (int i = 0; i < io.length; i++) {
-      outlierAlerts[i] = new Alert(
-          "Vision Outlier detected on camera \""
-              + io[i].getCameraConstants().cameraName()
-              + "\".",
-          Alert.AlertType.kWarning);
+      outlierAlerts[i] =
+          new Alert(
+              "Vision Outlier detected on camera \""
+                  + io[i].getCameraConstants().cameraName()
+                  + "\".",
+              Alert.AlertType.kWarning);
     }
     this.noAcceptedMeasurementAlerts = new Alert[io.length];
     for (int i = 0; i < io.length; i++) {
-      noAcceptedMeasurementAlerts[i] = new Alert(
-          "Vision camera \""
-              + io[i].getCameraConstants().cameraName()
-              + "\" is connected but has no accepted measurements.",
-          Alert.AlertType.kWarning);
+      noAcceptedMeasurementAlerts[i] =
+          new Alert(
+              "Vision camera \""
+                  + io[i].getCameraConstants().cameraName()
+                  + "\" is connected but has no accepted measurements.",
+              Alert.AlertType.kWarning);
     }
   }
 
   /**
-   * Returns the yaw (horizontal angle) to the best detected AprilTag if
-   * available. If no tags are
+   * Returns the yaw (horizontal angle) to the best detected AprilTag if available. If no tags are
    * detected, an empty {@link Optional} is returned.
    *
    * @param cameraIndex The index of the camera to retrieve yaw data from.
-   * @return An {@link Optional} containing the yaw as a {@link Rotation2d}, or
-   *         empty if no tag is
-   *         detected.
+   * @return An {@link Optional} containing the yaw as a {@link Rotation2d}, or empty if no tag is
+   *     detected.
    */
   public Optional<Rotation2d> getTargetX(int cameraIndex) {
     return inputs[cameraIndex].tagIds.length == 0
@@ -141,14 +138,12 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
   }
 
   /**
-   * Returns the pitch (vertical angle) to the best detected AprilTag if
-   * available. If no tags are
+   * Returns the pitch (vertical angle) to the best detected AprilTag if available. If no tags are
    * detected, an empty {@link Optional} is returned.
    *
    * @param cameraIndex The index of the camera to retrieve pitch data from.
-   * @return An {@link Optional} containing the pitch as a {@link Rotation2d}, or
-   *         empty if no tag is
-   *         detected.
+   * @return An {@link Optional} containing the pitch as a {@link Rotation2d}, or empty if no tag is
+   *     detected.
    */
   public Optional<Rotation2d> getTargetY(int cameraIndex) {
     return inputs[cameraIndex].tagIds.length == 0
@@ -157,10 +152,8 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
   }
 
   /**
-   * Returns the field translation of the closest visible AprilTag. This is
-   * intended for
-   * field-relative targeting, using the robot pose estimate for distance
-   * selection.
+   * Returns the field translation of the closest visible AprilTag. This is intended for
+   * field-relative targeting, using the robot pose estimate for distance selection.
    */
   @Override
   public Optional<Translation2d> getBestTargetTranslation(Pose2d robotPose) {
@@ -219,9 +212,10 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
       return;
     }
 
-    double yawRateDegPerSec = yawRateRadPerSecSupplier != null
-        ? Math.toDegrees(yawRateRadPerSecSupplier.getAsDouble())
-        : 0.0;
+    double yawRateDegPerSec =
+        yawRateRadPerSecSupplier != null
+            ? Math.toDegrees(yawRateRadPerSecSupplier.getAsDouble())
+            : 0.0;
     Logger.recordOutput("Vision/yawRateDegPerSec", yawRateDegPerSec);
 
     List<ReferenceCameraEstimate> acceptedEstimates = new ArrayList<>();
@@ -243,17 +237,19 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
       final VisionIO.VisionIOInputs cameraInputs = inputs[i];
       buildLimelightEstimate(cameraIndex, cameraLabel, cameraInputs)
           .ifPresent(
-              estimate -> acceptedEstimates.add(
-                  new ReferenceCameraEstimate(
-                      cameraIndex,
-                      cameraLabel,
-                      estimate,
-                      getPrimaryTagDistanceMeters(cameraInputs),
-                      getReferenceStdDevScore(cameraInputs))));
+              estimate ->
+                  acceptedEstimates.add(
+                      new ReferenceCameraEstimate(
+                          cameraIndex,
+                          cameraLabel,
+                          estimate,
+                          getPrimaryTagDistanceMeters(cameraInputs),
+                          getReferenceStdDevScore(cameraInputs))));
 
-      boolean isOutlier = inputs[i].rejectReason == VisionIO.RejectReason.LARGE_TRANSLATION_RESIDUAL
-          || inputs[i].rejectReason == VisionIO.RejectReason.LARGE_ROTATION_RESIDUAL
-          || inputs[i].rejectReason == VisionIO.RejectReason.RESIDUAL_OUTLIER;
+      boolean isOutlier =
+          inputs[i].rejectReason == VisionIO.RejectReason.LARGE_TRANSLATION_RESIDUAL
+              || inputs[i].rejectReason == VisionIO.RejectReason.LARGE_ROTATION_RESIDUAL
+              || inputs[i].rejectReason == VisionIO.RejectReason.RESIDUAL_OUTLIER;
       outlierAlerts[i].set(isOutlier);
       updateNoAcceptedMeasurementAlert(i, cameraLabel, connected);
     }
@@ -279,8 +275,9 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
         "Vision/Reference/BestCameraStdDevScore",
         bestEstimate.map(ReferenceCameraEstimate::stdDevScore).orElse(Double.NaN));
 
-    boolean hasAccepted = bestEstimate.isPresent()
-        && shouldAcceptReferenceObservation(cameraFom, odometryFom, bestEstimate.get());
+    boolean hasAccepted =
+        bestEstimate.isPresent()
+            && shouldAcceptReferenceObservation(cameraFom, odometryFom, bestEstimate.get());
     anyCameraHasAcceptedPose = hasAccepted;
     Logger.recordOutput("Vision/usingVision", hasAccepted);
     Logger.recordOutput(
@@ -366,9 +363,10 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
       return Optional.empty();
     }
 
-    double yawRateDegPerSec = yawRateRadPerSecSupplier != null
-        ? Math.toDegrees(yawRateRadPerSecSupplier.getAsDouble())
-        : 0.0;
+    double yawRateDegPerSec =
+        yawRateRadPerSecSupplier != null
+            ? Math.toDegrees(yawRateRadPerSecSupplier.getAsDouble())
+            : 0.0;
     if (!DriverStation.isDisabled()
         && Math.abs(yawRateDegPerSec) > HARD_REJECT_YAW_RATE_DEG_PER_SEC) {
       return Optional.empty();
@@ -378,7 +376,8 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
     if (!DriverStation.isDisabled()) {
       if (AprilTagVisionConstants.LIMELIGHT_REJECT_OUTLIERS.get() > 0.5
           && Double.isFinite(cam.residualTranslationMeters)
-          && (cam.residualTranslationMeters > AprilTagVisionConstants.LIMELIGHT_MAX_TRANSLATION_RESIDUAL_METERS.get())
+          && (cam.residualTranslationMeters
+              > AprilTagVisionConstants.LIMELIGHT_MAX_TRANSLATION_RESIDUAL_METERS.get())
           && tagCount < 2) {
         return Optional.empty();
       }
@@ -426,20 +425,22 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
     double weightBx = 1.0 / varianceB.get(0, 0);
     double weightBy = 1.0 / varianceB.get(1, 0);
 
-    Pose2d fusedPose = new Pose2d(
-        new Translation2d(
-            (poseA.getTranslation().getX() * weightAx
-                + poseB.getTranslation().getX() * weightBx)
-                / (weightAx + weightBx),
-            (poseA.getTranslation().getY() * weightAy
-                + poseB.getTranslation().getY() * weightBy)
-                / (weightAy + weightBy)),
-        fusedHeading);
+    Pose2d fusedPose =
+        new Pose2d(
+            new Translation2d(
+                (poseA.getTranslation().getX() * weightAx
+                        + poseB.getTranslation().getX() * weightBx)
+                    / (weightAx + weightBx),
+                (poseA.getTranslation().getY() * weightAy
+                        + poseB.getTranslation().getY() * weightBy)
+                    / (weightAy + weightBy)),
+            fusedHeading);
 
-    Matrix<N3, N1> fusedStdDev = VecBuilder.fill(
-        Math.sqrt(1.0 / (weightAx + weightBx)),
-        Math.sqrt(1.0 / (weightAy + weightBy)),
-        Math.sqrt(1.0 / (weightA + weightB)));
+    Matrix<N3, N1> fusedStdDev =
+        VecBuilder.fill(
+            Math.sqrt(1.0 / (weightAx + weightBx)),
+            Math.sqrt(1.0 / (weightAy + weightBy)),
+            Math.sqrt(1.0 / (weightA + weightB)));
 
     int numTags = a.numTags() + b.numTags();
     double time = b.timestampSeconds();
@@ -458,7 +459,8 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
       ReferenceCameraEstimate candidate = estimates.get(i);
       if (candidate.primaryTagDistanceMeters() < best.primaryTagDistanceMeters()) {
         best = candidate;
-      } else if (Math.abs(candidate.primaryTagDistanceMeters() - best.primaryTagDistanceMeters()) < 1e-9
+      } else if (Math.abs(candidate.primaryTagDistanceMeters() - best.primaryTagDistanceMeters())
+              < 1e-9
           && candidate.stdDevScore() < best.stdDevScore()) {
         best = candidate;
       }
@@ -520,10 +522,12 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
       return;
     }
     double now = Timer.getFPGATimestamp();
-    double baselineSec = Math.max(connectedSinceWallClockSec[cameraIndex], lastAcceptedWallClockSec[cameraIndex]);
-    boolean noRecentAccepted = connected
-        && isFinite(baselineSec)
-        && (now - baselineSec) > NO_ACCEPTED_MEASUREMENT_ALERT_SEC;
+    double baselineSec =
+        Math.max(connectedSinceWallClockSec[cameraIndex], lastAcceptedWallClockSec[cameraIndex]);
+    boolean noRecentAccepted =
+        connected
+            && isFinite(baselineSec)
+            && (now - baselineSec) > NO_ACCEPTED_MEASUREMENT_ALERT_SEC;
     noAcceptedMeasurementAlerts[cameraIndex].set(noRecentAccepted);
     if (cameraLabel != null) {
       Logger.recordOutput(
@@ -568,9 +572,10 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
   }
 
   private double getStdDev(VisionIO.VisionIOInputs cam, int index) {
-    double[] stdDevs = cam.standardDeviations == null || cam.standardDeviations.length <= index
-        ? AprilTagVisionConstants.getLimelightStandardDeviations()
-        : cam.standardDeviations;
+    double[] stdDevs =
+        cam.standardDeviations == null || cam.standardDeviations.length <= index
+            ? AprilTagVisionConstants.getLimelightStandardDeviations()
+            : cam.standardDeviations;
     if (stdDevs == null || stdDevs.length <= index) {
       return 0.0;
     }
@@ -613,10 +618,11 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
       return;
     }
 
-    cam.residualTranslationMeters = referencePose
-        .get()
-        .getTranslation()
-        .getDistance(cam.megatagPoseEstimate.fieldToRobot().getTranslation());
+    cam.residualTranslationMeters =
+        referencePose
+            .get()
+            .getTranslation()
+            .getDistance(cam.megatagPoseEstimate.fieldToRobot().getTranslation());
   }
 
   private void logLimelightDiagnostics(String cameraLabel, VisionIO.VisionIOInputs cam) {
@@ -634,36 +640,43 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
     boolean qualityFinite = Double.isFinite(qualityRaw);
     boolean poseFinite = hasMegatag && isFinitePose(cam.megatagPoseEstimate.fieldToRobot());
     boolean tagCountValid = tagCount > 0;
-    boolean singleTagQualityPass = !(tagCount == 1
-        && qualityUsed < AprilTagVisionConstants.getMegatag2SingleTagQualityCutoff());
-    boolean inFieldBounds = hasMegatag && isWithinFieldBounds(cam.megatagPoseEstimate.fieldToRobot());
+    boolean singleTagQualityPass =
+        !(tagCount == 1
+            && qualityUsed < AprilTagVisionConstants.getMegatag2SingleTagQualityCutoff());
+    boolean inFieldBounds =
+        hasMegatag && isWithinFieldBounds(cam.megatagPoseEstimate.fieldToRobot());
 
-    LimelightStdDevs stdDevs = hasMegatag
-        ? computeLimelightStdDevs(
-            cam, AprilTagVisionConstants.LIMELIGHT_MEGATAG2_X_STDDEV_INDEX, qualityUsed)
-        : null;
+    LimelightStdDevs stdDevs =
+        hasMegatag
+            ? computeLimelightStdDevs(
+                cam, AprilTagVisionConstants.LIMELIGHT_MEGATAG2_X_STDDEV_INDEX, qualityUsed)
+            : null;
     boolean stdDevsFinite = stdDevs != null && stdDevs.finite();
-    boolean exclusiveTagPass = exclusiveTagId == null
-        || (hasMegatag
-            && containsFiducialId(cam.megatagPoseEstimate.fiducialIds(), exclusiveTagId));
+    boolean exclusiveTagPass =
+        exclusiveTagId == null
+            || (hasMegatag
+                && containsFiducialId(cam.megatagPoseEstimate.fiducialIds(), exclusiveTagId));
 
-    boolean wouldAccept = useVision
-        && connected
-        && hasMegatag
-        && poseFinite
-        && stdDevsFinite
-        && tagCountValid
-        && singleTagQualityPass
-        && inFieldBounds
-        && exclusiveTagPass;
+    boolean wouldAccept =
+        useVision
+            && connected
+            && hasMegatag
+            && poseFinite
+            && stdDevsFinite
+            && tagCountValid
+            && singleTagQualityPass
+            && inFieldBounds
+            && exclusiveTagPass;
 
     VisionIO.RejectReason rejectReason;
 
     boolean residualFinite = Double.isFinite(cam.residualTranslationMeters);
-    boolean residualsOk = !(AprilTagVisionConstants.LIMELIGHT_REJECT_OUTLIERS.get() > 0.5
-        && residualFinite
-        && (cam.residualTranslationMeters > AprilTagVisionConstants.LIMELIGHT_MAX_TRANSLATION_RESIDUAL_METERS.get())
-        && tagCount < 2);
+    boolean residualsOk =
+        !(AprilTagVisionConstants.LIMELIGHT_REJECT_OUTLIERS.get() > 0.5
+            && residualFinite
+            && (cam.residualTranslationMeters
+                > AprilTagVisionConstants.LIMELIGHT_MAX_TRANSLATION_RESIDUAL_METERS.get())
+            && tagCount < 2);
 
     if (!useVision) {
       rejectReason = VisionIO.RejectReason.VISION_DISABLED;
@@ -753,22 +766,17 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
         && y <= GlobalConstants.FieldConstants.fieldWidth + margin;
   }
 
-  private record LimelightStdDevs(double x, double y, double theta, boolean finite) {
-  }
+  private record LimelightStdDevs(double x, double y, double theta, boolean finite) {}
 
-  /**
-   * Functional interface defining a consumer that processes vision-based pose
-   * estimates.
-   */
+  /** Functional interface defining a consumer that processes vision-based pose estimates. */
   @FunctionalInterface
   public interface VisionConsumer {
     /**
      * Accepts a vision pose estimate for processing.
      *
-     * @param visionRobotPoseMeters    The estimated robot pose, in meters.
-     * @param timestampSeconds         The timestamp of the observation for latency
-     *                                 compensation, in
-     *                                 seconds.
+     * @param visionRobotPoseMeters The estimated robot pose, in meters.
+     * @param timestampSeconds The timestamp of the observation for latency compensation, in
+     *     seconds.
      * @param visionMeasurementStdDevs The standard deviations of the measurement.
      */
     void accept(
@@ -820,8 +828,9 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
           if (previous == null) {
             return Optional.of(sample.pose);
           }
-          double t = (timestampSeconds - previous.timestampSeconds)
-              / (sample.timestampSeconds - previous.timestampSeconds);
+          double t =
+              (timestampSeconds - previous.timestampSeconds)
+                  / (sample.timestampSeconds - previous.timestampSeconds);
           return Optional.of(previous.pose.interpolate(sample.pose, t));
         }
         previous = sample;
@@ -867,16 +876,17 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
     }
     double deltaSec = Math.max(0.0, nowSec - lastReferenceOdometryTimestampSec);
     lastReferenceOdometryTimestampSec = nowSec;
-    referenceOdometryFom += AprilTagVisionConstants.getReferenceOdometryDisplacementCoefficient()
-        * Math.abs(getRobotSpeedMetersPerSecond())
-        * deltaSec;
+    referenceOdometryFom +=
+        AprilTagVisionConstants.getReferenceOdometryDisplacementCoefficient()
+            * Math.abs(getRobotSpeedMetersPerSecond())
+            * deltaSec;
     return referenceOdometryFom;
   }
 
   private double computeReferenceCameraFom() {
     return (getRobotSpeedMetersPerSecond()
-        * AprilTagVisionConstants.getReferenceCameraSpeedFomCoefficient()
-        * 2.0)
+            * AprilTagVisionConstants.getReferenceCameraSpeedFomCoefficient()
+            * 2.0)
         + (Math.abs(getYawRateRadPerSec())
             * AprilTagVisionConstants.getReferenceCameraRotationFomCoefficient());
   }
@@ -936,9 +946,7 @@ public class Vision extends SubsystemBase implements VisionTargetProvider {
       String cameraLabel,
       VisionFieldPoseEstimate estimate,
       double primaryTagDistanceMeters,
-      double stdDevScore) {
-  }
+      double stdDevScore) {}
 
-  private record Sample(double timestampSeconds, Pose2d pose, double yawRateRadPerSec) {
-  }
+  private record Sample(double timestampSeconds, Pose2d pose, double yawRateRadPerSec) {}
 }

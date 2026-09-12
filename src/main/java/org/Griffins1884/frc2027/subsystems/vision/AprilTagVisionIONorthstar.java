@@ -54,8 +54,7 @@ public class AprilTagVisionIONorthstar implements VisionIO {
   private final IntegerPublisher timestampPublisher;
   private final BooleanPublisher isRecordingPublisher;
   private final SwerveSubsystem drive;
-  @Getter
-  private final CameraConstants cameraConstants;
+  @Getter private final CameraConstants cameraConstants;
   private final NorthstarConfig northstarConfig;
   private double lastFrameNtTimestampSec = Double.NEGATIVE_INFINITY;
 
@@ -86,14 +85,15 @@ public class AprilTagVisionIONorthstar implements VisionIO {
     publishStaticConfig();
 
     var outputTable = northstarTable.getSubTable("output");
-    observationSubscriber = outputTable
-        .getDoubleArrayTopic("observations")
-        .subscribe(
-            new double[] {},
-            PubSubOption.keepDuplicates(true),
-            PubSubOption.sendAll(true),
-            PubSubOption.pollStorage(5),
-            PubSubOption.periodic(0.01));
+    observationSubscriber =
+        outputTable
+            .getDoubleArrayTopic("observations")
+            .subscribe(
+                new double[] {},
+                PubSubOption.keepDuplicates(true),
+                PubSubOption.sendAll(true),
+                PubSubOption.pollStorage(5),
+                PubSubOption.periodic(0.01));
     fpsAprilTagsSubscriber = outputTable.getIntegerTopic("fps_apriltags").subscribe(0);
   }
 
@@ -110,8 +110,10 @@ public class AprilTagVisionIONorthstar implements VisionIO {
     }
 
     boolean ntConnected = isNtConnected();
-    boolean recentFrame = Double.isFinite(lastFrameNtTimestampSec)
-        && ((WPIUtilJNI.getSystemTime() / 1_000_000.0) - lastFrameNtTimestampSec) < DISCONNECT_TIMEOUT_SEC;
+    boolean recentFrame =
+        Double.isFinite(lastFrameNtTimestampSec)
+            && ((WPIUtilJNI.getSystemTime() / 1_000_000.0) - lastFrameNtTimestampSec)
+                < DISCONNECT_TIMEOUT_SEC;
     inputs.connected = ntConnected && (recentFrame || fpsAprilTagsSubscriber.get() > 0);
     if (!inputs.connected) {
       inputs.rejectReason = RejectReason.DISCONNECTED;
@@ -187,11 +189,12 @@ public class AprilTagVisionIONorthstar implements VisionIO {
       return;
     }
 
-    int tagStartIndex = switch (poseCount) {
-      case 1 -> 9;
-      case 2 -> 17;
-      default -> -1;
-    };
+    int tagStartIndex =
+        switch (poseCount) {
+          case 1 -> 9;
+          case 2 -> 17;
+          default -> -1;
+        };
     if (tagStartIndex < 0 || frame.length < tagStartIndex) {
       return;
     }
@@ -208,50 +211,58 @@ public class AprilTagVisionIONorthstar implements VisionIO {
       return;
     }
 
-    inputs.tagIds = tagObservations.stream().mapToInt(NorthstarTagObservation::tagId).distinct().toArray();
+    inputs.tagIds =
+        tagObservations.stream().mapToInt(NorthstarTagObservation::tagId).distinct().toArray();
     inputs.megatagCount = inputs.tagIds.length;
-    inputs.latestTargetObservation = tagObservations.stream()
-        .min(Comparator.comparingDouble(NorthstarTagObservation::distanceMeters))
-        .map(NorthstarTagObservation::targetObservation)
-        .orElse(new TargetObservation(new Rotation2d(), new Rotation2d()));
-    inputs.fiducialObservations = tagObservations.stream()
-        .map(
-            observation -> new FiducialObservation(
-                observation.tagId(),
-                observation.targetObservation().tx().getRadians(),
-                observation.targetObservation().ty().getRadians(),
-                selection.ambiguity(),
-                Double.NaN,
-                observation.distanceMeters()))
-        .toArray(FiducialObservation[]::new);
+    inputs.latestTargetObservation =
+        tagObservations.stream()
+            .min(Comparator.comparingDouble(NorthstarTagObservation::distanceMeters))
+            .map(NorthstarTagObservation::targetObservation)
+            .orElse(new TargetObservation(new Rotation2d(), new Rotation2d()));
+    inputs.fiducialObservations =
+        tagObservations.stream()
+            .map(
+                observation ->
+                    new FiducialObservation(
+                        observation.tagId(),
+                        observation.targetObservation().tx().getRadians(),
+                        observation.targetObservation().ty().getRadians(),
+                        selection.ambiguity(),
+                        Double.NaN,
+                        observation.distanceMeters()))
+            .toArray(FiducialObservation[]::new);
 
-    double avgTagDist = tagObservations.stream()
-        .mapToDouble(NorthstarTagObservation::distanceMeters)
-        .average()
-        .orElse(Double.NaN);
-    double quality = selection.ambiguity() >= 0.0 && Double.isFinite(selection.ambiguity())
-        ? Math.max(0.0, Math.min(1.0, 1.0 - selection.ambiguity()))
-        : 1.0;
+    double avgTagDist =
+        tagObservations.stream()
+            .mapToDouble(NorthstarTagObservation::distanceMeters)
+            .average()
+            .orElse(Double.NaN);
+    double quality =
+        selection.ambiguity() >= 0.0 && Double.isFinite(selection.ambiguity())
+            ? Math.max(0.0, Math.min(1.0, 1.0 - selection.ambiguity()))
+            : 1.0;
     inputs.pose3d = selection.robotPose();
     Pose2d fieldToRobot2d = selection.robotPose().toPose2d();
-    inputs.megatagPoseEstimate = new MegatagPoseEstimate(
-        fieldToRobot2d,
-        timestampSec,
-        0.0,
-        Double.NaN,
-        avgTagDist,
-        quality,
-        Arrays.copyOf(inputs.tagIds, inputs.tagIds.length),
-        Double.NaN);
-    inputs.standardDeviations = buildDynamicStandardDeviations(avgTagDist, inputs.megatagCount);
-    inputs.poseObservations = new PoseObservation[] {
-        new PoseObservation(
+    inputs.megatagPoseEstimate =
+        new MegatagPoseEstimate(
+            fieldToRobot2d,
             timestampSec,
-            selection.robotPose(),
-            selection.ambiguity(),
-            inputs.megatagCount,
-            avgTagDist)
-    };
+            0.0,
+            Double.NaN,
+            avgTagDist,
+            quality,
+            Arrays.copyOf(inputs.tagIds, inputs.tagIds.length),
+            Double.NaN);
+    inputs.standardDeviations = buildDynamicStandardDeviations(avgTagDist, inputs.megatagCount);
+    inputs.poseObservations =
+        new PoseObservation[] {
+          new PoseObservation(
+              timestampSec,
+              selection.robotPose(),
+              selection.ambiguity(),
+              inputs.megatagCount,
+              avgTagDist)
+        };
   }
 
   private ParsedPose parsePose(double[] frame, int baseIndex) {
@@ -276,8 +287,8 @@ public class AprilTagVisionIONorthstar implements VisionIO {
     List<NorthstarTagObservation> observations = new ArrayList<>();
     for (int index = tagStartIndex; index + 9 < frame.length; index += 10) {
       int tagId = (int) Math.round(frame[index]);
-      double[] txCorners = { frame[index + 1], frame[index + 3], frame[index + 5], frame[index + 7] };
-      double[] tyCorners = { frame[index + 2], frame[index + 4], frame[index + 6], frame[index + 8] };
+      double[] txCorners = {frame[index + 1], frame[index + 3], frame[index + 5], frame[index + 7]};
+      double[] tyCorners = {frame[index + 2], frame[index + 4], frame[index + 6], frame[index + 8]};
       double tx = Arrays.stream(txCorners).average().orElse(0.0);
       double ty = Arrays.stream(tyCorners).average().orElse(0.0);
       observations.add(
@@ -313,8 +324,10 @@ public class AprilTagVisionIONorthstar implements VisionIO {
     }
 
     Rotation2d currentHeading = drive.getPose().getRotation();
-    double headingError0 = Math.abs(currentHeading.minus(robotPose0.toPose2d().getRotation()).getRadians());
-    double headingError1 = Math.abs(currentHeading.minus(robotPose1.toPose2d().getRotation()).getRadians());
+    double headingError0 =
+        Math.abs(currentHeading.minus(robotPose0.toPose2d().getRotation()).getRadians());
+    double headingError1 =
+        Math.abs(currentHeading.minus(robotPose1.toPose2d().getRotation()).getRadians());
     return headingError0 <= headingError1
         ? new PoseSelection(robotPose0, ambiguity)
         : new PoseSelection(robotPose1, ambiguity);
@@ -350,13 +363,10 @@ public class AprilTagVisionIONorthstar implements VisionIO {
     return Math.max(0.0, Math.min(1.0, Math.min(error0, error1) / (error0 + error1)));
   }
 
-  private record ParsedPose(double error, Pose3d pose) {
-  }
+  private record ParsedPose(double error, Pose3d pose) {}
 
-  private record PoseSelection(Pose3d robotPose, double ambiguity) {
-  }
+  private record PoseSelection(Pose3d robotPose, double ambiguity) {}
 
   private record NorthstarTagObservation(
-      int tagId, double distanceMeters, TargetObservation targetObservation) {
-  }
+      int tagId, double distanceMeters, TargetObservation targetObservation) {}
 }

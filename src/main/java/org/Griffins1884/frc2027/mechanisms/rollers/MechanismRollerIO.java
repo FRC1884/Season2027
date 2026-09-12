@@ -5,7 +5,7 @@ import org.littletonrobotics.junction.AutoLog;
 public interface MechanismRollerIO {
   @AutoLog
   abstract class MechanismRollerIOInputs {
-    public boolean[] connected = { true, true };
+    public boolean[] connected = {true, true};
     public double positionRads = 0.0;
     public double velocity = 0.0;
     public double velocityRadsPerSec = 0.0;
@@ -15,20 +15,16 @@ public interface MechanismRollerIO {
     public double tempCelsius = 0.0;
   }
 
-  default void updateInputs(MechanismRollerIOInputs inputs) {
-  }
+  default void updateInputs(MechanismRollerIOInputs inputs) {}
 
   /** Run roller system at volts */
-  default void runVolts(double volts) {
-  }
+  default void runVolts(double volts) {}
 
   /** Run roller system at velocity (RPM) with optional feedforward (volts). */
-  default void runVelocity(double velocityRpm, double feedforwardVolts) {
-  }
+  default void runVelocity(double velocityRpm, double feedforwardVolts) {}
 
   /** Update the onboard velocity PID gains if supported. */
-  default void setVelocityPID(double kP, double kI, double kD) {
-  }
+  default void setVelocityPID(double kP, double kI, double kD) {}
 
   /** Update the onboard velocity PID gains for a specific slot if supported. */
   default void setVelocityPID(int slot, double kP, double kI, double kD) {
@@ -36,8 +32,7 @@ public interface MechanismRollerIO {
   }
 
   /** Select active onboard velocity slot if supported. */
-  default void setVelocityControlSlot(int slot) {
-  }
+  default void setVelocityControlSlot(int slot) {}
 
   /** Whether this IO supports onboard velocity control. */
   default boolean supportsVelocityControl() {
@@ -45,10 +40,8 @@ public interface MechanismRollerIO {
   }
 
   /** Stop roller system */
-  default void stop() {
-  }
+  default void stop() {}
 
   /** Enable or disable brake mode. */
-  default void setBrakeMode(boolean enabled) {
-  }
+  default void setBrakeMode(boolean enabled) {}
 }

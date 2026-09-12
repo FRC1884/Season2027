@@ -19,10 +19,13 @@ public class GyroIOSim implements GyroIO {
     TerrainSample terrainSample = simulation.getTerrainSample();
     inputs.connected = true;
     inputs.yawPosition = simulation.getGyroSimulation().getGyroReading();
-    inputs.pitchPosition = edu.wpi.first.math.geometry.Rotation2d.fromRadians(terrainSample.pitchRadians());
-    inputs.rollPosition = edu.wpi.first.math.geometry.Rotation2d.fromRadians(terrainSample.rollRadians());
-    inputs.yawVelocityRadPerSec = Units.degreesToRadians(
-        simulation.getGyroSimulation().getMeasuredAngularVelocity().in(RadiansPerSecond));
+    inputs.pitchPosition =
+        edu.wpi.first.math.geometry.Rotation2d.fromRadians(terrainSample.pitchRadians());
+    inputs.rollPosition =
+        edu.wpi.first.math.geometry.Rotation2d.fromRadians(terrainSample.rollRadians());
+    inputs.yawVelocityRadPerSec =
+        Units.degreesToRadians(
+            simulation.getGyroSimulation().getMeasuredAngularVelocity().in(RadiansPerSecond));
     inputs.pitchVelocityRadPerSec = simulation.getPitchRateRadPerSec();
     inputs.rollVelocityRadPerSec = simulation.getRollRateRadPerSec();
 

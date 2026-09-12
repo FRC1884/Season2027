@@ -2,10 +2,7 @@ package org.Griffins1884.frc2027.simulation.maple;
 
 import org.ironmaple.simulation.SimulatedArena;
 
-/**
- * Small facade for MapleSim arena access so simulation code does not depend on
- * the singleton.
- */
+/** Small facade for MapleSim arena access so simulation code does not depend on the singleton. */
 public final class MapleArenaAdapter {
   public void simulationPeriodic() {
     MapleArenaSetup.ensure2026RebuiltArena();

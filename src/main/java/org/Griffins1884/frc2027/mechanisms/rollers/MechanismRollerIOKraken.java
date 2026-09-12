@@ -28,9 +28,10 @@ public class MechanismRollerIOKraken implements MechanismRollerIO {
   private final TalonFX[] motors;
   private final TalonFX leader;
   private final VoltageOut voltageRequest = new VoltageOut(0.0);
-  private final VelocityVoltage velocityVoltageRequest = new VelocityVoltage(0.0).withSlot(0).withUpdateFreqHz(0);
-  private final VelocityTorqueCurrentFOC velocityTorqueCurrentRequest = new VelocityTorqueCurrentFOC(0.0).withSlot(0)
-      .withUpdateFreqHz(0);
+  private final VelocityVoltage velocityVoltageRequest =
+      new VelocityVoltage(0.0).withSlot(0).withUpdateFreqHz(0);
+  private final VelocityTorqueCurrentFOC velocityTorqueCurrentRequest =
+      new VelocityTorqueCurrentFOC(0.0).withSlot(0).withUpdateFreqHz(0);
   private final VelocityControlRequest velocityControlRequest;
   private final MechanismDefinition.KrakenFeatureConfig krakenFeatures;
   private int velocityControlSlot = 0;
@@ -46,9 +47,9 @@ public class MechanismRollerIOKraken implements MechanismRollerIO {
   public MechanismRollerIOKraken(
       int id, int currentLimitAmps, boolean invert, boolean brake, double reduction) {
     this(
-        new int[] { id },
+        new int[] {id},
         currentLimitAmps,
-        new boolean[] { invert },
+        new boolean[] {invert},
         brake,
         reduction,
         new CANBus("rio"),
@@ -77,9 +78,9 @@ public class MechanismRollerIOKraken implements MechanismRollerIO {
       double reduction,
       CANBus canBus) {
     this(
-        new int[] { id },
+        new int[] {id},
         currentLimitAmps,
-        new boolean[] { invert },
+        new boolean[] {invert},
         brake,
         reduction,
         canBus,
@@ -178,9 +179,10 @@ public class MechanismRollerIOKraken implements MechanismRollerIO {
       MechanismDefinition.KrakenFeatureConfig krakenFeatures) {
     this.reduction = reduction;
     this.velocityControlRequest = velocityControlRequest;
-    this.krakenFeatures = krakenFeatures != null
-        ? krakenFeatures
-        : MechanismDefinition.KrakenFeatureConfig.disabled();
+    this.krakenFeatures =
+        krakenFeatures != null
+            ? krakenFeatures
+            : MechanismDefinition.KrakenFeatureConfig.disabled();
 
     motors = new TalonFX[ids.length];
     leader = motors[0] = new TalonFX(ids[0], canBus);
@@ -334,7 +336,8 @@ public class MechanismRollerIOKraken implements MechanismRollerIO {
       double closedLoopRampPeriodSeconds) {
     TalonFXConfiguration config = new TalonFXConfiguration();
     config.MotorOutput.NeutralMode = brake ? NeutralModeValue.Brake : NeutralModeValue.Coast;
-    config.MotorOutput.Inverted = inverted ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
+    config.MotorOutput.Inverted =
+        inverted ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
     config.Slot0.kS = 0.0;
     config.Slot0.kV = 0.0;
     config.Slot0.kA = 0.0;

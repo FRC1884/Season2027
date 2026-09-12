@@ -28,8 +28,7 @@ public class DriveCommands {
   private static final Pose2d DEPOT_ALIGN_POSE = new Pose2d(0.7, 5.94, Rotation2d.fromDegrees(0.0));
   private static final Pose2d HP_ALIGN_POSE = new Pose2d(3.0, 2.4, Rotation2d.fromDegrees(45.0));
 
-  private DriveCommands() {
-  }
+  private DriveCommands() {}
 
   private static boolean test = false;
 
@@ -43,7 +42,8 @@ public class DriveCommands {
 
   private static Translation2d getLinearVelocityFromJoysticks(double x, double y) {
     // Apply deadband
-    double linearMagnitude = MathUtil.applyDeadband(Math.hypot(x, y), AlignConstants.Manual.DEADBAND.get());
+    double linearMagnitude =
+        MathUtil.applyDeadband(Math.hypot(x, y), AlignConstants.Manual.DEADBAND.get());
     Rotation2d linearDirection = new Rotation2d(Math.atan2(y, x));
 
     // Square magnitude for more precise control
@@ -64,8 +64,7 @@ public class DriveCommands {
   }
 
   /**
-   * Field relative drive command using two joysticks (controlling linear and
-   * angular velocities).
+   * Field relative drive command using two joysticks (controlling linear and angular velocities).
    */
   public static void joystickDrive(
       SwerveSubsystem drive,
@@ -76,16 +75,18 @@ public class DriveCommands {
       return;
     }
     // Get linear velocity
-    Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+    Translation2d linearVelocity =
+        getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
 
     // Apply rotation deadband
     double omega = getAngularVelocityCommand(omegaSupplier.getAsDouble());
 
     // Convert to field relative speeds & send command
-    ChassisSpeeds speeds = new ChassisSpeeds(
-        linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
-        linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
-        omega * drive.getMaxAngularSpeedRadPerSec());
+    ChassisSpeeds speeds =
+        new ChassisSpeeds(
+            linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+            linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+            omega * drive.getMaxAngularSpeedRadPerSec());
     boolean isFlipped = AllianceFlipUtil.shouldFlip(drive.getPose());
     drive.runVelocity(
         ChassisSpeeds.fromFieldRelativeSpeeds(
@@ -105,8 +106,7 @@ public class DriveCommands {
   }
 
   /**
-   * Robot-relative drive command with driver controls flipped so the back of the
-   * robot behaves as
+   * Robot-relative drive command with driver controls flipped so the back of the robot behaves as
    * the front while the override is held.
    */
   public static Command joystickDriveRobotRelativeFlippedCommand(
@@ -119,8 +119,8 @@ public class DriveCommands {
     }
     return Commands.run(
         () -> {
-          Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(),
-              ySupplier.getAsDouble());
+          Translation2d linearVelocity =
+              getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
 
           double omega = getAngularVelocityCommand(omegaSupplier.getAsDouble());
 
@@ -150,8 +150,7 @@ public class DriveCommands {
   /**
    * Measures the velocity feedforward constants for the drive motors.
    *
-   * <p>
-   * This command should only be used in voltage control mode.
+   * <p>This command should only be used in voltage control mode.
    */
   public static Command feedforwardCharacterization(SwerveSubsystem drive) {
     if (drive == null) {
@@ -171,10 +170,10 @@ public class DriveCommands {
 
         // Allow modules to orient
         Commands.run(
-            () -> {
-              drive.runCharacterization(0.0);
-            },
-            drive)
+                () -> {
+                  drive.runCharacterization(0.0);
+                },
+                drive)
             .withTimeout(AlignConstants.Characterization.FF_START_DELAY_SEC.get()),
 
         // Start timer
@@ -182,14 +181,15 @@ public class DriveCommands {
 
         // Accelerate and gather data
         Commands.run(
-            () -> {
-              double voltage = timer.get()
-                  * AlignConstants.Characterization.FF_RAMP_RATE_VOLTS_PER_SEC.get();
-              drive.runCharacterization(voltage);
-              velocitySamples.add(drive.getFFCharacterizationVelocity());
-              voltageSamples.add(voltage);
-            },
-            drive)
+                () -> {
+                  double voltage =
+                      timer.get()
+                          * AlignConstants.Characterization.FF_RAMP_RATE_VOLTS_PER_SEC.get();
+                  drive.runCharacterization(voltage);
+                  velocitySamples.add(drive.getFFCharacterizationVelocity());
+                  voltageSamples.add(voltage);
+                },
+                drive)
 
             // When cancelled, calculate and print results
             .finallyDo(
@@ -220,16 +220,14 @@ public class DriveCommands {
     return wheelRadiusCharacterization(drive, false);
   }
 
-  /**
-   * Measures the robot's wheel radius by spinning in a circle and optionally
-   * saves the result.
-   */
+  /** Measures the robot's wheel radius by spinning in a circle and optionally saves the result. */
   public static Command wheelRadiusCharacterization(SwerveSubsystem drive, boolean saveResult) {
     if (drive == null) {
       return Commands.none();
     }
-    SlewRateLimiter limiter = new SlewRateLimiter(
-        AlignConstants.Characterization.WHEEL_RADIUS_RAMP_RATE_RAD_PER_SEC2.get());
+    SlewRateLimiter limiter =
+        new SlewRateLimiter(
+            AlignConstants.Characterization.WHEEL_RADIUS_RAMP_RATE_RAD_PER_SEC2.get());
     WheelRadiusCharacterizationState state = new WheelRadiusCharacterizationState();
 
     return Commands.parallel(
@@ -244,9 +242,10 @@ public class DriveCommands {
             // Turn in place, accelerating up to full speed
             Commands.run(
                 () -> {
-                  double speed = limiter.calculate(
-                      AlignConstants.Characterization.WHEEL_RADIUS_MAX_VELOCITY_RAD_PER_SEC
-                          .get());
+                  double speed =
+                      limiter.calculate(
+                          AlignConstants.Characterization.WHEEL_RADIUS_MAX_VELOCITY_RAD_PER_SEC
+                              .get());
                   drive.runVelocity(new ChassisSpeeds(0.0, 0.0, speed));
                 },
                 drive)),
@@ -266,11 +265,11 @@ public class DriveCommands {
 
             // Update gyro delta
             Commands.run(
-                () -> {
-                  var rotation = drive.getRotation();
-                  state.gyroDelta += Math.abs(rotation.minus(state.lastAngle).getRadians());
-                  state.lastAngle = rotation;
-                })
+                    () -> {
+                      var rotation = drive.getRotation();
+                      state.gyroDelta += Math.abs(rotation.minus(state.lastAngle).getRadians());
+                      state.lastAngle = rotation;
+                    })
 
                 // When cancelled, calculate and print results
                 .finallyDo(
@@ -280,7 +279,8 @@ public class DriveCommands {
                       for (int i = 0; i < 4; i++) {
                         wheelDelta += Math.abs(positions[i] - state.positions[i]) / 4.0;
                       }
-                      double wheelRadius = (state.gyroDelta * SwerveConstants.DRIVE_BASE_RADIUS) / wheelDelta;
+                      double wheelRadius =
+                          (state.gyroDelta * SwerveConstants.DRIVE_BASE_RADIUS) / wheelDelta;
 
                       NumberFormat formatter = new DecimalFormat("#0.000");
                       RobotLogging.debug(

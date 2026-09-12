@@ -19,46 +19,48 @@ import org.Griffins1884.frc2027.subsystems.shooter.ShooterPivotIOSim;
 import org.Griffins1884.frc2027.subsystems.shooter.ShooterPivotSubsystem;
 
 public class Arms extends SubsystemBase {
-    public IntakePivotSubsystem intakePivot = (INTAKE_PIVOT_ENABLED)
-            ? new IntakePivotSubsystem(
-                    "IntakePivot",
-                    (GlobalConstants.MODE == GlobalConstants.RobotMode.SIM)
-                            ? new IntakePivotIOSim()
-                            : switch (IntakePivotConstants.MOTOR_CONTROLLER) {
-                                case SPARK_MAX ->
-                                    new IntakePivotIOMax(
-                                            IntakePivotConstants.MOTOR_ID[0], IntakePivotConstants.INVERTED[0]);
-                                case SPARK_FLEX ->
-                                    new IntakePivotIOFlex(
-                                            IntakePivotConstants.MOTOR_ID[0], IntakePivotConstants.INVERTED[0]);
-                                case KRAKEN_X60, KRAKEN_X40 ->
-                                    new IntakePivotIOKraken(
-                                            IntakePivotConstants.MOTOR_ID[0], IntakePivotConstants.INVERTED[0]);
-                            },
-                    (GlobalConstants.MODE == GlobalConstants.RobotMode.SIM)
-                            ? new IntakePivotIOSim()
-                            : switch (IntakePivotConstants.MOTOR_CONTROLLER) {
-                                case SPARK_MAX ->
-                                    new IntakePivotIOMax(
-                                            IntakePivotConstants.MOTOR_ID[1], IntakePivotConstants.INVERTED[1]);
-                                case SPARK_FLEX ->
-                                    new IntakePivotIOFlex(
-                                            IntakePivotConstants.MOTOR_ID[1], IntakePivotConstants.INVERTED[1]);
-                                case KRAKEN_X60, KRAKEN_X40 ->
-                                    new IntakePivotIOKraken(
-                                            IntakePivotConstants.MOTOR_ID[1], IntakePivotConstants.INVERTED[1]);
-                            })
-            : null;
+  public IntakePivotSubsystem intakePivot =
+      (INTAKE_PIVOT_ENABLED)
+          ? new IntakePivotSubsystem(
+              "IntakePivot",
+              (GlobalConstants.MODE == GlobalConstants.RobotMode.SIM)
+                  ? new IntakePivotIOSim()
+                  : switch (IntakePivotConstants.MOTOR_CONTROLLER) {
+                    case SPARK_MAX ->
+                        new IntakePivotIOMax(
+                            IntakePivotConstants.MOTOR_ID[0], IntakePivotConstants.INVERTED[0]);
+                    case SPARK_FLEX ->
+                        new IntakePivotIOFlex(
+                            IntakePivotConstants.MOTOR_ID[0], IntakePivotConstants.INVERTED[0]);
+                    case KRAKEN_X60, KRAKEN_X40 ->
+                        new IntakePivotIOKraken(
+                            IntakePivotConstants.MOTOR_ID[0], IntakePivotConstants.INVERTED[0]);
+                  },
+              (GlobalConstants.MODE == GlobalConstants.RobotMode.SIM)
+                  ? new IntakePivotIOSim()
+                  : switch (IntakePivotConstants.MOTOR_CONTROLLER) {
+                    case SPARK_MAX ->
+                        new IntakePivotIOMax(
+                            IntakePivotConstants.MOTOR_ID[1], IntakePivotConstants.INVERTED[1]);
+                    case SPARK_FLEX ->
+                        new IntakePivotIOFlex(
+                            IntakePivotConstants.MOTOR_ID[1], IntakePivotConstants.INVERTED[1]);
+                    case KRAKEN_X60, KRAKEN_X40 ->
+                        new IntakePivotIOKraken(
+                            IntakePivotConstants.MOTOR_ID[1], IntakePivotConstants.INVERTED[1]);
+                  })
+          : null;
 
-    public ShooterPivotSubsystem shooterPivot = (SHOOTER_PIVOT_ENABLED)
-            ? new ShooterPivotSubsystem(
-                    "ShooterPivot",
-                    (GlobalConstants.MODE == GlobalConstants.RobotMode.SIM)
-                            ? new ShooterPivotIOSim()
-                            : switch (ShooterPivotConstants.MOTOR_CONTROLLER) {
-                                case SPARK_MAX -> new ShooterPivotIOMax();
-                                case SPARK_FLEX -> new ShooterPivotIOFlex();
-                                case KRAKEN_X60, KRAKEN_X40 -> new ShooterPivotIOKraken();
-                            })
-            : null;
+  public ShooterPivotSubsystem shooterPivot =
+      (SHOOTER_PIVOT_ENABLED)
+          ? new ShooterPivotSubsystem(
+              "ShooterPivot",
+              (GlobalConstants.MODE == GlobalConstants.RobotMode.SIM)
+                  ? new ShooterPivotIOSim()
+                  : switch (ShooterPivotConstants.MOTOR_CONTROLLER) {
+                    case SPARK_MAX -> new ShooterPivotIOMax();
+                    case SPARK_FLEX -> new ShooterPivotIOFlex();
+                    case KRAKEN_X60, KRAKEN_X40 -> new ShooterPivotIOKraken();
+                  })
+          : null;
 }

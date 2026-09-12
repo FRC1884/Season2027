@@ -28,8 +28,7 @@ public class IntakeSubsystem extends VoltageRollerMechanism<IntakeSubsystem.Inta
     }
   }
 
-  @Setter
-  private IntakeGoal goal = IntakeGoal.IDLING;
+  @Setter private IntakeGoal goal = IntakeGoal.IDLING;
 
   public IntakeSubsystem(String name, IntakeIO io) {
     super(

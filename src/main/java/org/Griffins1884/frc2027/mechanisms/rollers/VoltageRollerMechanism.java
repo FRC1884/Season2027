@@ -29,8 +29,7 @@ public abstract class VoltageRollerMechanism<G extends VoltageRollerMechanism.Vo
     MANUAL
   }
 
-  public record VoltageRollerConfig(double maxVoltage) {
-  }
+  public record VoltageRollerConfig(double maxVoltage) {}
 
   public interface VoltageGoal {
     DoubleSupplier getVoltageSupplier();
@@ -42,7 +41,8 @@ public abstract class VoltageRollerMechanism<G extends VoltageRollerMechanism.Vo
   private final MechanismDefinition definition;
   private final String mechanismKey;
   private final MechanismRollerIO io;
-  protected final MechanismRollerIOInputsAutoLogged inputs = new MechanismRollerIOInputsAutoLogged();
+  protected final MechanismRollerIOInputsAutoLogged inputs =
+      new MechanismRollerIOInputsAutoLogged();
   private final Alert disconnected;
   protected final Timer stateTimer = new Timer();
   private G lastGoal;
@@ -71,23 +71,25 @@ public abstract class VoltageRollerMechanism<G extends VoltageRollerMechanism.Vo
     this.io = Objects.requireNonNull(io, "io");
     this.config = Objects.requireNonNull(config, "config");
 
-    sysIdRoutine = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            null,
-            null,
-            Seconds.of(4),
-            state -> {
-              if (RuntimeModeManager.isDebugEnabled(mechanismKey)) {
-                Logger.recordOutput("Rollers/" + name + "/SysIdState", state.toString());
-              }
-            }),
-        new SysIdRoutine.Mechanism(
-            voltage -> io.runVolts(voltage.in(Volts)),
-            log -> log.motor(name)
-                .voltage(Volts.of(inputs.appliedVoltage))
-                .angularVelocity(RadiansPerSecond.of(inputs.velocityRadsPerSec))
-                .angularPosition(Radian.of(inputs.positionRads)),
-            this));
+    sysIdRoutine =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                null,
+                Seconds.of(4),
+                state -> {
+                  if (RuntimeModeManager.isDebugEnabled(mechanismKey)) {
+                    Logger.recordOutput("Rollers/" + name + "/SysIdState", state.toString());
+                  }
+                }),
+            new SysIdRoutine.Mechanism(
+                voltage -> io.runVolts(voltage.in(Volts)),
+                log ->
+                    log.motor(name)
+                        .voltage(Volts.of(inputs.appliedVoltage))
+                        .angularVelocity(RadiansPerSecond.of(inputs.velocityRadsPerSec))
+                        .angularPosition(Radian.of(inputs.positionRads)),
+                this));
 
     disconnected = new Alert(name + " motor disconnected!", AlertType.kWarning);
     stateTimer.start();
@@ -124,9 +126,10 @@ public abstract class VoltageRollerMechanism<G extends VoltageRollerMechanism.Vo
       lastGoal = getGoal();
     }
 
-    double requestedVoltage = controlMode == ControlMode.MANUAL
-        ? manualVoltage
-        : getGoal().getVoltageSupplier().getAsDouble();
+    double requestedVoltage =
+        controlMode == ControlMode.MANUAL
+            ? manualVoltage
+            : getGoal().getVoltageSupplier().getAsDouble();
     goalVoltage = MathUtil.clamp(requestedVoltage, -config.maxVoltage(), config.maxVoltage());
 
     logOutputs(anyDisconnected);

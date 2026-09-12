@@ -21,16 +21,17 @@ import java.util.Optional;
 import org.json.simple.parser.ParseException;
 
 final class DeployAutoLibrary {
-  private static final ObjectMapper JSON = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper JSON =
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private static final int MAX_ROUTE_WAYPOINTS = 12;
 
   private final Path pathPlannerAutosRoot;
 
   DeployAutoLibrary(Path pathPlannerAutosRoot) {
-    this.pathPlannerAutosRoot = Objects.requireNonNull(pathPlannerAutosRoot, "pathPlannerAutosRoot")
-        .toAbsolutePath()
-        .normalize();
+    this.pathPlannerAutosRoot =
+        Objects.requireNonNull(pathPlannerAutosRoot, "pathPlannerAutosRoot")
+            .toAbsolutePath()
+            .normalize();
   }
 
   Optional<LoadedAuto> loadAuto(String autoId) {
@@ -77,9 +78,10 @@ final class DeployAutoLibrary {
     if (normalized == null) {
       return Optional.empty();
     }
-    String autoId = normalized.toLowerCase(Locale.ROOT).endsWith(".json")
-        ? normalized.substring(0, normalized.length() - 5)
-        : normalized;
+    String autoId =
+        normalized.toLowerCase(Locale.ROOT).endsWith(".json")
+            ? normalized.substring(0, normalized.length() - 5)
+            : normalized;
     Optional<LoadedAuto> loadedAuto = loadAuto(autoId);
     if (loadedAuto.isEmpty()) {
       return Optional.empty();
@@ -264,11 +266,9 @@ final class DeployAutoLibrary {
       Long updatedAt,
       PoseSpec startPose,
       List<ZoneSpec> customZones,
-      List<StepSpec> steps) {
-  }
+      List<StepSpec> steps) {}
 
-  record PoseSpec(double xMeters, double yMeters, double headingDeg) {
-  }
+  record PoseSpec(double xMeters, double yMeters, double headingDeg) {}
 
   record ZoneSpec(
       String id,
@@ -277,8 +277,7 @@ final class DeployAutoLibrary {
       double yMinMeters,
       double xMaxMeters,
       double yMaxMeters,
-      boolean locked) {
-  }
+      boolean locked) {}
 
   record StepSpec(
       String spotId,
@@ -294,16 +293,13 @@ final class DeployAutoLibrary {
       Double timeoutSeconds,
       Double endVelocityMps,
       Boolean stopOnEnd,
-      List<PoseSpec> routeWaypoints) {
-  }
+      List<PoseSpec> routeWaypoints) {}
 
   private record LibraryIndexDto(
-      String version, String generator, List<AutoManifestEntryDto> autos) {
-  }
+      String version, String generator, List<AutoManifestEntryDto> autos) {}
 
   private record AutoManifestEntryDto(
-      String id, String name, String folder, String relativePath, Long updatedAt) {
-  }
+      String id, String name, String folder, String relativePath, Long updatedAt) {}
 
   private static final class RawAutoDto {
     public String folder;

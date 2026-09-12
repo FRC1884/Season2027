@@ -68,19 +68,22 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
   private String lastRequestedState = "";
   private boolean lastRequestAccepted = true;
   private String lastRequestReason = "";
-  private String lastRuntimeProfileSpecJson = RuntimeProfileCodec.toJson(RuntimeModeManager.getActiveProfile());
+  private String lastRuntimeProfileSpecJson =
+      RuntimeProfileCodec.toJson(RuntimeModeManager.getActiveProfile());
   private String lastRuntimeProfileStatus = "READY";
   private String lastSubsystemDescriptionsJson = "{}";
-  private OperatorBoardDiagnosticBundleWriter.OperatorBoardDiagnosticSnapshot lastDiagnosticSnapshot;
+  private OperatorBoardDiagnosticBundleWriter.OperatorBoardDiagnosticSnapshot
+      lastDiagnosticSnapshot;
   private double lastTelemetryPublishTimestampSec = Double.NEGATIVE_INFINITY;
-  private ActionTraceState lastActionTraceState = new ActionTraceState(
-      Timer.getFPGATimestamp(),
-      "SYSTEM",
-      "OPERATOR_BOARD_INIT",
-      "pass",
-      "Operator board tracker initialized.",
-      "UNKNOWN",
-      "UNKNOWN");
+  private ActionTraceState lastActionTraceState =
+      new ActionTraceState(
+          Timer.getFPGATimestamp(),
+          "SYSTEM",
+          "OPERATOR_BOARD_INIT",
+          "pass",
+          "Operator board tracker initialized.",
+          "UNKNOWN",
+          "UNKNOWN");
   private double lastQueueActionTimestampSec = Double.NEGATIVE_INFINITY;
   private final Map<String, PublishTopicAccumulator> sampledPublishTopics = new HashMap<>();
   private final Map<String, String> lastPublishedStringTopics = new HashMap<>();
@@ -125,8 +128,9 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
     this.diagnosticBundleWriter = new OperatorBoardDiagnosticBundleWriter(persistence);
     this.lastSubsystemDescriptionsJson = writeJson(persistence.readSubsystemDescriptions());
     this.spotLibrary = new RebuiltSpotLibrary();
-    this.deployAutoLibrary = new DeployAutoLibrary(
-        Filesystem.getDeployDirectory().toPath().resolve("pathplanner").resolve("autos"));
+    this.deployAutoLibrary =
+        new DeployAutoLibrary(
+            Filesystem.getDeployDirectory().toPath().resolve("pathplanner").resolve("autos"));
     this.autoQueue = new RebuiltAutoQueue(spotLibrary, superstructure, drive, deployAutoLibrary);
     this.webServer = maybeStartWebServer();
     if (superstructure != null) {
@@ -140,12 +144,13 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
     }
     try {
       Path deployDir = Filesystem.getDeployDirectory().toPath();
-      OperatorBoardWebServer server = new OperatorBoardWebServer(
-          deployDir.resolve("operatorboard"),
-          deployAutoLibrary,
-          deployDir.resolve("music"),
-          Config.WebUIConfig.BIND_ADDRESS,
-          Config.WebUIConfig.PORT);
+      OperatorBoardWebServer server =
+          new OperatorBoardWebServer(
+              deployDir.resolve("operatorboard"),
+              deployAutoLibrary,
+              deployDir.resolve("music"),
+              Config.WebUIConfig.BIND_ADDRESS,
+              Config.WebUIConfig.PORT);
       server.start();
       return server;
     } catch (IOException ex) {
@@ -215,7 +220,8 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
       boolean cleaned = LogRollover.cleanLogsFolder();
       lastRequestedState = "CLEAN_LOGS";
       lastRequestAccepted = cleaned;
-      lastRequestReason = cleaned ? "" : "Log cleanup " + LogRollover.getCleanStatus().toLowerCase();
+      lastRequestReason =
+          cleaned ? "" : "Log cleanup " + LogRollover.getCleanStatus().toLowerCase();
       recordActionTrace(
           "UTILITY", "CLEAN_LOGS", cleaned, cleaned ? "Log cleanup completed." : lastRequestReason);
     }
@@ -297,7 +303,8 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
     }
     if (inputs.resetRuntimeProfile) {
       RuntimeModeManager.resetToDefaults();
-      lastRuntimeProfileSpecJson = RuntimeProfileCodec.toJson(RuntimeModeManager.getActiveProfile());
+      lastRuntimeProfileSpecJson =
+          RuntimeProfileCodec.toJson(RuntimeModeManager.getActiveProfile());
       lastRuntimeProfileStatus = "RESET_TO_DEFAULTS";
       lastRequestedState = "RUNTIME_PROFILE_RESET";
       lastRequestAccepted = true;
@@ -309,7 +316,8 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
       try {
         RuntimeModeManager.setActiveProfile(
             RuntimeProfileCodec.fromJson(lastRuntimeProfileSpecJson));
-        lastRuntimeProfileSpecJson = RuntimeProfileCodec.toJson(RuntimeModeManager.getActiveProfile());
+        lastRuntimeProfileSpecJson =
+            RuntimeProfileCodec.toJson(RuntimeModeManager.getActiveProfile());
         lastRuntimeProfileStatus = "APPLIED";
         lastRequestedState = "RUNTIME_PROFILE_APPLY";
         lastRequestAccepted = true;
@@ -393,14 +401,16 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
 
   private void publishTelemetry() {
     rollPublishWindow(Timer.getFPGATimestamp());
-    String requestedState = !lastRequestedState.isBlank()
-        ? lastRequestedState
-        : superstructure != null ? superstructure.getRequestedState().name() : "UNKNOWN";
+    String requestedState =
+        !lastRequestedState.isBlank()
+            ? lastRequestedState
+            : superstructure != null ? superstructure.getRequestedState().name() : "UNKNOWN";
     if (shouldPublishString(OperatorBoardContract.REQUESTED_STATE, requestedState)) {
       trackPublish(OperatorBoardContract.REQUESTED_STATE, requestedState);
       io.setRequestedState(requestedState);
     }
-    String currentState = superstructure != null ? superstructure.getCurrentState().name() : "UNKNOWN";
+    String currentState =
+        superstructure != null ? superstructure.getCurrentState().name() : "UNKNOWN";
     if (shouldPublishString(OperatorBoardContract.CURRENT_STATE, currentState)) {
       trackPublish(OperatorBoardContract.CURRENT_STATE, currentState);
       io.setCurrentState(currentState);
@@ -428,9 +438,10 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
     Optional<Pose2d> queuePreviewPose = autoQueue.getPreviewPose();
     String autoQueueStateJson = autoQueue.getQueueStateJson();
     String selectedAutoStateJson = autoQueue.getSelectedAutoStateJson();
-    double[] previewPoseArray = queuePreviewPose.map(OperatorBoardTracker::toPoseArray)
-        .orElseGet(() -> new double[] {});
-    String runtimeProfileStateJson = RuntimeProfileCodec.toJson(RuntimeModeManager.getActiveProfile());
+    double[] previewPoseArray =
+        queuePreviewPose.map(OperatorBoardTracker::toPoseArray).orElseGet(() -> new double[] {});
+    String runtimeProfileStateJson =
+        RuntimeProfileCodec.toJson(RuntimeModeManager.getActiveProfile());
     String systemCheckStateJson = buildSystemCheckStateJson(queuePreviewPose);
     String autoCheckStateJson = buildAutoCheckStateJson(queuePreviewPose);
     String autoQuickRunStateJson = autoQueue.getQuickRunStateJson();
@@ -485,15 +496,16 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
       trackPublish(OperatorBoardContract.NT_DIAGNOSTICS_STATE, ntDiagnosticsStateJson);
       io.setNtDiagnosticsState(ntDiagnosticsStateJson);
     }
-    lastDiagnosticSnapshot = buildDiagnosticSnapshot(
-        systemCheckStateJson,
-        autoCheckStateJson,
-        ntDiagnosticsStateJson,
-        mechanismStatusStateJson,
-        actionTraceStateJson,
-        runtimeProfileStateJson,
-        selectedAutoStateJson,
-        autoQueueStateJson);
+    lastDiagnosticSnapshot =
+        buildDiagnosticSnapshot(
+            systemCheckStateJson,
+            autoCheckStateJson,
+            ntDiagnosticsStateJson,
+            mechanismStatusStateJson,
+            actionTraceStateJson,
+            runtimeProfileStateJson,
+            selectedAutoStateJson,
+            autoQueueStateJson);
     diagnosticBundleWriter.maybeWrite(lastDiagnosticSnapshot);
 
     io.setHasBall(superstructure != null && superstructure.hasBall());
@@ -552,9 +564,10 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
 
   private boolean shouldPublishTelemetry() {
     double now = Timer.getFPGATimestamp();
-    double publishPeriod = DriverStation.isDisabled()
-        ? DISABLED_TELEMETRY_PUBLISH_PERIOD_SEC
-        : TELEMETRY_PUBLISH_PERIOD_SEC;
+    double publishPeriod =
+        DriverStation.isDisabled()
+            ? DISABLED_TELEMETRY_PUBLISH_PERIOD_SEC
+            : TELEMETRY_PUBLISH_PERIOD_SEC;
     if (now - lastTelemetryPublishTimestampSec < publishPeriod) {
       return false;
     }
@@ -589,18 +602,19 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
   }
 
   private static double[] toPoseArray(Pose2d pose) {
-    return new double[] { pose.getX(), pose.getY(), pose.getRotation().getRadians() };
+    return new double[] {pose.getX(), pose.getY(), pose.getRotation().getRadians()};
   }
 
-  private OperatorBoardDiagnosticBundleWriter.OperatorBoardDiagnosticSnapshot buildDiagnosticSnapshot(
-      String systemCheckStateJson,
-      String autoCheckStateJson,
-      String ntDiagnosticsStateJson,
-      String mechanismStatusStateJson,
-      String actionTraceStateJson,
-      String runtimeProfileStateJson,
-      String selectedAutoStateJson,
-      String autoQueueStateJson) {
+  private OperatorBoardDiagnosticBundleWriter.OperatorBoardDiagnosticSnapshot
+      buildDiagnosticSnapshot(
+          String systemCheckStateJson,
+          String autoCheckStateJson,
+          String ntDiagnosticsStateJson,
+          String mechanismStatusStateJson,
+          String actionTraceStateJson,
+          String runtimeProfileStateJson,
+          String selectedAutoStateJson,
+          String autoQueueStateJson) {
     return new OperatorBoardDiagnosticBundleWriter.OperatorBoardDiagnosticSnapshot(
         extractJsonField(systemCheckStateJson, "status", "unknown"),
         extractJsonField(systemCheckStateJson, "summary", "UNKNOWN"),
@@ -684,25 +698,27 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
       return;
     }
     lastQueueActionTimestampSec = queueActionTrace.timestampSec();
-    lastActionTraceState = new ActionTraceState(
-        queueActionTrace.timestampSec(),
-        "QUEUE",
-        queueActionTrace.action(),
-        queueActionTrace.accepted() ? "pass" : "fail",
-        queueActionTrace.detail(),
-        superstructure != null ? superstructure.getRequestedState().name() : lastRequestedState,
-        superstructure != null ? superstructure.getCurrentState().name() : "UNKNOWN");
+    lastActionTraceState =
+        new ActionTraceState(
+            queueActionTrace.timestampSec(),
+            "QUEUE",
+            queueActionTrace.action(),
+            queueActionTrace.accepted() ? "pass" : "fail",
+            queueActionTrace.detail(),
+            superstructure != null ? superstructure.getRequestedState().name() : lastRequestedState,
+            superstructure != null ? superstructure.getCurrentState().name() : "UNKNOWN");
   }
 
   private void recordActionTrace(String source, String action, boolean accepted, String detail) {
-    lastActionTraceState = new ActionTraceState(
-        Timer.getFPGATimestamp(),
-        source,
-        action,
-        accepted ? "pass" : "fail",
-        detail == null ? "" : detail,
-        superstructure != null ? superstructure.getRequestedState().name() : lastRequestedState,
-        superstructure != null ? superstructure.getCurrentState().name() : "UNKNOWN");
+    lastActionTraceState =
+        new ActionTraceState(
+            Timer.getFPGATimestamp(),
+            source,
+            action,
+            accepted ? "pass" : "fail",
+            detail == null ? "" : detail,
+            superstructure != null ? superstructure.getRequestedState().name() : lastRequestedState,
+            superstructure != null ? superstructure.getCurrentState().name() : "UNKNOWN");
   }
 
   private String buildSystemCheckStateJson(Optional<Pose2d> queuePreviewPose) {
@@ -727,11 +743,11 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
         checkItem(
             "CAN bus",
             canStatus.percentBusUtilization >= 0.90
-                || canStatus.txFullCount > 0
-                || canStatus.receiveErrorCount > 0
-                || canStatus.transmitErrorCount > 0
-                    ? CheckStatus.FAIL
-                    : canStatus.percentBusUtilization >= 0.70 ? CheckStatus.WARN : CheckStatus.PASS,
+                    || canStatus.txFullCount > 0
+                    || canStatus.receiveErrorCount > 0
+                    || canStatus.transmitErrorCount > 0
+                ? CheckStatus.FAIL
+                : canStatus.percentBusUtilization >= 0.70 ? CheckStatus.WARN : CheckStatus.PASS,
             String.format(
                 Locale.ROOT,
                 "util %.0f%%, txFull %d, rxErr %d, txErr %d",
@@ -773,10 +789,10 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
         checkItem(
             "Mechanism zeroing",
             superstructure != null
-                && (superstructure.isIntakeDeployRezeroInProgress()
-                    || superstructure.isManualIntakeDeployZeroSeekInProgress())
-                        ? CheckStatus.WARN
-                        : CheckStatus.PASS,
+                    && (superstructure.isIntakeDeployRezeroInProgress()
+                        || superstructure.isManualIntakeDeployZeroSeekInProgress())
+                ? CheckStatus.WARN
+                : CheckStatus.PASS,
             superstructure == null
                 ? "Superstructure unavailable."
                 : superstructure.isIntakeDeployRezeroInProgress()
@@ -827,10 +843,10 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
             "ERROR".equals(queuePhase)
                 ? CheckStatus.FAIL
                 : "READY".equals(queuePhase)
-                    || "RUNNING".equals(queuePhase)
-                    || "COMPLETE".equals(queuePhase)
-                        ? CheckStatus.PASS
-                        : CheckStatus.WARN,
+                        || "RUNNING".equals(queuePhase)
+                        || "COMPLETE".equals(queuePhase)
+                    ? CheckStatus.PASS
+                    : CheckStatus.WARN,
             "Phase: " + (queuePhase == null || queuePhase.isBlank() ? "UNKNOWN" : queuePhase)));
     items.add(
         checkItem(
@@ -871,23 +887,26 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
     ArrayList<PublishTopicSnapshot> hotTopics = new ArrayList<>();
     sampledPublishTopics.values().stream()
         .filter(
-            stat -> stat.lastWindowBytesPerSec > 0.0
-                || stat.lastWindowPublishesPerSec > 0.0
-                || stat.totalPublishes > 0)
+            stat ->
+                stat.lastWindowBytesPerSec > 0.0
+                    || stat.lastWindowPublishesPerSec > 0.0
+                    || stat.totalPublishes > 0)
         .sorted(
-            (left, right) -> Double.compare(right.lastWindowBytesPerSec, left.lastWindowBytesPerSec))
+            (left, right) ->
+                Double.compare(right.lastWindowBytesPerSec, left.lastWindowBytesPerSec))
         .limit(5)
         .forEach(
-            stat -> hotTopics.add(
-                new PublishTopicSnapshot(
-                    stat.topic,
-                    stat.totalPublishes,
-                    stat.totalBytes,
-                    stat.lastWindowPublishesPerSec,
-                    stat.lastWindowBytesPerSec,
-                    stat.peakPublishesPerSec,
-                    stat.peakBytesPerSec,
-                    stat.lastPayloadBytes)));
+            stat ->
+                hotTopics.add(
+                    new PublishTopicSnapshot(
+                        stat.topic,
+                        stat.totalPublishes,
+                        stat.totalBytes,
+                        stat.lastWindowPublishesPerSec,
+                        stat.lastWindowBytesPerSec,
+                        stat.peakPublishesPerSec,
+                        stat.peakBytesPerSec,
+                        stat.lastPayloadBytes)));
     return writeJson(
         new NtDiagnosticsState(
             Timer.getFPGATimestamp(),
@@ -945,7 +964,8 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
     rollPublishWindow(nowSec);
     sampledPublishWindowCount++;
     sampledPublishWindowBytes += Math.max(payloadBytes, 0);
-    PublishTopicAccumulator accumulator = sampledPublishTopics.computeIfAbsent(topic, PublishTopicAccumulator::new);
+    PublishTopicAccumulator accumulator =
+        sampledPublishTopics.computeIfAbsent(topic, PublishTopicAccumulator::new);
     accumulator.windowPublishes++;
     accumulator.windowBytes += Math.max(payloadBytes, 0);
     accumulator.totalPublishes++;
@@ -962,13 +982,15 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
     sampledPublishRateHz = sampledPublishWindowCount / elapsedSec;
     sampledPublishBytesPerSec = sampledPublishWindowBytes / elapsedSec;
     sampledPublishPeakRateHz = Math.max(sampledPublishPeakRateHz, sampledPublishRateHz);
-    sampledPublishPeakBytesPerSec = Math.max(sampledPublishPeakBytesPerSec, sampledPublishBytesPerSec);
+    sampledPublishPeakBytesPerSec =
+        Math.max(sampledPublishPeakBytesPerSec, sampledPublishBytesPerSec);
     for (PublishTopicAccumulator accumulator : sampledPublishTopics.values()) {
       accumulator.lastWindowPublishesPerSec = accumulator.windowPublishes / elapsedSec;
       accumulator.lastWindowBytesPerSec = accumulator.windowBytes / elapsedSec;
-      accumulator.peakPublishesPerSec = Math.max(accumulator.peakPublishesPerSec,
-          accumulator.lastWindowPublishesPerSec);
-      accumulator.peakBytesPerSec = Math.max(accumulator.peakBytesPerSec, accumulator.lastWindowBytesPerSec);
+      accumulator.peakPublishesPerSec =
+          Math.max(accumulator.peakPublishesPerSec, accumulator.lastWindowPublishesPerSec);
+      accumulator.peakBytesPerSec =
+          Math.max(accumulator.peakBytesPerSec, accumulator.lastWindowBytesPerSec);
       accumulator.windowPublishes = 0;
       accumulator.windowBytes = 0;
     }
@@ -1083,11 +1105,12 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
         degradedCount++;
       }
     }
-    String summary = items.isEmpty()
-        ? "No migrated mechanisms available."
-        : offlineCount > 0
-            ? offlineCount + " offline"
-            : degradedCount > 0 ? degradedCount + " degraded" : items.size() + " nominal";
+    String summary =
+        items.isEmpty()
+            ? "No migrated mechanisms available."
+            : offlineCount > 0
+                ? offlineCount + " offline"
+                : degradedCount > 0 ? degradedCount + " degraded" : items.size() + " nominal";
 
     return writeJson(new MechanismStatusReport(Timer.getFPGATimestamp(), summary, items));
   }
@@ -1121,12 +1144,14 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
         warnCount++;
       }
     }
-    CheckStatus status = failCount > 0 ? CheckStatus.FAIL : warnCount > 0 ? CheckStatus.WARN : CheckStatus.PASS;
-    String summary = status == CheckStatus.FAIL
-        ? failCount + " fail, " + warnCount + " warn"
-        : status == CheckStatus.WARN
-            ? warnCount + (warnCount == 1 ? " warning" : " warnings")
-            : "READY";
+    CheckStatus status =
+        failCount > 0 ? CheckStatus.FAIL : warnCount > 0 ? CheckStatus.WARN : CheckStatus.PASS;
+    String summary =
+        status == CheckStatus.FAIL
+            ? failCount + " fail, " + warnCount + " warn"
+            : status == CheckStatus.WARN
+                ? warnCount + (warnCount == 1 ? " warning" : " warnings")
+                : "READY";
     return new CheckReport(
         Timer.getFPGATimestamp(),
         mode,
@@ -1193,11 +1218,9 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
       String status,
       String summary,
       String previewPose,
-      ArrayList<CheckItem> items) {
-  }
+      ArrayList<CheckItem> items) {}
 
-  private record CheckItem(String label, String status, String detail) {
-  }
+  private record CheckItem(String label, String status, String detail) {}
 
   private record NtDiagnosticsState(
       double timestampSec,
@@ -1219,8 +1242,7 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
       int debugSubsystemCount,
       int loggedSignalCount,
       int publishedSignalCount,
-      ArrayList<PublishTopicSnapshot> hotTopics) {
-  }
+      ArrayList<PublishTopicSnapshot> hotTopics) {}
 
   private record PublishTopicSnapshot(
       String topic,
@@ -1230,12 +1252,10 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
       double bytesPerSec,
       double peakPublishesPerSec,
       double peakBytesPerSec,
-      int lastPayloadBytes) {
-  }
+      int lastPayloadBytes) {}
 
   private record MechanismStatusReport(
-      double timestampSec, String summary, ArrayList<MechanismStatusItem> items) {
-  }
+      double timestampSec, String summary, ArrayList<MechanismStatusItem> items) {}
 
   private record MechanismStatusItem(
       String key,
@@ -1244,8 +1264,7 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
       String health,
       String controlMode,
       boolean atGoal,
-      String detail) {
-  }
+      String detail) {}
 
   private record ActionTraceState(
       double timestampSec,
@@ -1254,8 +1273,7 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
       String status,
       String detail,
       String requestedState,
-      String currentState) {
-  }
+      String currentState) {}
 
   private static final class PublishTopicAccumulator {
     private final String topic;
@@ -1319,14 +1337,15 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
       this.musicDir = Objects.requireNonNull(musicDir, "musicDir").toAbsolutePath().normalize();
       String bind = (bindAddress == null || bindAddress.isBlank()) ? "0.0.0.0" : bindAddress;
       this.server = HttpServer.create(new InetSocketAddress(bind, port), 0);
-      this.executor = Executors.newFixedThreadPool(
-          2,
-          r -> {
-            Thread t = new Thread(r);
-            t.setName("OperatorBoardWeb-" + t.getId());
-            t.setDaemon(true);
-            return t;
-          });
+      this.executor =
+          Executors.newFixedThreadPool(
+              2,
+              r -> {
+                Thread t = new Thread(r);
+                t.setName("OperatorBoardWeb-" + t.getId());
+                t.setDaemon(true);
+                return t;
+              });
       server.setExecutor(executor);
       server.createContext("/", new StaticHandler());
       server.createContext("/planner-autos", new PlannerAutosHandler());
@@ -1353,7 +1372,8 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
       if (normalized == null || normalized.isBlank() || "/".equals(normalized)) {
         normalized = "/index.html";
       }
-      Path resolved = webRoot.resolve(normalized.replaceFirst("^/", "")).normalize().toAbsolutePath();
+      Path resolved =
+          webRoot.resolve(normalized.replaceFirst("^/", "")).normalize().toAbsolutePath();
       if (!resolved.startsWith(webRoot)) {
         return webRoot.resolve("index.html");
       }
@@ -1419,7 +1439,8 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
           sendJson(exchange, 200, deployAutoLibrary.buildManifestJson());
           return;
         }
-        Optional<String> previewJson = deployAutoLibrary.loadAutoPreviewJson(suffix.replaceFirst("^/", ""));
+        Optional<String> previewJson =
+            deployAutoLibrary.loadAutoPreviewJson(suffix.replaceFirst("^/", ""));
         if (previewJson.isEmpty()) {
           exchange.sendResponseHeaders(404, -1);
           return;
@@ -1459,10 +1480,12 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
           return;
         }
         try {
-          OperatorBoardDataModels.SubsystemDescriptionsDocument request = OperatorBoardPersistence.JSON.readValue(
-              exchange.getRequestBody(),
-              OperatorBoardDataModels.SubsystemDescriptionsDocument.class);
-          OperatorBoardDataModels.SubsystemDescriptionsDocument saved = persistence.saveSubsystemDescriptions(request);
+          OperatorBoardDataModels.SubsystemDescriptionsDocument request =
+              OperatorBoardPersistence.JSON.readValue(
+                  exchange.getRequestBody(),
+                  OperatorBoardDataModels.SubsystemDescriptionsDocument.class);
+          OperatorBoardDataModels.SubsystemDescriptionsDocument saved =
+              persistence.saveSubsystemDescriptions(request);
           lastSubsystemDescriptionsJson = writeJson(saved);
           sendJson(exchange, 200, saved);
         } catch (IOException ex) {
@@ -1478,8 +1501,8 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
           exchange.sendResponseHeaders(405, -1);
           return;
         }
-        Optional<OperatorBoardDataModels.DiagnosticBundleManifest> manifest = persistence
-            .readLatestDiagnosticManifest();
+        Optional<OperatorBoardDataModels.DiagnosticBundleManifest> manifest =
+            persistence.readLatestDiagnosticManifest();
         if (manifest.isEmpty() && lastDiagnosticSnapshot != null) {
           manifest = Optional.of(diagnosticBundleWriter.forceWrite(lastDiagnosticSnapshot));
         }
@@ -1521,9 +1544,10 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
     }
 
     private void sendJson(HttpExchange exchange, int statusCode, Object value) throws IOException {
-      byte[] response = value instanceof String stringValue
-          ? stringValue.getBytes(StandardCharsets.UTF_8)
-          : OperatorBoardPersistence.JSON.writeValueAsBytes(value);
+      byte[] response =
+          value instanceof String stringValue
+              ? stringValue.getBytes(StandardCharsets.UTF_8)
+              : OperatorBoardPersistence.JSON.writeValueAsBytes(value);
       Headers headers = exchange.getResponseHeaders();
       headers.set("Content-Type", "application/json; charset=utf-8");
       headers.set("Cache-Control", "no-store");
@@ -1563,20 +1587,13 @@ public class OperatorBoardTracker extends SubsystemBase implements AutoCloseable
 
     private static String inferredContentType(Path file) {
       String name = file.getFileName().toString().toLowerCase(Locale.ROOT);
-      if (name.endsWith(".html"))
-        return "text/html; charset=utf-8";
-      if (name.endsWith(".css"))
-        return "text/css; charset=utf-8";
-      if (name.endsWith(".js"))
-        return "application/javascript; charset=utf-8";
-      if (name.endsWith(".json"))
-        return "application/json; charset=utf-8";
-      if (name.endsWith(".png"))
-        return "image/png";
-      if (name.endsWith(".jpg") || name.endsWith(".jpeg"))
-        return "image/jpeg";
-      if (name.endsWith(".svg"))
-        return "image/svg+xml";
+      if (name.endsWith(".html")) return "text/html; charset=utf-8";
+      if (name.endsWith(".css")) return "text/css; charset=utf-8";
+      if (name.endsWith(".js")) return "application/javascript; charset=utf-8";
+      if (name.endsWith(".json")) return "application/json; charset=utf-8";
+      if (name.endsWith(".png")) return "image/png";
+      if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
+      if (name.endsWith(".svg")) return "image/svg+xml";
       return "application/octet-stream";
     }
   }

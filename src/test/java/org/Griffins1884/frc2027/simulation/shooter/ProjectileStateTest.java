@@ -9,8 +9,9 @@ import org.junit.jupiter.api.Test;
 class ProjectileStateTest {
   @Test
   void projectileFallsAndEventuallyDeactivates() {
-    ProjectileState projectile = new ProjectileState(
-        new Translation3d(0.0, 0.0, 0.5), new Translation3d(1.0, 0.0, 0.0), 0.0);
+    ProjectileState projectile =
+        new ProjectileState(
+            new Translation3d(0.0, 0.0, 0.5), new Translation3d(1.0, 0.0, 0.0), 0.0);
 
     projectile.advance(new ShotSimulationConfig.PhysicsConfig(9.80665, 0.0, 0.0), 0.1);
     assertTrue(projectile.positionMeters().getZ() < 0.5);

@@ -13,9 +13,7 @@ import org.littletonrobotics.junction.Logger;
 /**
  * Auto-aligns the robot to a fuel cluster using Limelight game-piece detection.
  *
- * <p>
- * Behavior: - Locks onto a target (prevents switching) - Drives forward
- * constantly - Rotates
+ * <p>Behavior: - Locks onto a target (prevents switching) - Drives forward constantly - Rotates
  * continuously to keep tx centered
  */
 public class AutoAlignToFuelCommand extends Command {
@@ -120,10 +118,11 @@ public class AutoAlignToFuelCommand extends Command {
     Logger.recordOutput("AutoAlignFuel/SmoothedTxDeg", smoothedTxDeg);
 
     // -------- Continuous drive + rotate --------
-    double omega = MathUtil.clamp(
-        ROTATION_KP * Math.toRadians(smoothedTxDeg),
-        -MAX_ROTATION_RAD_PER_SEC,
-        MAX_ROTATION_RAD_PER_SEC);
+    double omega =
+        MathUtil.clamp(
+            ROTATION_KP * Math.toRadians(smoothedTxDeg),
+            -MAX_ROTATION_RAD_PER_SEC,
+            MAX_ROTATION_RAD_PER_SEC);
 
     drive.runVelocity(new ChassisSpeeds(FORWARD_SPEED_MPS, 0.0, omega));
   }

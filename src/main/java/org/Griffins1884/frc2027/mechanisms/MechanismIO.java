@@ -25,33 +25,23 @@ public interface MechanismIO {
     public String[] faults = new String[] {};
   }
 
-  default void configure(MechanismDefinition definition) {
-  }
+  default void configure(MechanismDefinition definition) {}
 
-  default void updateInputs(MechanismIOInputs inputs) {
-  }
+  default void updateInputs(MechanismIOInputs inputs) {}
 
-  default void setOpenLoop(double percent) {
-  }
+  default void setOpenLoop(double percent) {}
 
-  default void setVoltage(double volts) {
-  }
+  default void setVoltage(double volts) {}
 
-  default void setTargetPosition(double position) {
-  }
+  default void setTargetPosition(double position) {}
 
-  default void setTargetVelocity(double velocity) {
-  }
+  default void setTargetVelocity(double velocity) {}
 
-  default void setTargetCurrent(double currentAmps) {
-  }
+  default void setTargetCurrent(double currentAmps) {}
 
-  default void setPosition(double position) {
-  }
+  default void setPosition(double position) {}
 
-  default void setBrakeMode(boolean enabled) {
-  }
+  default void setBrakeMode(boolean enabled) {}
 
-  default void stop() {
-  }
+  default void stop() {}
 }

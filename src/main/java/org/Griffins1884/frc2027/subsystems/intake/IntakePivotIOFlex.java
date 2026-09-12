@@ -5,7 +5,7 @@ import org.Griffins1884.frc2027.mechanisms.arms.MechanismArmIOSparkFlex;
 public class IntakePivotIOFlex extends MechanismArmIOSparkFlex implements IntakePivotIO {
   public IntakePivotIOFlex(int id, boolean inverted) {
     super(
-        new int[] { id },
+        new int[] {id},
         IntakePivotConstants.CURRENT_LIMIT_AMPS,
         IntakePivotConstants.BRAKE_MODE,
         IntakePivotConstants.FORWARD_LIMIT,

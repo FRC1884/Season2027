@@ -82,8 +82,8 @@ final class OperatorBoardContract {
   static final String DRIVER_CONTROLLER_CONTROL_ACTIVE = "DriverControllerControlActive";
   static final String SHOOT_READY_LATCHED = "ShootReadyLatched";
   static final String INTAKE_DEPLOY_REZERO_IN_PROGRESS = "IntakeDeployRezeroInProgress";
-  static final String MANUAL_INTAKE_DEPLOY_ZERO_SEEK_IN_PROGRESS = "ManualIntakeDeployZeroSeekInProgress";
+  static final String MANUAL_INTAKE_DEPLOY_ZERO_SEEK_IN_PROGRESS =
+      "ManualIntakeDeployZeroSeekInProgress";
 
-  private OperatorBoardContract() {
-  }
+  private OperatorBoardContract() {}
 }

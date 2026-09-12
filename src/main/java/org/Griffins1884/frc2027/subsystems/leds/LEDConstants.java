@@ -36,15 +36,14 @@ public final class LEDConstants {
   public static int FRONT = 1;
   public static int RIGHT = 2;
 
-  public static final Segment[] SEGMENTS = new Segment[] {
-      new Segment(0, 20, false), new Segment(20, 59, false), new Segment(79, 20, false)
-  };
+  public static final Segment[] SEGMENTS =
+      new Segment[] {
+        new Segment(0, 20, false), new Segment(20, 59, false), new Segment(79, 20, false)
+      };
 
-  public record Segment(int start, int length, boolean reversed) {
-  }
+  public record Segment(int start, int length, boolean reversed) {}
 
   static {
-    for (Segment segment : SEGMENTS)
-      LED_LENGTH += segment.length;
+    for (Segment segment : SEGMENTS) LED_LENGTH += segment.length;
   }
 }

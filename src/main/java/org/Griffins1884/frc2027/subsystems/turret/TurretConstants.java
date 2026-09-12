@@ -18,8 +18,8 @@ public final class TurretConstants {
   public static final int TURRET_ID = CanIDConstants.TURRET_ID;
   public static final boolean INVERTED = false;
   public static final int CURRENT_LIMIT_AMPS = 40;
-  public static final MechanismDefinition.KrakenFeatureConfig KRAKEN_FEATURES = new MechanismDefinition.KrakenFeatureConfig(
-      true, true, false, 100, true);
+  public static final MechanismDefinition.KrakenFeatureConfig KRAKEN_FEATURES =
+      new MechanismDefinition.KrakenFeatureConfig(true, true, false, 100, true);
   public static final boolean BRAKE_MODE = true;
 
   public static final double GEAR_RATIO = 42;
@@ -29,8 +29,8 @@ public final class TurretConstants {
   // this code is accurate for the 2026 season as of 30/1/26!
   public static final double ABSOLUTE_ENCODER_OFFSET_RAD = 0.0;
   public static final int ABSOLUTE_ENCODER_PORT = 0;
-  public static final LoggedTunableNumber ABSOLUTE_SYNC_THRESHOLD_RAD = new LoggedTunableNumber(
-      "Turret/AbsoluteSyncThresholdRad", 0.1);
+  public static final LoggedTunableNumber ABSOLUTE_SYNC_THRESHOLD_RAD =
+      new LoggedTunableNumber("Turret/AbsoluteSyncThresholdRad", 0.1);
 
   public static final boolean SOFT_LIMITS_ENABLED = true;
   public static final double SOFT_LIMIT_MIN_RAD = 0;
@@ -47,9 +47,12 @@ public final class TurretConstants {
 
   // Offset from robot center to turret mount (X forward, Y left).
   public static final Translation2d MOUNT_OFFSET_METERS = new Translation2d(0, 0);
-  public static final LoggedTunableNumber SIM_TARGET_X = new LoggedTunableNumber("Turret/SimTargetX", 4.5);
-  public static final LoggedTunableNumber SIM_TARGET_Y = new LoggedTunableNumber("Turret/SimTargetY", 4.0);
-  public static final LoggedTunableNumber TEST_GOAL_RAD = new LoggedTunableNumber("Turret/TestGoalRad", 0.0);
+  public static final LoggedTunableNumber SIM_TARGET_X =
+      new LoggedTunableNumber("Turret/SimTargetX", 4.5);
+  public static final LoggedTunableNumber SIM_TARGET_Y =
+      new LoggedTunableNumber("Turret/SimTargetY", 4.0);
+  public static final LoggedTunableNumber TEST_GOAL_RAD =
+      new LoggedTunableNumber("Turret/TestGoalRad", 0.0);
 
   public static final int SIM_MOTOR_COUNT = 1;
   public static final double SIM_MOI = 1;
@@ -58,6 +61,5 @@ public final class TurretConstants {
     return new Translation2d(SIM_TARGET_X.get(), SIM_TARGET_Y.get());
   }
 
-  private TurretConstants() {
-  }
+  private TurretConstants() {}
 }

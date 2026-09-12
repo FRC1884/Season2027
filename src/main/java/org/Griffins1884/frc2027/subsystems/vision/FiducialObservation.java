@@ -4,17 +4,14 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * Represents an observation of a fiducial marker (AprilTag) with position and
- * quality data.
+ * Represents an observation of a fiducial marker (AprilTag) with position and quality data.
  *
- * @param id                     The fiducial marker ID
- * @param txnc                   Normalized horizontal offset (-1 to 1)
- * @param tync                   Normalized vertical offset (-1 to 1)
- * @param ambiguity              Pose ambiguity score (0 = confident, 1 =
- *                               ambiguous)
- * @param area                   Target area as percentage of image
- * @param distanceToCameraMeters Distance from the camera to the fiducial, in
- *                               meters
+ * @param id The fiducial marker ID
+ * @param txnc Normalized horizontal offset (-1 to 1)
+ * @param tync Normalized vertical offset (-1 to 1)
+ * @param ambiguity Pose ambiguity score (0 = confident, 1 = ambiguous)
+ * @param area Target area as percentage of image
+ * @param distanceToCameraMeters Distance from the camera to the fiducial, in meters
  */
 public record FiducialObservation(
     int id,
@@ -38,9 +35,7 @@ public record FiducialObservation(
         fiducial.distToCamera);
   }
 
-  /**
-   * Converts an array of Limelight raw fiducials to FiducialObservation array.
-   */
+  /** Converts an array of Limelight raw fiducials to FiducialObservation array. */
   public static FiducialObservation[] fromLimelight(LimelightHelpers.RawFiducial[] fiducials) {
     if (fiducials == null) {
       return new FiducialObservation[0];

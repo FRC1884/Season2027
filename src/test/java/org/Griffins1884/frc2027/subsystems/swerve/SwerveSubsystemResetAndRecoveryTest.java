@@ -44,8 +44,7 @@ class SwerveSubsystemResetAndRecoveryTest {
 
   @Test
   void visionRecoveryAlignsRawHeadingWhenEstimatorPoseIsInvalid() {
-    subsystem.setOdometryResetListener(() -> {
-    });
+    subsystem.setOdometryResetListener(() -> {});
 
     subsystem.resetOdometry(new Pose2d(Double.NaN, 0.0, Rotation2d.fromDegrees(5.0)));
     assertTrue(Double.isNaN(subsystem.getPose().getX()));
@@ -74,8 +73,7 @@ class SwerveSubsystemResetAndRecoveryTest {
   }
 
   private static SwerveSubsystem newSubsystem(FakeGyro gyro) {
-    ModuleIO module = new ModuleIO() {
-    };
+    ModuleIO module = new ModuleIO() {};
     return new SwerveSubsystem(gyro, module, module, module, module);
   }
 

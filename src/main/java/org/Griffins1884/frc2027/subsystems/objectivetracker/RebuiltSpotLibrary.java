@@ -14,12 +14,13 @@ import java.util.Map;
 import java.util.Optional;
 
 final class RebuiltSpotLibrary {
-  private static final ObjectMapper JSON = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-  private static final Path SPOTS_PATH = Filesystem.getDeployDirectory()
-      .toPath()
-      .resolve("operatorboard")
-      .resolve("rebuilt-spots.json");
+  private static final ObjectMapper JSON =
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final Path SPOTS_PATH =
+      Filesystem.getDeployDirectory()
+          .toPath()
+          .resolve("operatorboard")
+          .resolve("rebuilt-spots.json");
 
   private final Map<String, RebuiltSpot> spotsById;
   private final FieldSpec field;

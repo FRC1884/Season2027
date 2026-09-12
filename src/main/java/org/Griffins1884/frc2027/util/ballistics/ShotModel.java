@@ -17,11 +17,13 @@ public interface ShotModel {
       EntryWindow entryWindow,
       ClearanceConstraint clearanceConstraint) {
     public ShotScenario {
-      targetPositionMeters = targetPositionMeters != null ? targetPositionMeters : new Translation3d();
-      robotVelocityMetersPerSecond = robotVelocityMetersPerSecond != null ? robotVelocityMetersPerSecond
-          : new Translation2d();
+      targetPositionMeters =
+          targetPositionMeters != null ? targetPositionMeters : new Translation3d();
+      robotVelocityMetersPerSecond =
+          robotVelocityMetersPerSecond != null ? robotVelocityMetersPerSecond : new Translation2d();
       entryWindow = entryWindow != null ? entryWindow : EntryWindow.unconstrained();
-      clearanceConstraint = clearanceConstraint != null ? clearanceConstraint : ClearanceConstraint.unconstrained();
+      clearanceConstraint =
+          clearanceConstraint != null ? clearanceConstraint : ClearanceConstraint.unconstrained();
     }
 
     public ShotScenario(
@@ -77,8 +79,7 @@ public interface ShotModel {
     }
   }
 
-  record LaunchCommand(double wheelRpm, double launchAngleDegrees) {
-  }
+  record LaunchCommand(double wheelRpm, double launchAngleDegrees) {}
 
   record ShotPrediction(
       boolean feasible,
@@ -94,9 +95,7 @@ public interface ShotModel {
       Translation3d closestApproachPositionMeters,
       Translation3d targetPositionMeters,
       double robotRadialVelocityMetersPerSecond,
-      double robotTangentialVelocityMetersPerSecond) {
-  }
+      double robotTangentialVelocityMetersPerSecond) {}
 
-  record ShotSolution(LaunchCommand launchCommand, ShotPrediction prediction, int evaluations) {
-  }
+  record ShotSolution(LaunchCommand launchCommand, ShotPrediction prediction, int evaluations) {}
 }

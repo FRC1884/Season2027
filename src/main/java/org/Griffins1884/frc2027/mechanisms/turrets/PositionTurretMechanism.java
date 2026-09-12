@@ -44,24 +44,22 @@ public class PositionTurretMechanism extends SubsystemBase {
       double absoluteEncoderOffsetRad,
       int absoluteEncoderPort,
       LoggedTunableNumber absoluteSyncThresholdRad,
-      double maxVoltage) {
-  }
+      double maxVoltage) {}
 
   private final String name;
   private final MechanismDefinition definition;
   private final String mechanismKey;
   private final MechanismTurretIO io;
-  protected final MechanismTurretIOInputsAutoLogged inputs = new MechanismTurretIOInputsAutoLogged();
+  protected final MechanismTurretIOInputsAutoLogged inputs =
+      new MechanismTurretIOInputsAutoLogged();
   private final Alert disconnected;
   private final ProfiledPIDController controller;
   private final TurretConfig config;
   private final SysIdRoutine sysIdRoutine;
   private final int tuningId = System.identityHashCode(this);
 
-  @Getter
-  private ControlMode controlMode = ControlMode.CLOSED_LOOP;
-  @Getter
-  private double goalRad = 0.0;
+  @Getter private ControlMode controlMode = ControlMode.CLOSED_LOOP;
+  @Getter private double goalRad = 0.0;
   private double openLoopPercent = 0.0;
   private boolean initialized = false;
   private double zeroOffsetRad = 0.0;
@@ -79,31 +77,34 @@ public class PositionTurretMechanism extends SubsystemBase {
     this.mechanismKey = definition.key();
     this.io = io;
     this.config = config;
-    controller = new ProfiledPIDController(
-        config.kP().get(),
-        config.kI().get(),
-        config.kD().get(),
-        new TrapezoidProfile.Constraints(
-            config.maxVelocityRadPerSec(), config.maxAccelRadPerSec2()));
+    controller =
+        new ProfiledPIDController(
+            config.kP().get(),
+            config.kI().get(),
+            config.kD().get(),
+            new TrapezoidProfile.Constraints(
+                config.maxVelocityRadPerSec(), config.maxAccelRadPerSec2()));
     controller.setTolerance(config.positionToleranceRad());
     disconnected = new Alert(name + " motor disconnected!", Alert.AlertType.kWarning);
-    sysIdRoutine = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            null,
-            null,
-            Seconds.of(4),
-            state -> {
-              if (RuntimeModeManager.isDebugEnabled(mechanismKey)) {
-                Logger.recordOutput(name + "/SysIdState", state.toString());
-              }
-            }),
-        new SysIdRoutine.Mechanism(
-            voltage -> io.setVoltage(voltage.in(Volts)),
-            log -> log.motor(name)
-                .voltage(Volts.of(inputs.appliedVoltage))
-                .angularVelocity(RadiansPerSecond.of(inputs.velocityRadPerSec))
-                .angularPosition(Radian.of(inputs.positionRad)),
-            this));
+    sysIdRoutine =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                null,
+                Seconds.of(4),
+                state -> {
+                  if (RuntimeModeManager.isDebugEnabled(mechanismKey)) {
+                    Logger.recordOutput(name + "/SysIdState", state.toString());
+                  }
+                }),
+            new SysIdRoutine.Mechanism(
+                voltage -> io.setVoltage(voltage.in(Volts)),
+                log ->
+                    log.motor(name)
+                        .voltage(Volts.of(inputs.appliedVoltage))
+                        .angularVelocity(RadiansPerSecond.of(inputs.velocityRadPerSec))
+                        .angularPosition(Radian.of(inputs.positionRad)),
+                this));
     if (config.useAbsoluteEncoder()) {
       input = new DigitalInput(config.absoluteEncoderPort());
       absEncoder = new DutyCycleEncoder(config.absoluteEncoderPort());
@@ -273,7 +274,8 @@ public class PositionTurretMechanism extends SubsystemBase {
     }
     double sensorRad = inputs.positionRad;
     double delta = MathUtil.inputModulus(absoluteRad - sensorRad, -Math.PI, Math.PI);
-    double threshold = config.absoluteSyncThresholdRad() != null ? config.absoluteSyncThresholdRad().get() : 0.0;
+    double threshold =
+        config.absoluteSyncThresholdRad() != null ? config.absoluteSyncThresholdRad().get() : 0.0;
     if (!absoluteSynced || Math.abs(delta) > threshold) {
       io.setPosition(absoluteRad);
       absoluteSynced = true;

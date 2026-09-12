@@ -5,13 +5,13 @@ import edu.wpi.first.math.geometry.Pose2d;
 /**
  * Represents a robot pose estimate using multiple AprilTags (Megatag).
  *
- * @param fieldToRobot     The estimated robot pose on the field
+ * @param fieldToRobot The estimated robot pose on the field
  * @param timestampSeconds The timestamp when this estimate was captured
- * @param latency          Processing latency in seconds
- * @param avgTagArea       Average area of detected tags
- * @param avgTagDist       Average distance to detected tags
- * @param quality          Quality score of the pose estimate (0-1)
- * @param fiducialIds      IDs of fiducials used for this estimate
+ * @param latency Processing latency in seconds
+ * @param avgTagArea Average area of detected tags
+ * @param avgTagDist Average distance to detected tags
+ * @param quality Quality score of the pose estimate (0-1)
+ * @param fiducialIds IDs of fiducials used for this estimate
  */
 public record MegatagPoseEstimate(
     Pose2d fieldToRobot,
@@ -38,9 +38,10 @@ public record MegatagPoseEstimate(
     if (fieldToRobot == null) {
       fieldToRobot = new Pose2d();
     }
-    LimelightHelpers.RawFiducial[] rawFiducials = poseEstimate.rawFiducials != null
-        ? poseEstimate.rawFiducials
-        : new LimelightHelpers.RawFiducial[0];
+    LimelightHelpers.RawFiducial[] rawFiducials =
+        poseEstimate.rawFiducials != null
+            ? poseEstimate.rawFiducials
+            : new LimelightHelpers.RawFiducial[0];
     int[] fiducialIds = new int[rawFiducials.length];
     for (int i = 0; i < rawFiducials.length; i++) {
       if (rawFiducials[i] != null) {

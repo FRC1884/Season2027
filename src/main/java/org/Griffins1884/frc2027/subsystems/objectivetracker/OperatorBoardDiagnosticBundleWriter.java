@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class OperatorBoardDiagnosticBundleWriter {
-  private static final DateTimeFormatter BUNDLE_TIME = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
-      .withZone(ZoneOffset.UTC);
+  private static final DateTimeFormatter BUNDLE_TIME =
+      DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneOffset.UTC);
 
   private final OperatorBoardPersistence persistence;
   private String lastFingerprint = "";
@@ -79,22 +79,24 @@ public final class OperatorBoardDiagnosticBundleWriter {
       Files.writeString(
           bundleDir.resolve("report.md"), buildMarkdownReport(snapshot), StandardCharsets.UTF_8);
 
-      List<String> files = List.of(
-          "summary.json",
-          "observed-data.json",
-          "networktables_snapshot.json",
-          "subsystems.json",
-          "alerts.json",
-          "auto_context.json",
-          "subsystem_descriptions.json",
-          "report.md");
-      OperatorBoardDataModels.DiagnosticBundleManifest manifest = new OperatorBoardDataModels.DiagnosticBundleManifest(
-          OperatorBoardDataModels.SCHEMA_VERSION,
-          OperatorBoardDataModels.metadata("diagnosticBundle", bundleId, "Diagnostic Bundle"),
-          bundleId,
-          bundleDir.toString(),
-          snapshot.overallStatus(),
-          files);
+      List<String> files =
+          List.of(
+              "summary.json",
+              "observed-data.json",
+              "networktables_snapshot.json",
+              "subsystems.json",
+              "alerts.json",
+              "auto_context.json",
+              "subsystem_descriptions.json",
+              "report.md");
+      OperatorBoardDataModels.DiagnosticBundleManifest manifest =
+          new OperatorBoardDataModels.DiagnosticBundleManifest(
+              OperatorBoardDataModels.SCHEMA_VERSION,
+              OperatorBoardDataModels.metadata("diagnosticBundle", bundleId, "Diagnostic Bundle"),
+              bundleId,
+              bundleDir.toString(),
+              snapshot.overallStatus(),
+              files);
       writeJson(bundleDir.resolve("manifest.json"), manifest);
       persistence.writeLatestDiagnosticManifest(manifest);
       return manifest;

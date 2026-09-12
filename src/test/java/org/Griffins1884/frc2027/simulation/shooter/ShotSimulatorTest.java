@@ -13,19 +13,20 @@ class ShotSimulatorTest {
   void solverProducesFieldSpaceReleaseAndSamples() {
     ShotSimulator simulator = new ShotSimulator(ShotSimulationConfig.defaultConfig());
 
-    SimulatedShot shot = simulator
-        .solveHubShot(
-            new Pose2d(),
-            new Translation2d(),
-            new Rotation2d(),
-            0.2,
-            3500.0,
-            new Translation3d(4.0, 0.0, 2.05),
-            new Translation3d(4.0, 0.0, 2.45),
-            0.35,
-            0.45,
-            0.2)
-        .orElseThrow();
+    SimulatedShot shot =
+        simulator
+            .solveHubShot(
+                new Pose2d(),
+                new Translation2d(),
+                new Rotation2d(),
+                0.2,
+                3500.0,
+                new Translation3d(4.0, 0.0, 2.05),
+                new Translation3d(4.0, 0.0, 2.45),
+                0.35,
+                0.45,
+                0.2)
+            .orElseThrow();
 
     assertTrue(shot.predictedSamplePoses().length > 1);
     assertTrue(shot.releasePose().getZ() > 0.0);

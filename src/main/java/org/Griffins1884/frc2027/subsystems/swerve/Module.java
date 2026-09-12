@@ -20,13 +20,20 @@ public class Module {
   private static final double ANGLE_JUMP_THRESHOLD_RAD = Math.toRadians(35.0);
   private static final double ANGLE_JUMP_MAX_TURN_RATE_RAD_PER_SEC = 1.0;
   private static final double SPEED_RATIO_EPSILON_MPS = 0.15;
-  private static final LoggedTunableNumber krakenDrivekS = new LoggedTunableNumber("Drive/Module/DrivekS");
-  private static final LoggedTunableNumber krakenDrivekV = new LoggedTunableNumber("Drive/Module/DrivekV");
-  private static final LoggedTunableNumber krakenDrivekT = new LoggedTunableNumber("Drive/Module/DrivekT");
-  private static final LoggedTunableNumber krakenDrivekP = new LoggedTunableNumber("Drive/Module/DrivekP");
-  private static final LoggedTunableNumber krakenDrivekD = new LoggedTunableNumber("Drive/Module/DrivekD");
-  private static final LoggedTunableNumber krakenTurnkP = new LoggedTunableNumber("Drive/Module/TurnkP");
-  private static final LoggedTunableNumber krakenTurnkD = new LoggedTunableNumber("Drive/Module/TurnkD");
+  private static final LoggedTunableNumber krakenDrivekS =
+      new LoggedTunableNumber("Drive/Module/DrivekS");
+  private static final LoggedTunableNumber krakenDrivekV =
+      new LoggedTunableNumber("Drive/Module/DrivekV");
+  private static final LoggedTunableNumber krakenDrivekT =
+      new LoggedTunableNumber("Drive/Module/DrivekT");
+  private static final LoggedTunableNumber krakenDrivekP =
+      new LoggedTunableNumber("Drive/Module/DrivekP");
+  private static final LoggedTunableNumber krakenDrivekD =
+      new LoggedTunableNumber("Drive/Module/DrivekD");
+  private static final LoggedTunableNumber krakenTurnkP =
+      new LoggedTunableNumber("Drive/Module/TurnkP");
+  private static final LoggedTunableNumber krakenTurnkD =
+      new LoggedTunableNumber("Drive/Module/TurnkD");
 
   static {
     krakenDrivekS.initDefault(KRAKEN_DRIVE_TORQUE_GAINS.kS().get());
@@ -42,7 +49,8 @@ public class Module {
   private final ModuleIO io;
   private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
   private final int index;
-  private SimpleMotorFeedforward krakenFfModel = new SimpleMotorFeedforward(krakenDrivekS.get(), krakenDrivekV.get());
+  private SimpleMotorFeedforward krakenFfModel =
+      new SimpleMotorFeedforward(krakenDrivekS.get(), krakenDrivekV.get());
 
   private final Alert driveDisconnectedAlert;
   private final Alert turnDisconnectedAlert;
@@ -54,14 +62,15 @@ public class Module {
   private double lastAngleDeltaRad = 0.0;
 
   /** -- GETTER -- Returns the module positions received this cycle. */
-  @Getter
-  private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
+  @Getter private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
 
   public Module(ModuleIO io, int index) {
     this.io = io;
     this.index = index;
-    driveDisconnectedAlert = new Alert("Disconnected drive motor on module " + index + ".", AlertType.kError);
-    turnDisconnectedAlert = new Alert("Disconnected turn motor on module " + index + ".", AlertType.kError);
+    driveDisconnectedAlert =
+        new Alert("Disconnected drive motor on module " + index + ".", AlertType.kError);
+    turnDisconnectedAlert =
+        new Alert("Disconnected turn motor on module " + index + ".", AlertType.kError);
   }
 
   public void addOrchestraInstruments(List<TalonFX> instruments) {
@@ -88,12 +97,14 @@ public class Module {
     double actualSpeedMetersPerSec = getVelocityMetersPerSec();
     double angleErrorRad = MathUtil.angleModulus(desiredAngle.minus(getAngle()).getRadians());
     double speedErrorMetersPerSec = desiredSpeedMetersPerSec - actualSpeedMetersPerSec;
-    double speedRatio = Math.abs(desiredSpeedMetersPerSec) > SPEED_RATIO_EPSILON_MPS
-        ? actualSpeedMetersPerSec / desiredSpeedMetersPerSec
-        : 1.0;
+    double speedRatio =
+        Math.abs(desiredSpeedMetersPerSec) > SPEED_RATIO_EPSILON_MPS
+            ? actualSpeedMetersPerSec / desiredSpeedMetersPerSec
+            : 1.0;
     lastAngleDeltaRad = MathUtil.angleModulus(getAngle().minus(lastTurnPosition).getRadians());
-    boolean suspiciousJump = Math.abs(lastAngleDeltaRad) > ANGLE_JUMP_THRESHOLD_RAD
-        && Math.abs(inputs.turnVelocityRadPerSec) < ANGLE_JUMP_MAX_TURN_RATE_RAD_PER_SEC;
+    boolean suspiciousJump =
+        Math.abs(lastAngleDeltaRad) > ANGLE_JUMP_THRESHOLD_RAD
+            && Math.abs(inputs.turnVelocityRadPerSec) < ANGLE_JUMP_MAX_TURN_RATE_RAD_PER_SEC;
     if (suspiciousJump) {
       angleJumpCount++;
     }
@@ -119,8 +130,9 @@ public class Module {
     int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
     odometryPositions = new SwerveModulePosition[sampleCount];
     for (int i = 0; i < sampleCount; i++) {
-      double positionMeters = getCompensatedDrivePositionRad(inputs.odometryDrivePositionsRad[i], i)
-          * getWheelRadiusMeters();
+      double positionMeters =
+          getCompensatedDrivePositionRad(inputs.odometryDrivePositionsRad[i], i)
+              * getWheelRadiusMeters();
       Rotation2d angle = inputs.odometryTurnPositions[i];
       odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
     }
@@ -130,10 +142,7 @@ public class Module {
     turnDisconnectedAlert.set(!inputs.turnConnected);
   }
 
-  /**
-   * Runs the module with the specified setpoint state. Mutates the state to
-   * optimize it.
-   */
+  /** Runs the module with the specified setpoint state. Mutates the state to optimize it. */
   public void runSetpoint(SwerveModuleState state) {
     desiredSpeedMetersPerSec = state.speedMetersPerSecond;
     desiredAngle = state.angle;
@@ -147,10 +156,7 @@ public class Module {
     }
   }
 
-  /**
-   * Runs the module with the specified output while controlling to zeroRotation
-   * degrees.
-   */
+  /** Runs the module with the specified output while controlling to zeroRotation degrees. */
   public void runCharacterization(double output) {
     desiredSpeedMetersPerSec = 0.0;
     desiredAngle = new Rotation2d();
@@ -294,9 +300,10 @@ public class Module {
   }
 
   private double getCompensatedDrivePositionRad(double rawDrivePositionRad, int sampleIndex) {
-    double steerPositionRotations = sampleIndex >= 0 && sampleIndex < inputs.odometryTurnPositionsRotations.length
-        ? inputs.odometryTurnPositionsRotations[sampleIndex]
-        : inputs.turnPositionRotations;
+    double steerPositionRotations =
+        sampleIndex >= 0 && sampleIndex < inputs.odometryTurnPositionsRotations.length
+            ? inputs.odometryTurnPositionsRotations[sampleIndex]
+            : inputs.turnPositionRotations;
     return rawDrivePositionRad
         - steerPositionRotations
             * 2.0

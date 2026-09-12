@@ -9,19 +9,17 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import org.Griffins1884.frc2027.simulation.shooter.ShotSimulationConfig;
 
-/**
- * Builds field-space turret component poses for AdvantageScope visualization.
- */
+/** Builds field-space turret component poses for AdvantageScope visualization. */
 public final class TurretComponentPublisher {
-  private TurretComponentPublisher() {
-  }
+  private TurretComponentPublisher() {}
 
   public static Pose2d createPose2d(
       Pose2d robotPose, Rotation2d turretYaw, ShotSimulationConfig config) {
     Translation3d mount = config != null ? config.turretMountMeters() : new Translation3d();
-    Translation2d fieldTranslation = new Translation2d(mount.getX(), mount.getY())
-        .rotateBy(robotPose.getRotation())
-        .plus(robotPose.getTranslation());
+    Translation2d fieldTranslation =
+        new Translation2d(mount.getX(), mount.getY())
+            .rotateBy(robotPose.getRotation())
+            .plus(robotPose.getTranslation());
     return new Pose2d(fieldTranslation, robotPose.getRotation().plus(turretYaw));
   }
 
@@ -42,9 +40,10 @@ public final class TurretComponentPublisher {
   }
 
   static Translation3d rotateIntoField(Pose2d robotPose, Translation3d robotRelativeTranslation) {
-    Translation2d fieldXY = new Translation2d(robotRelativeTranslation.getX(), robotRelativeTranslation.getY())
-        .rotateBy(robotPose.getRotation())
-        .plus(robotPose.getTranslation());
+    Translation2d fieldXY =
+        new Translation2d(robotRelativeTranslation.getX(), robotRelativeTranslation.getY())
+            .rotateBy(robotPose.getRotation())
+            .plus(robotPose.getTranslation());
     return new Translation3d(fieldXY.getX(), fieldXY.getY(), robotRelativeTranslation.getZ());
   }
 }

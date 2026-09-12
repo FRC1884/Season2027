@@ -96,11 +96,9 @@ public record MechanismDefinition(
     CHARACTERIZATION
   }
 
-  public record PIDConfig(double kP, double kI, double kD) {
-  }
+  public record PIDConfig(double kP, double kI, double kD) {}
 
-  public record FeedforwardConfig(double kS, double kG, double kV, double kA) {
-  }
+  public record FeedforwardConfig(double kS, double kG, double kV, double kA) {}
 
   public record MotionProfileConfig(double maxVelocity, double maxAcceleration, double jerk) {
     public MotionProfileConfig {
@@ -182,7 +180,8 @@ public record MechanismDefinition(
     public MotorGroupConfig {
       controllerType = Objects.requireNonNull(controllerType, "controllerType");
       canBus = canBus != null ? canBus : "";
-      motors = Collections.unmodifiableList(new ArrayList<>(Objects.requireNonNull(motors, "motors")));
+      motors =
+          Collections.unmodifiableList(new ArrayList<>(Objects.requireNonNull(motors, "motors")));
       if (motors.isEmpty()) {
         throw new IllegalArgumentException("motors must not be empty");
       }
@@ -192,7 +191,8 @@ public record MechanismDefinition(
       if (gearRatio <= 0.0) {
         throw new IllegalArgumentException("gearRatio must be > 0");
       }
-      feedbackSensorType = feedbackSensorType != null ? feedbackSensorType : FeedbackSensorType.INTERNAL;
+      feedbackSensorType =
+          feedbackSensorType != null ? feedbackSensorType : FeedbackSensorType.INTERNAL;
       neutralMode = neutralMode != null ? neutralMode : NeutralMode.BRAKE;
       if (voltageCompensationEnabled && voltageCompSaturationVolts <= 0.0) {
         throw new IllegalArgumentException("voltageCompSaturationVolts must be > 0 when enabled");
@@ -300,12 +300,13 @@ public record MechanismDefinition(
     }
 
     public static TelemetryConfig defaults() {
-      EnumSet<MechanismTelemetry.Signal> defaultSignals = EnumSet.of(
-          MechanismTelemetry.Signal.IDENTITY,
-          MechanismTelemetry.Signal.CONNECTION,
-          MechanismTelemetry.Signal.FAULTS,
-          MechanismTelemetry.Signal.HEALTH,
-          MechanismTelemetry.Signal.TARGET);
+      EnumSet<MechanismTelemetry.Signal> defaultSignals =
+          EnumSet.of(
+              MechanismTelemetry.Signal.IDENTITY,
+              MechanismTelemetry.Signal.CONNECTION,
+              MechanismTelemetry.Signal.FAULTS,
+              MechanismTelemetry.Signal.HEALTH,
+              MechanismTelemetry.Signal.TARGET);
       return new TelemetryConfig(defaultSignals, defaultSignals, true, true);
     }
 
@@ -342,10 +343,7 @@ public record MechanismDefinition(
     }
   }
 
-  /**
-   * Small fluent builder so new mechanisms can be declared without giant
-   * constructors.
-   */
+  /** Small fluent builder so new mechanisms can be declared without giant constructors. */
   public static final class Builder {
     private final String key;
     private final String displayName;

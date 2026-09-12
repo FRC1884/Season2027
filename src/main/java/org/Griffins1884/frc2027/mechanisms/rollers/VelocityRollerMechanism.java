@@ -32,16 +32,13 @@ import org.littletonrobotics.junction.Logger;
 /**
  * Mechanism-backed replacement for the old generic velocity roller base.
  *
- * <p>
- * This still uses the legacy roller IO contract during migration, but the
- * runtime metadata,
+ * <p>This still uses the legacy roller IO contract during migration, but the runtime metadata,
  * validation, and logging policy now flow through the new mechanism layer.
  */
 public abstract class VelocityRollerMechanism<G extends VelocityRollerMechanism.VelocityGoal>
     extends SubsystemBase {
   public record VelocityRollerConfig(
-      GlobalConstants.Gains gains, double velocityTolerance, double maxVoltage) {
-  }
+      GlobalConstants.Gains gains, double velocityTolerance, double maxVoltage) {}
 
   public interface VelocityGoal {
     DoubleSupplier getVelocitySupplier();
@@ -53,7 +50,8 @@ public abstract class VelocityRollerMechanism<G extends VelocityRollerMechanism.
   private final MechanismDefinition definition;
   private final String mechanismKey;
   private final MechanismRollerIO io;
-  protected final MechanismRollerIOInputsAutoLogged inputs = new MechanismRollerIOInputsAutoLogged();
+  protected final MechanismRollerIOInputsAutoLogged inputs =
+      new MechanismRollerIOInputsAutoLogged();
   private final Alert disconnected;
   protected final Timer stateTimer = new Timer();
   private G lastGoal;
@@ -104,21 +102,24 @@ public abstract class VelocityRollerMechanism<G extends VelocityRollerMechanism.
     feedforward = new SimpleMotorFeedforward(config.gains().kS().get(), config.gains().kV().get());
     feedforwardKa = config.gains().kA().get();
     lastTimestampSec = Timer.getFPGATimestamp();
-    Consumer<SysIdRoutineLog> sysIdLog = log -> log.motor(name)
-        .voltage(Volts.of(inputs.appliedVoltage))
-        .angularVelocity(RadiansPerSecond.of(inputs.velocityRadsPerSec))
-        .angularPosition(Radian.of(inputs.positionRads));
-    sysIdRoutine = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            null,
-            null,
-            Seconds.of(4),
-            state -> {
-              if (RuntimeModeManager.isDebugEnabled(mechanismKey)) {
-                Logger.recordOutput("Rollers/" + name + "/SysIdState", state.toString());
-              }
-            }),
-        new SysIdRoutine.Mechanism(voltage -> io.runVolts(voltage.in(Volts)), sysIdLog, this));
+    Consumer<SysIdRoutineLog> sysIdLog =
+        log ->
+            log.motor(name)
+                .voltage(Volts.of(inputs.appliedVoltage))
+                .angularVelocity(RadiansPerSecond.of(inputs.velocityRadsPerSec))
+                .angularPosition(Radian.of(inputs.positionRads));
+    sysIdRoutine =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                null,
+                Seconds.of(4),
+                state -> {
+                  if (RuntimeModeManager.isDebugEnabled(mechanismKey)) {
+                    Logger.recordOutput("Rollers/" + name + "/SysIdState", state.toString());
+                  }
+                }),
+            new SysIdRoutine.Mechanism(voltage -> io.runVolts(voltage.in(Volts)), sysIdLog, this));
 
     disconnected = new Alert(name + " motor disconnected!", AlertType.kWarning);
     stateTimer.start();
@@ -157,7 +158,8 @@ public abstract class VelocityRollerMechanism<G extends VelocityRollerMechanism.
     }
 
     double measuredVelocity = inputs.velocity;
-    double requestedVelocity = manualGoalActive ? manualGoalVelocity : getGoal().getVelocitySupplier().getAsDouble();
+    double requestedVelocity =
+        manualGoalActive ? manualGoalVelocity : getGoal().getVelocitySupplier().getAsDouble();
     goalVelocity = requestedVelocity;
 
     GlobalConstants.Gains activeGains = getActiveGains(requestedVelocity);
@@ -166,7 +168,8 @@ public abstract class VelocityRollerMechanism<G extends VelocityRollerMechanism.
     }
     String gainsLabel = getActiveGainsLabel(requestedVelocity);
     boolean onboardVelocityControl = io.supportsVelocityControl();
-    activeVelocityControlSlot = sanitizeVelocityControlSlot(getActiveVelocityControlSlot(requestedVelocity));
+    activeVelocityControlSlot =
+        sanitizeVelocityControlSlot(getActiveVelocityControlSlot(requestedVelocity));
 
     logOutputs(
         anyDisconnected,
@@ -223,17 +226,21 @@ public abstract class VelocityRollerMechanism<G extends VelocityRollerMechanism.
     double goalAccelRadPerSec2 = (goalVelocityRadPerSec - lastGoalVelocityRadPerSec) / dtSec;
     lastGoalVelocityRadPerSec = goalVelocityRadPerSec;
 
-    double feedforwardVolts = feedforward.calculate(goalVelocityRadPerSec) + feedforwardKa * goalAccelRadPerSec2;
-    double additionalCompensationVolts = getAdditionalCompensationVolts(goalVelocity, measuredVelocity);
+    double feedforwardVolts =
+        feedforward.calculate(goalVelocityRadPerSec) + feedforwardKa * goalAccelRadPerSec2;
+    double additionalCompensationVolts =
+        getAdditionalCompensationVolts(goalVelocity, measuredVelocity);
     double totalFeedforwardVolts = feedforwardVolts + additionalCompensationVolts;
-    double clampedFeedforwardVolts = MathUtil.clamp(totalFeedforwardVolts, -config.maxVoltage(), config.maxVoltage());
+    double clampedFeedforwardVolts =
+        MathUtil.clamp(totalFeedforwardVolts, -config.maxVoltage(), config.maxVoltage());
 
     if (onboardVelocityControl) {
       io.runVelocity(goalVelocity, clampedFeedforwardVolts);
     } else {
       double pidOutput = pidController.calculate(measuredVelocity, goalVelocity);
-      double outputVoltage = MathUtil.clamp(
-          pidOutput + totalFeedforwardVolts, -config.maxVoltage(), config.maxVoltage());
+      double outputVoltage =
+          MathUtil.clamp(
+              pidOutput + totalFeedforwardVolts, -config.maxVoltage(), config.maxVoltage());
       io.runVolts(outputVoltage);
     }
 
@@ -395,7 +402,7 @@ public abstract class VelocityRollerMechanism<G extends VelocityRollerMechanism.
       return;
     }
     io.setVelocityPID(slot, kP, kI, kD);
-    onboardVelocityPidBySlot.put(slot, new double[] { kP, kI, kD });
+    onboardVelocityPidBySlot.put(slot, new double[] {kP, kI, kD});
   }
 
   private static int sanitizeVelocityControlSlot(int slot) {

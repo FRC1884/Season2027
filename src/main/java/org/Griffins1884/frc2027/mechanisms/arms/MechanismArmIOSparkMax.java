@@ -34,8 +34,10 @@ public class MechanismArmIOSparkMax implements MechanismArmIO {
     this.positionCoefficient = positionCoefficient;
 
     motors = new SparkMax[ids.length];
-    config = new SparkMaxConfig().smartCurrentLimit(currentLimitAmps).idleMode(brake ? kBrake : kCoast);
-    config.softLimit
+    config =
+        new SparkMaxConfig().smartCurrentLimit(currentLimitAmps).idleMode(brake ? kBrake : kCoast);
+    config
+        .softLimit
         .forwardSoftLimit(forwardLimit / positionCoefficient)
         .reverseSoftLimit(reverseLimit / positionCoefficient);
 
@@ -63,9 +65,10 @@ public class MechanismArmIOSparkMax implements MechanismArmIO {
       for (int i = 0; i < motors.length; i++) {
         inputs.connected[i] = true;
       }
-      double positionRotations = (absoluteEncoder != null) ? absoluteEncoder.getPosition()
-          : relativeEncoder.getPosition();
-      double velocityRpm = (absoluteEncoder != null) ? absoluteEncoder.getVelocity() : relativeEncoder.getVelocity();
+      double positionRotations =
+          (absoluteEncoder != null) ? absoluteEncoder.getPosition() : relativeEncoder.getPosition();
+      double velocityRpm =
+          (absoluteEncoder != null) ? absoluteEncoder.getVelocity() : relativeEncoder.getVelocity();
       inputs.encoderPosition = positionRotations * positionCoefficient;
       inputs.velocity = velocityRpm * positionCoefficient / 60.0;
       inputs.appliedVoltage = leader.getAppliedOutput() * leader.getBusVoltage();

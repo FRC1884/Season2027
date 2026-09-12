@@ -5,31 +5,27 @@ import java.util.Optional;
 /**
  * Projectile-based shot solver for an FRC-style robot shooter.
  *
- * <p>
- * All units are SI: meters, seconds, radians. Angles returned are in degrees.
+ * <p>All units are SI: meters, seconds, radians. Angles returned are in degrees.
  *
- * <p>
- * Physics model (no drag):
+ * <p>Physics model (no drag):
  *
  * <pre>
  * Δh = x·tan(θ) − (g·x²) / (2·v²·cos²(θ))
  * v = sqrt( (g·x²) / (2·cos²(θ)·(x·tan(θ) − Δh)) )
  * </pre>
  *
- * <p>
- * Calibration:
+ * <p>Calibration:
  *
  * <ol>
- * <li>Lock the pivot at a known angle (ex: 45°).
- * <li>Shoot from several distances and record the RPM used.
- * <li>Compute required exit velocity v using the physics equation.
- * <li>Fit a linear regression from RPM → v.
- * <li>Paste kV (slope) and kS (intercept) below.
+ *   <li>Lock the pivot at a known angle (ex: 45°).
+ *   <li>Shoot from several distances and record the RPM used.
+ *   <li>Compute required exit velocity v using the physics equation.
+ *   <li>Fit a linear regression from RPM → v.
+ *   <li>Paste kV (slope) and kS (intercept) below.
  * </ol>
  */
 public final class ShotSolver {
-  private ShotSolver() {
-  }
+  private ShotSolver() {}
 
   // ==== CALIBRATION CONSTANTS (TEAM MUST TUNE) ====
   /** meters/sec per RPM */
@@ -51,8 +47,7 @@ public final class ShotSolver {
   private static final double GRAVITY = 9.80665;
   private static final double EPSILON = 1e-9;
 
-  public record ShotSolution(double angleDegrees, double rpm) {
-  }
+  public record ShotSolution(double angleDegrees, double rpm) {}
 
   /** Solve for the default target height. */
   public static ShotSolution solveForDistance(double distanceMeters) {

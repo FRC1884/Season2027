@@ -96,80 +96,111 @@ public class OperatorBoardIOServer implements OperatorBoardIO {
 
   public OperatorBoardIOServer() {
     var inputTable = NetworkTableInstance.getDefault().getTable(OperatorBoardContract.TO_ROBOT);
-    requestedStateIn = inputTable
-        .getStringTopic(OperatorBoardContract.REQUESTED_STATE)
-        .subscribe("", PubSubOption.keepDuplicates(true));
-    autoStateEnableIn = inputTable
-        .getBooleanTopic(OperatorBoardContract.AUTO_STATE_ENABLE)
-        .subscribe(false, PubSubOption.keepDuplicates(true));
-    playSwerveMusicIn = inputTable
-        .getBooleanTopic(OperatorBoardContract.PLAY_SWERVE_MUSIC)
-        .subscribe(false, PubSubOption.keepDuplicates(true));
-    stopSwerveMusicIn = inputTable
-        .getBooleanTopic(OperatorBoardContract.STOP_SWERVE_MUSIC)
-        .subscribe(false, PubSubOption.keepDuplicates(true));
-    swerveMusicVolumeIn = inputTable
-        .getDoubleTopic(OperatorBoardContract.SWERVE_MUSIC_VOLUME)
-        .subscribe(Double.NaN, PubSubOption.keepDuplicates(true));
-    rollLogsIn = inputTable
-        .getBooleanTopic(OperatorBoardContract.ROLL_LOGS)
-        .subscribe(false, PubSubOption.keepDuplicates(true));
-    cleanLogsIn = inputTable
-        .getBooleanTopic(OperatorBoardContract.CLEAN_LOGS)
-        .subscribe(false, PubSubOption.keepDuplicates(true));
-    requestIntakeDeployRezeroIn = inputTable
-        .getBooleanTopic(OperatorBoardContract.REQUEST_INTAKE_DEPLOY_REZERO)
-        .subscribe(false, PubSubOption.keepDuplicates(true));
-    cancelIntakeDeployRezeroIn = inputTable
-        .getBooleanTopic(OperatorBoardContract.CANCEL_INTAKE_DEPLOY_REZERO)
-        .subscribe(false, PubSubOption.keepDuplicates(true));
-    requestManualIntakeDeployZeroSeekIn = inputTable
-        .getBooleanTopic(OperatorBoardContract.REQUEST_MANUAL_INTAKE_DEPLOY_ZERO_SEEK)
-        .subscribe(false, PubSubOption.keepDuplicates(true));
-    cancelManualIntakeDeployZeroSeekIn = inputTable
-        .getBooleanTopic(OperatorBoardContract.CANCEL_MANUAL_INTAKE_DEPLOY_ZERO_SEEK)
-        .subscribe(false, PubSubOption.keepDuplicates(true));
-    selectedAutoIdIn = inputTable
-        .getStringTopic(OperatorBoardContract.SELECTED_AUTO_ID)
-        .subscribe("", PubSubOption.keepDuplicates(true));
-    autoQueueSpecIn = inputTable
-        .getStringTopic(OperatorBoardContract.AUTO_QUEUE_SPEC)
-        .subscribe("", PubSubOption.keepDuplicates(true));
-    autoQueueCommandIn = inputTable
-        .getStringTopic(OperatorBoardContract.AUTO_QUEUE_COMMAND)
-        .subscribe("", PubSubOption.keepDuplicates(true));
-    runtimeProfileSpecIn = inputTable
-        .getStringTopic(OperatorBoardContract.RUNTIME_PROFILE_SPEC)
-        .subscribe("", PubSubOption.keepDuplicates(true));
-    applyRuntimeProfileIn = inputTable
-        .getBooleanTopic(OperatorBoardContract.APPLY_RUNTIME_PROFILE)
-        .subscribe(false, PubSubOption.keepDuplicates(true));
-    resetRuntimeProfileIn = inputTable
-        .getBooleanTopic(OperatorBoardContract.RESET_RUNTIME_PROFILE)
-        .subscribe(false, PubSubOption.keepDuplicates(true));
+    requestedStateIn =
+        inputTable
+            .getStringTopic(OperatorBoardContract.REQUESTED_STATE)
+            .subscribe("", PubSubOption.keepDuplicates(true));
+    autoStateEnableIn =
+        inputTable
+            .getBooleanTopic(OperatorBoardContract.AUTO_STATE_ENABLE)
+            .subscribe(false, PubSubOption.keepDuplicates(true));
+    playSwerveMusicIn =
+        inputTable
+            .getBooleanTopic(OperatorBoardContract.PLAY_SWERVE_MUSIC)
+            .subscribe(false, PubSubOption.keepDuplicates(true));
+    stopSwerveMusicIn =
+        inputTable
+            .getBooleanTopic(OperatorBoardContract.STOP_SWERVE_MUSIC)
+            .subscribe(false, PubSubOption.keepDuplicates(true));
+    swerveMusicVolumeIn =
+        inputTable
+            .getDoubleTopic(OperatorBoardContract.SWERVE_MUSIC_VOLUME)
+            .subscribe(Double.NaN, PubSubOption.keepDuplicates(true));
+    rollLogsIn =
+        inputTable
+            .getBooleanTopic(OperatorBoardContract.ROLL_LOGS)
+            .subscribe(false, PubSubOption.keepDuplicates(true));
+    cleanLogsIn =
+        inputTable
+            .getBooleanTopic(OperatorBoardContract.CLEAN_LOGS)
+            .subscribe(false, PubSubOption.keepDuplicates(true));
+    requestIntakeDeployRezeroIn =
+        inputTable
+            .getBooleanTopic(OperatorBoardContract.REQUEST_INTAKE_DEPLOY_REZERO)
+            .subscribe(false, PubSubOption.keepDuplicates(true));
+    cancelIntakeDeployRezeroIn =
+        inputTable
+            .getBooleanTopic(OperatorBoardContract.CANCEL_INTAKE_DEPLOY_REZERO)
+            .subscribe(false, PubSubOption.keepDuplicates(true));
+    requestManualIntakeDeployZeroSeekIn =
+        inputTable
+            .getBooleanTopic(OperatorBoardContract.REQUEST_MANUAL_INTAKE_DEPLOY_ZERO_SEEK)
+            .subscribe(false, PubSubOption.keepDuplicates(true));
+    cancelManualIntakeDeployZeroSeekIn =
+        inputTable
+            .getBooleanTopic(OperatorBoardContract.CANCEL_MANUAL_INTAKE_DEPLOY_ZERO_SEEK)
+            .subscribe(false, PubSubOption.keepDuplicates(true));
+    selectedAutoIdIn =
+        inputTable
+            .getStringTopic(OperatorBoardContract.SELECTED_AUTO_ID)
+            .subscribe("", PubSubOption.keepDuplicates(true));
+    autoQueueSpecIn =
+        inputTable
+            .getStringTopic(OperatorBoardContract.AUTO_QUEUE_SPEC)
+            .subscribe("", PubSubOption.keepDuplicates(true));
+    autoQueueCommandIn =
+        inputTable
+            .getStringTopic(OperatorBoardContract.AUTO_QUEUE_COMMAND)
+            .subscribe("", PubSubOption.keepDuplicates(true));
+    runtimeProfileSpecIn =
+        inputTable
+            .getStringTopic(OperatorBoardContract.RUNTIME_PROFILE_SPEC)
+            .subscribe("", PubSubOption.keepDuplicates(true));
+    applyRuntimeProfileIn =
+        inputTable
+            .getBooleanTopic(OperatorBoardContract.APPLY_RUNTIME_PROFILE)
+            .subscribe(false, PubSubOption.keepDuplicates(true));
+    resetRuntimeProfileIn =
+        inputTable
+            .getBooleanTopic(OperatorBoardContract.RESET_RUNTIME_PROFILE)
+            .subscribe(false, PubSubOption.keepDuplicates(true));
 
-    var outputTable = NetworkTableInstance.getDefault().getTable(OperatorBoardContract.TO_DASHBOARD);
+    var outputTable =
+        NetworkTableInstance.getDefault().getTable(OperatorBoardContract.TO_DASHBOARD);
     requestedStateOut = outputTable.getStringTopic(OperatorBoardContract.REQUESTED_STATE).publish();
     currentStateOut = outputTable.getStringTopic(OperatorBoardContract.CURRENT_STATE).publish();
-    requestAcceptedOut = outputTable.getBooleanTopic(OperatorBoardContract.REQUEST_ACCEPTED).publish();
+    requestAcceptedOut =
+        outputTable.getBooleanTopic(OperatorBoardContract.REQUEST_ACCEPTED).publish();
     requestReasonOut = outputTable.getStringTopic(OperatorBoardContract.REQUEST_REASON).publish();
     targetTypeOut = outputTable.getStringTopic(OperatorBoardContract.TARGET_TYPE).publish();
     targetPoseOut = outputTable.getDoubleArrayTopic(OperatorBoardContract.TARGET_POSE).publish();
-    targetPoseValidOut = outputTable.getBooleanTopic(OperatorBoardContract.TARGET_POSE_VALID).publish();
+    targetPoseValidOut =
+        outputTable.getBooleanTopic(OperatorBoardContract.TARGET_POSE_VALID).publish();
     robotPoseOut = outputTable.getDoubleArrayTopic(OperatorBoardContract.ROBOT_POSE).publish();
-    autoQueueStateOut = outputTable.getStringTopic(OperatorBoardContract.AUTO_QUEUE_STATE).publish();
-    autoQueuePreviewPoseOut = outputTable.getDoubleArrayTopic(OperatorBoardContract.AUTO_QUEUE_PREVIEW_POSE).publish();
-    autoQueuePreviewPoseValidOut = outputTable.getBooleanTopic(OperatorBoardContract.AUTO_QUEUE_PREVIEW_POSE_VALID)
-        .publish();
-    selectedAutoStateOut = outputTable.getStringTopic(OperatorBoardContract.SELECTED_AUTO_STATE).publish();
-    runtimeProfileStateOut = outputTable.getStringTopic(OperatorBoardContract.RUNTIME_PROFILE_STATE).publish();
-    runtimeProfileStatusOut = outputTable.getStringTopic(OperatorBoardContract.RUNTIME_PROFILE_STATUS).publish();
-    systemCheckStateOut = outputTable.getStringTopic(OperatorBoardContract.SYSTEM_CHECK_STATE).publish();
-    autoCheckStateOut = outputTable.getStringTopic(OperatorBoardContract.AUTO_CHECK_STATE).publish();
-    autoQuickRunStateOut = outputTable.getStringTopic(OperatorBoardContract.AUTO_QUICK_RUN_STATE).publish();
-    ntDiagnosticsStateOut = outputTable.getStringTopic(OperatorBoardContract.NT_DIAGNOSTICS_STATE).publish();
-    mechanismStatusStateOut = outputTable.getStringTopic(OperatorBoardContract.MECHANISM_STATUS_STATE).publish();
-    actionTraceStateOut = outputTable.getStringTopic(OperatorBoardContract.ACTION_TRACE_STATE).publish();
+    autoQueueStateOut =
+        outputTable.getStringTopic(OperatorBoardContract.AUTO_QUEUE_STATE).publish();
+    autoQueuePreviewPoseOut =
+        outputTable.getDoubleArrayTopic(OperatorBoardContract.AUTO_QUEUE_PREVIEW_POSE).publish();
+    autoQueuePreviewPoseValidOut =
+        outputTable.getBooleanTopic(OperatorBoardContract.AUTO_QUEUE_PREVIEW_POSE_VALID).publish();
+    selectedAutoStateOut =
+        outputTable.getStringTopic(OperatorBoardContract.SELECTED_AUTO_STATE).publish();
+    runtimeProfileStateOut =
+        outputTable.getStringTopic(OperatorBoardContract.RUNTIME_PROFILE_STATE).publish();
+    runtimeProfileStatusOut =
+        outputTable.getStringTopic(OperatorBoardContract.RUNTIME_PROFILE_STATUS).publish();
+    systemCheckStateOut =
+        outputTable.getStringTopic(OperatorBoardContract.SYSTEM_CHECK_STATE).publish();
+    autoCheckStateOut =
+        outputTable.getStringTopic(OperatorBoardContract.AUTO_CHECK_STATE).publish();
+    autoQuickRunStateOut =
+        outputTable.getStringTopic(OperatorBoardContract.AUTO_QUICK_RUN_STATE).publish();
+    ntDiagnosticsStateOut =
+        outputTable.getStringTopic(OperatorBoardContract.NT_DIAGNOSTICS_STATE).publish();
+    mechanismStatusStateOut =
+        outputTable.getStringTopic(OperatorBoardContract.MECHANISM_STATUS_STATE).publish();
+    actionTraceStateOut =
+        outputTable.getStringTopic(OperatorBoardContract.ACTION_TRACE_STATE).publish();
     hasBallOut = outputTable.getBooleanTopic(OperatorBoardContract.HAS_BALL).publish();
     dsModeOut = outputTable.getStringTopic(OperatorBoardContract.DS_MODE).publish();
     batteryVoltageOut = outputTable.getDoubleTopic(OperatorBoardContract.BATTERY_VOLTAGE).publish();
@@ -177,57 +208,81 @@ public class OperatorBoardIOServer implements OperatorBoardIO {
     allianceOut = outputTable.getStringTopic(OperatorBoardContract.ALLIANCE).publish();
     matchTimeOut = outputTable.getDoubleTopic(OperatorBoardContract.MATCH_TIME).publish();
     hubTimeframeOut = outputTable.getStringTopic(OperatorBoardContract.HUB_TIMEFRAME).publish();
-    hubStatusValidOut = outputTable.getBooleanTopic(OperatorBoardContract.HUB_STATUS_VALID).publish();
+    hubStatusValidOut =
+        outputTable.getBooleanTopic(OperatorBoardContract.HUB_STATUS_VALID).publish();
     redHubStatusOut = outputTable.getStringTopic(OperatorBoardContract.RED_HUB_STATUS).publish();
     blueHubStatusOut = outputTable.getStringTopic(OperatorBoardContract.BLUE_HUB_STATUS).publish();
     ourHubStatusOut = outputTable.getStringTopic(OperatorBoardContract.OUR_HUB_STATUS).publish();
     ourHubActiveOut = outputTable.getBooleanTopic(OperatorBoardContract.OUR_HUB_ACTIVE).publish();
-    autoWinnerAllianceOut = outputTable.getStringTopic(OperatorBoardContract.AUTO_WINNER_ALLIANCE).publish();
+    autoWinnerAllianceOut =
+        outputTable.getStringTopic(OperatorBoardContract.AUTO_WINNER_ALLIANCE).publish();
     gameDataRawOut = outputTable.getStringTopic(OperatorBoardContract.GAME_DATA_RAW).publish();
-    hubRecommendationOut = outputTable.getStringTopic(OperatorBoardContract.HUB_RECOMMENDATION).publish();
-    turretAtSetpointOut = outputTable.getBooleanTopic(OperatorBoardContract.TURRET_AT_SETPOINT).publish();
+    hubRecommendationOut =
+        outputTable.getStringTopic(OperatorBoardContract.HUB_RECOMMENDATION).publish();
+    turretAtSetpointOut =
+        outputTable.getBooleanTopic(OperatorBoardContract.TURRET_AT_SETPOINT).publish();
     turretModeOut = outputTable.getStringTopic(OperatorBoardContract.TURRET_MODE).publish();
-    sysIdDrivePhaseOut = outputTable.getStringTopic(OperatorBoardContract.SYSID_DRIVE_PHASE).publish();
-    sysIdDriveActiveOut = outputTable.getBooleanTopic(OperatorBoardContract.SYSID_DRIVE_ACTIVE).publish();
-    sysIdDriveLastCompletedOut = outputTable.getDoubleTopic(OperatorBoardContract.SYSID_DRIVE_LAST_COMPLETED).publish();
-    sysIdDriveLastCompletedPhaseOut = outputTable
-        .getStringTopic(OperatorBoardContract.SYSID_DRIVE_LAST_COMPLETED_PHASE)
-        .publish();
-    sysIdTurnPhaseOut = outputTable.getStringTopic(OperatorBoardContract.SYSID_TURN_PHASE).publish();
-    sysIdTurnActiveOut = outputTable.getBooleanTopic(OperatorBoardContract.SYSID_TURN_ACTIVE).publish();
-    sysIdTurnLastCompletedOut = outputTable.getDoubleTopic(OperatorBoardContract.SYSID_TURN_LAST_COMPLETED).publish();
-    sysIdTurnLastCompletedPhaseOut = outputTable.getStringTopic(OperatorBoardContract.SYSID_TURN_LAST_COMPLETED_PHASE)
-        .publish();
+    sysIdDrivePhaseOut =
+        outputTable.getStringTopic(OperatorBoardContract.SYSID_DRIVE_PHASE).publish();
+    sysIdDriveActiveOut =
+        outputTable.getBooleanTopic(OperatorBoardContract.SYSID_DRIVE_ACTIVE).publish();
+    sysIdDriveLastCompletedOut =
+        outputTable.getDoubleTopic(OperatorBoardContract.SYSID_DRIVE_LAST_COMPLETED).publish();
+    sysIdDriveLastCompletedPhaseOut =
+        outputTable
+            .getStringTopic(OperatorBoardContract.SYSID_DRIVE_LAST_COMPLETED_PHASE)
+            .publish();
+    sysIdTurnPhaseOut =
+        outputTable.getStringTopic(OperatorBoardContract.SYSID_TURN_PHASE).publish();
+    sysIdTurnActiveOut =
+        outputTable.getBooleanTopic(OperatorBoardContract.SYSID_TURN_ACTIVE).publish();
+    sysIdTurnLastCompletedOut =
+        outputTable.getDoubleTopic(OperatorBoardContract.SYSID_TURN_LAST_COMPLETED).publish();
+    sysIdTurnLastCompletedPhaseOut =
+        outputTable.getStringTopic(OperatorBoardContract.SYSID_TURN_LAST_COMPLETED_PHASE).publish();
     visionStatusOut = outputTable.getStringTopic(OperatorBoardContract.VISION_STATUS).publish();
-    visionPoseVisibleOut = outputTable.getBooleanTopic(OperatorBoardContract.VISION_POSE_VISIBLE).publish();
+    visionPoseVisibleOut =
+        outputTable.getBooleanTopic(OperatorBoardContract.VISION_POSE_VISIBLE).publish();
     shootEnabledOut = outputTable.getBooleanTopic(OperatorBoardContract.SHOOT_ENABLED).publish();
-    intakeRollersHeldOut = outputTable.getBooleanTopic(OperatorBoardContract.INTAKE_ROLLERS_HELD).publish();
-    intakeDeployedOut = outputTable.getBooleanTopic(OperatorBoardContract.INTAKE_DEPLOYED).publish();
-    teleopOverrideActiveOut = outputTable.getBooleanTopic(OperatorBoardContract.TELEOP_OVERRIDE_ACTIVE).publish();
-    driverControllerControlActiveOut = outputTable
-        .getBooleanTopic(OperatorBoardContract.DRIVER_CONTROLLER_CONTROL_ACTIVE)
-        .publish();
-    shootReadyLatchedOut = outputTable.getBooleanTopic(OperatorBoardContract.SHOOT_READY_LATCHED).publish();
-    intakeDeployRezeroInProgressOut = outputTable
-        .getBooleanTopic(OperatorBoardContract.INTAKE_DEPLOY_REZERO_IN_PROGRESS)
-        .publish();
-    manualIntakeDeployZeroSeekInProgressOut = outputTable
-        .getBooleanTopic(OperatorBoardContract.MANUAL_INTAKE_DEPLOY_ZERO_SEEK_IN_PROGRESS)
-        .publish();
+    intakeRollersHeldOut =
+        outputTable.getBooleanTopic(OperatorBoardContract.INTAKE_ROLLERS_HELD).publish();
+    intakeDeployedOut =
+        outputTable.getBooleanTopic(OperatorBoardContract.INTAKE_DEPLOYED).publish();
+    teleopOverrideActiveOut =
+        outputTable.getBooleanTopic(OperatorBoardContract.TELEOP_OVERRIDE_ACTIVE).publish();
+    driverControllerControlActiveOut =
+        outputTable
+            .getBooleanTopic(OperatorBoardContract.DRIVER_CONTROLLER_CONTROL_ACTIVE)
+            .publish();
+    shootReadyLatchedOut =
+        outputTable.getBooleanTopic(OperatorBoardContract.SHOOT_READY_LATCHED).publish();
+    intakeDeployRezeroInProgressOut =
+        outputTable
+            .getBooleanTopic(OperatorBoardContract.INTAKE_DEPLOY_REZERO_IN_PROGRESS)
+            .publish();
+    manualIntakeDeployZeroSeekInProgressOut =
+        outputTable
+            .getBooleanTopic(OperatorBoardContract.MANUAL_INTAKE_DEPLOY_ZERO_SEEK_IN_PROGRESS)
+            .publish();
     logRollStatusOut = outputTable.getStringTopic(OperatorBoardContract.LOG_ROLL_STATUS).publish();
-    logRollLastTimestampOut = outputTable.getDoubleTopic(OperatorBoardContract.LOG_ROLL_LAST_TIMESTAMP).publish();
+    logRollLastTimestampOut =
+        outputTable.getDoubleTopic(OperatorBoardContract.LOG_ROLL_LAST_TIMESTAMP).publish();
     logRollCountOut = outputTable.getIntegerTopic(OperatorBoardContract.LOG_ROLL_COUNT).publish();
-    logCleanStatusOut = outputTable.getStringTopic(OperatorBoardContract.LOG_CLEAN_STATUS).publish();
-    logCleanLastTimestampOut = outputTable.getDoubleTopic(OperatorBoardContract.LOG_CLEAN_LAST_TIMESTAMP).publish();
+    logCleanStatusOut =
+        outputTable.getStringTopic(OperatorBoardContract.LOG_CLEAN_STATUS).publish();
+    logCleanLastTimestampOut =
+        outputTable.getDoubleTopic(OperatorBoardContract.LOG_CLEAN_LAST_TIMESTAMP).publish();
     logCleanCountOut = outputTable.getIntegerTopic(OperatorBoardContract.LOG_CLEAN_COUNT).publish();
-    logCleanDeletedEntriesOut = outputTable.getIntegerTopic(OperatorBoardContract.LOG_CLEAN_DELETED_ENTRIES).publish();
+    logCleanDeletedEntriesOut =
+        outputTable.getIntegerTopic(OperatorBoardContract.LOG_CLEAN_DELETED_ENTRIES).publish();
   }
 
   @Override
   public void updateInputs(OperatorBoardIOInputs inputs) {
-    inputs.requestedState = requestedStateIn.readQueue().length > 0
-        ? new String[] { requestedStateIn.get() }
-        : new String[] {};
+    inputs.requestedState =
+        requestedStateIn.readQueue().length > 0
+            ? new String[] {requestedStateIn.get()}
+            : new String[] {};
     TimestampedBoolean[] autoQueue = autoStateEnableIn.readQueue();
     if (autoQueue.length > 0) {
       inputs.autoStateEnableRequested = autoQueue[autoQueue.length - 1].value;
@@ -276,36 +331,44 @@ public class OperatorBoardIOServer implements OperatorBoardIO {
     } else {
       inputs.cancelIntakeDeployRezero = false;
     }
-    TimestampedBoolean[] requestManualZeroSeekQueue = requestManualIntakeDeployZeroSeekIn.readQueue();
+    TimestampedBoolean[] requestManualZeroSeekQueue =
+        requestManualIntakeDeployZeroSeekIn.readQueue();
     if (requestManualZeroSeekQueue.length > 0) {
-      inputs.requestManualIntakeDeployZeroSeek = requestManualZeroSeekQueue[requestManualZeroSeekQueue.length
-          - 1].value;
+      inputs.requestManualIntakeDeployZeroSeek =
+          requestManualZeroSeekQueue[requestManualZeroSeekQueue.length - 1].value;
     } else {
       inputs.requestManualIntakeDeployZeroSeek = false;
     }
     TimestampedBoolean[] cancelManualZeroSeekQueue = cancelManualIntakeDeployZeroSeekIn.readQueue();
     if (cancelManualZeroSeekQueue.length > 0) {
-      inputs.cancelManualIntakeDeployZeroSeek = cancelManualZeroSeekQueue[cancelManualZeroSeekQueue.length - 1].value;
+      inputs.cancelManualIntakeDeployZeroSeek =
+          cancelManualZeroSeekQueue[cancelManualZeroSeekQueue.length - 1].value;
     } else {
       inputs.cancelManualIntakeDeployZeroSeek = false;
     }
     String currentSelectedAutoId = selectedAutoIdIn.get();
-    inputs.selectedAutoId = currentSelectedAutoId == null || currentSelectedAutoId.isBlank()
-        ? new String[] {}
-        : new String[] { currentSelectedAutoId };
-    inputs.autoQueueSpec = autoQueueSpecIn.readQueue().length > 0
-        ? new String[] { autoQueueSpecIn.get() }
-        : new String[] {};
-    inputs.autoQueueCommand = autoQueueCommandIn.readQueue().length > 0
-        ? new String[] { autoQueueCommandIn.get() }
-        : new String[] {};
-    inputs.runtimeProfileSpec = runtimeProfileSpecIn.readQueue().length > 0
-        ? new String[] { runtimeProfileSpecIn.get() }
-        : new String[] {};
+    inputs.selectedAutoId =
+        currentSelectedAutoId == null || currentSelectedAutoId.isBlank()
+            ? new String[] {}
+            : new String[] {currentSelectedAutoId};
+    inputs.autoQueueSpec =
+        autoQueueSpecIn.readQueue().length > 0
+            ? new String[] {autoQueueSpecIn.get()}
+            : new String[] {};
+    inputs.autoQueueCommand =
+        autoQueueCommandIn.readQueue().length > 0
+            ? new String[] {autoQueueCommandIn.get()}
+            : new String[] {};
+    inputs.runtimeProfileSpec =
+        runtimeProfileSpecIn.readQueue().length > 0
+            ? new String[] {runtimeProfileSpecIn.get()}
+            : new String[] {};
     TimestampedBoolean[] applyProfileQueue = applyRuntimeProfileIn.readQueue();
-    inputs.applyRuntimeProfile = applyProfileQueue.length > 0 && applyProfileQueue[applyProfileQueue.length - 1].value;
+    inputs.applyRuntimeProfile =
+        applyProfileQueue.length > 0 && applyProfileQueue[applyProfileQueue.length - 1].value;
     TimestampedBoolean[] resetProfileQueue = resetRuntimeProfileIn.readQueue();
-    inputs.resetRuntimeProfile = resetProfileQueue.length > 0 && resetProfileQueue[resetProfileQueue.length - 1].value;
+    inputs.resetRuntimeProfile =
+        resetProfileQueue.length > 0 && resetProfileQueue[resetProfileQueue.length - 1].value;
   }
 
   @Override

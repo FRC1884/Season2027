@@ -13,15 +13,16 @@ public class MechanismArmIOSim implements MechanismArmIO {
   private double positionOffset = 0.0;
 
   public MechanismArmIOSim(int numMotors, double startingAngle) {
-    sim = new SingleJointedArmSim(
-        DCMotor.getNeoVortex(numMotors),
-        (10 / Units.metersToInches(0.012) / 0.5),
-        1,
-        0.3126232,
-        0,
-        Units.degreesToRadians(110),
-        true,
-        startingAngle);
+    sim =
+        new SingleJointedArmSim(
+            DCMotor.getNeoVortex(numMotors),
+            (10 / Units.metersToInches(0.012) / 0.5),
+            1,
+            0.3126232,
+            0,
+            Units.degreesToRadians(110),
+            true,
+            startingAngle);
   }
 
   @Override
@@ -36,7 +37,7 @@ public class MechanismArmIOSim implements MechanismArmIO {
     inputs.supplyCurrentAmps = sim.getCurrentDrawAmps();
     inputs.torqueCurrentAmps = inputs.supplyCurrentAmps;
     if (inputs.connected.length != 1) {
-      inputs.connected = new boolean[] { true };
+      inputs.connected = new boolean[] {true};
     } else {
       inputs.connected[0] = true;
     }

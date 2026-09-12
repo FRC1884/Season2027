@@ -30,8 +30,7 @@ public class AprilTagVisionIOLimelight implements VisionIO {
 
   private final String limelightName;
   private final SwerveSubsystem drive;
-  @Getter
-  private final CameraConstants cameraConstants;
+  @Getter private final CameraConstants cameraConstants;
   private int imuMode = -1;
 
   /** Creates a new Limelight vision IO instance. */
@@ -84,9 +83,10 @@ public class AprilTagVisionIOLimelight implements VisionIO {
     inputs.connected = lastChange > 0 && (now - lastChange) < DISCONNECT_TIMEOUT_MICROS;
     inputs.seesTarget = LimelightHelpers.getTV(limelightName);
     if (inputs.seesTarget) {
-      inputs.latestTargetObservation = new TargetObservation(
-          Rotation2d.fromDegrees(LimelightHelpers.getTX(limelightName)),
-          Rotation2d.fromDegrees(LimelightHelpers.getTY(limelightName)));
+      inputs.latestTargetObservation =
+          new TargetObservation(
+              Rotation2d.fromDegrees(LimelightHelpers.getTX(limelightName)),
+              Rotation2d.fromDegrees(LimelightHelpers.getTY(limelightName)));
     }
 
     inputs.standardDeviations = AprilTagVisionConstants.getLimelightStandardDeviations();
@@ -116,10 +116,11 @@ public class AprilTagVisionIOLimelight implements VisionIO {
       inputs.standardDeviations = buildDynamicStandardDeviations(mt2);
 
       double ambiguity = calculateAverageAmbiguity(mt2.rawFiducials);
-      inputs.poseObservations = new PoseObservation[] {
-          new PoseObservation(
-              mt2.timestampSeconds, new Pose3d(mt2.pose), ambiguity, mt2.tagCount, mt2.avgTagDist)
-      };
+      inputs.poseObservations =
+          new PoseObservation[] {
+            new PoseObservation(
+                mt2.timestampSeconds, new Pose3d(mt2.pose), ambiguity, mt2.tagCount, mt2.avgTagDist)
+          };
     } catch (Exception e) {
       RobotLogging.error("Error processing Limelight MegaTag2 data", e);
     }

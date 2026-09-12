@@ -19,9 +19,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class OperatorBoardPersistence {
-  public static final ObjectMapper JSON = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-  private static final DateTimeFormatter BACKUP_TIME = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
-      .withZone(ZoneOffset.UTC);
+  public static final ObjectMapper JSON =
+      new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+  private static final DateTimeFormatter BACKUP_TIME =
+      DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneOffset.UTC);
 
   private static final String SUBSYSTEM_DESCRIPTIONS_FILE = "subsystem-descriptions.json";
   private static final String LATEST_DIAGNOSTIC_MANIFEST_FILE = "latest-diagnostic.json";
@@ -39,7 +40,8 @@ public final class OperatorBoardPersistence {
     this.backupsRoot = runtimeRoot.resolve("backups");
     this.diagnosticsRoot = runtimeRoot.resolve("diagnostics");
     this.diagnosticBundlesRoot = diagnosticsRoot.resolve("bundles");
-    this.deployDefaultsRoot = Filesystem.getDeployDirectory().toPath().resolve("operatorboard").resolve("default-data");
+    this.deployDefaultsRoot =
+        Filesystem.getDeployDirectory().toPath().resolve("operatorboard").resolve("default-data");
   }
 
   private static Path resolveRuntimeRoot(Path projectRoot) {
@@ -63,7 +65,8 @@ public final class OperatorBoardPersistence {
     }
   }
 
-  public synchronized OperatorBoardDataModels.SubsystemDescriptionsDocument readSubsystemDescriptions() {
+  public synchronized OperatorBoardDataModels.SubsystemDescriptionsDocument
+      readSubsystemDescriptions() {
     initialize();
     try {
       return JSON.readValue(
@@ -76,14 +79,15 @@ public final class OperatorBoardPersistence {
     }
   }
 
-  public synchronized OperatorBoardDataModels.SubsystemDescriptionsDocument saveSubsystemDescriptions(
-      OperatorBoardDataModels.SubsystemDescriptionsDocument document) {
+  public synchronized OperatorBoardDataModels.SubsystemDescriptionsDocument
+      saveSubsystemDescriptions(OperatorBoardDataModels.SubsystemDescriptionsDocument document) {
     initialize();
-    OperatorBoardDataModels.SubsystemDescriptionsDocument normalized = new OperatorBoardDataModels.SubsystemDescriptionsDocument(
-        OperatorBoardDataModels.SCHEMA_VERSION,
-        OperatorBoardDataModels.metadata(
-            "subsystemDescriptions", "subsystem-descriptions", "Subsystem Descriptions"),
-        document.subsystems());
+    OperatorBoardDataModels.SubsystemDescriptionsDocument normalized =
+        new OperatorBoardDataModels.SubsystemDescriptionsDocument(
+            OperatorBoardDataModels.SCHEMA_VERSION,
+            OperatorBoardDataModels.metadata(
+                "subsystemDescriptions", "subsystem-descriptions", "Subsystem Descriptions"),
+            document.subsystems());
     writeWithBackup(subsystemDescriptionsPath(), normalized);
     return normalized;
   }
@@ -134,7 +138,8 @@ public final class OperatorBoardPersistence {
             List.of("timestamp", "buildVersion", "gitSha", "gitBranch")));
   }
 
-  public synchronized Optional<OperatorBoardDataModels.DiagnosticBundleManifest> readLatestDiagnosticManifest() {
+  public synchronized Optional<OperatorBoardDataModels.DiagnosticBundleManifest>
+      readLatestDiagnosticManifest() {
     initialize();
     Path manifestPath = diagnosticsRoot.resolve(LATEST_DIAGNOSTIC_MANIFEST_FILE);
     if (!Files.exists(manifestPath)) {

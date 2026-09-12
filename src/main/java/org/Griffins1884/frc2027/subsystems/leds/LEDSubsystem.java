@@ -25,8 +25,7 @@ public class LEDSubsystem extends SubsystemBase {
   public Command set(double val) {
     return Commands.runOnce(
         () -> {
-          if ((val >= -1.0) && (val <= 1.0))
-            blinkin.set(val);
+          if ((val >= -1.0) && (val <= 1.0)) blinkin.set(val);
         },
         this);
   }
@@ -48,9 +47,7 @@ public class LEDSubsystem extends SubsystemBase {
   }
 
   public Command allianceColor(Supplier<Boolean> isRed) {
-    if (isRed.get() == true)
-      return chase_red();
-    else
-      return chase_blue();
+    if (isRed.get() == true) return chase_red();
+    else return chase_blue();
   }
 }

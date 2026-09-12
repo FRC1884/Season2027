@@ -25,200 +25,211 @@ import org.Griffins1884.frc2027.subsystems.turret.TurretSubsystem;
 import org.Griffins1884.frc2027.util.TurretUtil;
 import org.littletonrobotics.junction.Logger;
 
-/**
- * Publishes robot components, predicted arcs, and active projectiles for
- * AdvantageScope.
- */
+/** Publishes robot components, predicted arcs, and active projectiles for AdvantageScope. */
 public final class RobotStateVisualizer {
-    private final SwerveSubsystem drive;
-    private final TurretSubsystem turret;
-    private final Superstructure superstructure;
-    private final ShotSimulationConfig shotSimulationConfig = ShotSimulationConfig.defaultConfig();
-    private final ShotSimulator shotSimulator = new ShotSimulator(shotSimulationConfig);
-    private final ProjectileManager projectileManager = new ProjectileManager(shotSimulationConfig.physics());
-    private final ShotReleaseDetector shotReleaseDetector = new ShotReleaseDetector();
-    private final GamePiecePosePublisher gamePiecePublisher = new GamePiecePosePublisher();
-    private final ShotReviewEvents shotReviewEvents = new ShotReviewEvents();
+  private final SwerveSubsystem drive;
+  private final TurretSubsystem turret;
+  private final Superstructure superstructure;
+  private final ShotSimulationConfig shotSimulationConfig = ShotSimulationConfig.defaultConfig();
+  private final ShotSimulator shotSimulator = new ShotSimulator(shotSimulationConfig);
+  private final ProjectileManager projectileManager =
+      new ProjectileManager(shotSimulationConfig.physics());
+  private final ShotReleaseDetector shotReleaseDetector = new ShotReleaseDetector();
+  private final GamePiecePosePublisher gamePiecePublisher = new GamePiecePosePublisher();
+  private final ShotReviewEvents shotReviewEvents = new ShotReviewEvents();
 
-    public RobotStateVisualizer(
-            SwerveSubsystem drive, TurretSubsystem turret, Superstructure superstructure) {
-        this.drive = drive;
-        this.turret = turret;
-        this.superstructure = superstructure;
+  public RobotStateVisualizer(
+      SwerveSubsystem drive, TurretSubsystem turret, Superstructure superstructure) {
+    this.drive = drive;
+    this.turret = turret;
+    this.superstructure = superstructure;
+  }
+
+  public void periodic() {
+    Pose2d robotPose = drive != null ? drive.getPose() : null;
+    if (!isValidPose(robotPose)) {
+      clearPredictionOutputs();
+      Logger.recordOutput("FieldSimulation/ActiveProjectiles", new Pose3d[] {});
+      return;
     }
 
-    public void periodic() {
-        Pose2d robotPose = drive != null ? drive.getPose() : null;
-        if (!isValidPose(robotPose)) {
-            clearPredictionOutputs();
-            Logger.recordOutput("FieldSimulation/ActiveProjectiles", new Pose3d[] {});
-            return;
-        }
+    Rotation2d turretYaw =
+        turret != null ? Rotation2d.fromRadians(turret.getPositionRad()) : new Rotation2d();
+    double shooterPivotRotations =
+        superstructure != null && superstructure.getArms().shooterPivot != null
+            ? superstructure.getArms().shooterPivot.getPosition()
+            : 0.0;
 
-        Rotation2d turretYaw = turret != null ? Rotation2d.fromRadians(turret.getPositionRad()) : new Rotation2d();
-        double shooterPivotRotations = superstructure != null && superstructure.getArms().shooterPivot != null
-                ? superstructure.getArms().shooterPivot.getPosition()
-                : 0.0;
+    boolean simTerrainEnabled = GlobalConstants.MODE == RobotMode.SIM;
+    Pose3d robotPose3d =
+        simTerrainEnabled
+            ? Rebuilt2026FieldModel.terrainAdjustedRobotPose(robotPose)
+            : new Pose3d(robotPose);
+    Pose3d shooterExitPose3d =
+        ShooterComponentPublisher.createExitPose(
+            robotPose3d, turretYaw, shooterPivotRotations, shotSimulationConfig);
+    Pose3d turretPose3d =
+        TurretComponentPublisher.createPose3d(robotPose3d, turretYaw, shotSimulationConfig);
+    Pose3d shooterPivotPose3d =
+        ShooterComponentPublisher.createPivotPose(
+            robotPose3d, turretYaw, shooterPivotRotations, shotSimulationConfig);
 
-        boolean simTerrainEnabled = GlobalConstants.MODE == RobotMode.SIM;
-        Pose3d robotPose3d = simTerrainEnabled
-                ? Rebuilt2026FieldModel.terrainAdjustedRobotPose(robotPose)
-                : new Pose3d(robotPose);
-        Pose3d shooterExitPose3d = ShooterComponentPublisher.createExitPose(
-                robotPose3d, turretYaw, shooterPivotRotations, shotSimulationConfig);
-        Pose3d turretPose3d = TurretComponentPublisher.createPose3d(robotPose3d, turretYaw, shotSimulationConfig);
-        Pose3d shooterPivotPose3d = ShooterComponentPublisher.createPivotPose(
-                robotPose3d, turretYaw, shooterPivotRotations, shotSimulationConfig);
+    Logger.recordOutput("FieldSimulation/RobotPosition", robotPose);
+    Logger.recordOutput("FieldSimulation/RobotPose3d", robotPose3d);
+    Logger.recordOutput(
+        "FieldSimulation/TurretPose",
+        TurretComponentPublisher.createPose2d(robotPose, turretYaw, shotSimulationConfig));
+    Logger.recordOutput("FieldSimulation/TurretComponentPose3d", new Pose3d[] {turretPose3d});
+    Logger.recordOutput(
+        "FieldSimulation/ShooterPivotComponentPose3d", new Pose3d[] {shooterPivotPose3d});
+    Logger.recordOutput("FieldSimulation/ShooterExitPose3d", new Pose3d[] {shooterExitPose3d});
+    Logger.recordOutput(
+        "FieldSimulation/RobotComponentPoses",
+        new Pose3d[] {turretPose3d, shooterPivotPose3d, shooterExitPose3d});
+    Logger.recordOutput(
+        "FieldSimulation/FieldMarkers3d",
+        simTerrainEnabled ? Rebuilt2026FieldModel.staticFieldMarkers() : new Pose3d[] {});
+    Logger.recordOutput(
+        "FieldSimulation/BumpHeightMeters",
+        simTerrainEnabled
+            ? Rebuilt2026FieldModel.bumpHeightMeters(robotPose.getTranslation())
+            : 0.0);
+    Logger.recordOutput(
+        "FieldSimulation/BumpPitchRadians",
+        simTerrainEnabled
+            ? Rebuilt2026FieldModel.bumpPitchRadians(robotPose.getTranslation())
+            : 0.0);
 
-        Logger.recordOutput("FieldSimulation/RobotPosition", robotPose);
-        Logger.recordOutput("FieldSimulation/RobotPose3d", robotPose3d);
-        Logger.recordOutput(
-                "FieldSimulation/TurretPose",
-                TurretComponentPublisher.createPose2d(robotPose, turretYaw, shotSimulationConfig));
-        Logger.recordOutput("FieldSimulation/TurretComponentPose3d", new Pose3d[] { turretPose3d });
-        Logger.recordOutput(
-                "FieldSimulation/ShooterPivotComponentPose3d", new Pose3d[] { shooterPivotPose3d });
-        Logger.recordOutput("FieldSimulation/ShooterExitPose3d", new Pose3d[] { shooterExitPose3d });
-        Logger.recordOutput(
-                "FieldSimulation/RobotComponentPoses",
-                new Pose3d[] { turretPose3d, shooterPivotPose3d, shooterExitPose3d });
-        Logger.recordOutput(
-                "FieldSimulation/FieldMarkers3d",
-                simTerrainEnabled ? Rebuilt2026FieldModel.staticFieldMarkers() : new Pose3d[] {});
-        Logger.recordOutput(
-                "FieldSimulation/BumpHeightMeters",
-                simTerrainEnabled
-                        ? Rebuilt2026FieldModel.bumpHeightMeters(robotPose.getTranslation())
-                        : 0.0);
-        Logger.recordOutput(
-                "FieldSimulation/BumpPitchRadians",
-                simTerrainEnabled
-                        ? Rebuilt2026FieldModel.bumpPitchRadians(robotPose.getTranslation())
-                        : 0.0);
-
-        SimulatedShot predictedShot = null;
-        SuperstructureOutcome outcome = superstructure != null ? superstructure.getLatestOutcome() : null;
-        if (superstructure != null && superstructure.isInAllianceZone() && outcome != null) {
-            Translation2d turretTarget = outcome.turretTarget();
-            Rotation2d commandedTurretYaw = turretTarget != null
-                    ? Rotation2d.fromRadians(TurretUtil.turretAngleToTarget(robotPose, turretTarget))
-                    : turretYaw;
-            double predictedPivotRotations = outcome.shooterPivotManual() ? outcome.shooterPivotPosition()
-                    : shooterPivotRotations;
-            predictedShot = shotSimulator
-                    .solveHubShot(
-                            robotPose,
-                            sanitize(drive != null ? drive.getFieldVelocity() : null),
-                            commandedTurretYaw,
-                            predictedPivotRotations,
-                            outcome.shooterTargetVelocityRpm(),
-                            getHubTarget(robotPose),
-                            getHubConeTop(robotPose),
-                            GlobalConstants.FieldConstants.Hub.innerOpeningRadius,
-                            GlobalConstants.FieldConstants.Hub.topOpeningRadius,
-                            GlobalConstants.FieldConstants.Hub.coneClearanceMargin)
-                    .orElse(null);
-        }
-
-        if (predictedShot != null) {
-            Pose3d targetPose = new Pose3d(getHubTarget(robotPose), shooterExitPose3d.getRotation());
-            gamePiecePublisher.publishPredictedArc(predictedShot.predictedSamplePoses());
-            gamePiecePublisher.publishReleasePose(predictedShot.releasePose());
-            gamePiecePublisher.publishImpactPose(predictedShot.predictedImpactPose());
-            Logger.recordOutput("FieldSimulation/TargetPose3d", new Pose3d[] { targetPose });
-            gamePiecePublisher.publishShotMarkers(
-                    predictedShot.releasePose(), predictedShot.predictedImpactPose(), targetPose);
-            shotReviewEvents.recordShotPrediction(
-                    predictedShot.feasible(),
-                    predictedShot.closestApproachErrorMeters(),
-                    predictedShot.timeOfFlightSeconds());
-        } else {
-            clearPredictionOutputs();
-            shotReviewEvents.recordShotPrediction(false, Double.NaN, Double.NaN);
-        }
-
-        boolean released = false;
-        if (superstructure != null) {
-            boolean shooterReady = superstructure.getRollers().shooter == null
-                    || superstructure.getRollers().shooter.isAtGoal();
-            boolean armed = predictedShot != null
-                    && predictedShot.feasible()
-                    && superstructure.hasBall()
-                    && shooterReady
-                    && outcome.indexerGoal() == IndexerGoal.FORWARD
-                    && outcome.shooterTargetVelocityRpm() > 1.0
-                    && (outcome.state() == SuperState.SHOOTING
-                            || outcome.state() == SuperState.SHOOT_INTAKE
-                            || outcome.state() == SuperState.FERRYING);
-            released = shotReleaseDetector.update(armed);
-            if (released) {
-                projectileManager.spawn(predictedShot);
-            }
-        }
-
-        projectileManager.update(AlignConstants.LOOP_PERIOD_SEC);
-        gamePiecePublisher.publishActiveProjectiles(projectileManager.activeProjectilePoses());
-        shotReviewEvents.recordShotRelease(released);
-        Logger.recordOutput("FieldSimulation/ProjectileCount", projectileManager.activeCount());
-        Logger.recordOutput("FieldSimulation/ProjectileSpawnCount", projectileManager.spawnedCount());
+    SimulatedShot predictedShot = null;
+    SuperstructureOutcome outcome =
+        superstructure != null ? superstructure.getLatestOutcome() : null;
+    if (superstructure != null && superstructure.isInAllianceZone() && outcome != null) {
+      Translation2d turretTarget = outcome.turretTarget();
+      Rotation2d commandedTurretYaw =
+          turretTarget != null
+              ? Rotation2d.fromRadians(TurretUtil.turretAngleToTarget(robotPose, turretTarget))
+              : turretYaw;
+      double predictedPivotRotations =
+          outcome.shooterPivotManual() ? outcome.shooterPivotPosition() : shooterPivotRotations;
+      predictedShot =
+          shotSimulator
+              .solveHubShot(
+                  robotPose,
+                  sanitize(drive != null ? drive.getFieldVelocity() : null),
+                  commandedTurretYaw,
+                  predictedPivotRotations,
+                  outcome.shooterTargetVelocityRpm(),
+                  getHubTarget(robotPose),
+                  getHubConeTop(robotPose),
+                  GlobalConstants.FieldConstants.Hub.innerOpeningRadius,
+                  GlobalConstants.FieldConstants.Hub.topOpeningRadius,
+                  GlobalConstants.FieldConstants.Hub.coneClearanceMargin)
+              .orElse(null);
     }
 
-    public void reset() {
-        projectileManager.clear();
-        shotReleaseDetector.reset();
-        clearPredictionOutputs();
-        gamePiecePublisher.publishActiveProjectiles(new Pose3d[] {});
+    if (predictedShot != null) {
+      Pose3d targetPose = new Pose3d(getHubTarget(robotPose), shooterExitPose3d.getRotation());
+      gamePiecePublisher.publishPredictedArc(predictedShot.predictedSamplePoses());
+      gamePiecePublisher.publishReleasePose(predictedShot.releasePose());
+      gamePiecePublisher.publishImpactPose(predictedShot.predictedImpactPose());
+      Logger.recordOutput("FieldSimulation/TargetPose3d", new Pose3d[] {targetPose});
+      gamePiecePublisher.publishShotMarkers(
+          predictedShot.releasePose(), predictedShot.predictedImpactPose(), targetPose);
+      shotReviewEvents.recordShotPrediction(
+          predictedShot.feasible(),
+          predictedShot.closestApproachErrorMeters(),
+          predictedShot.timeOfFlightSeconds());
+    } else {
+      clearPredictionOutputs();
+      shotReviewEvents.recordShotPrediction(false, Double.NaN, Double.NaN);
     }
 
-    private void clearPredictionOutputs() {
-        gamePiecePublisher.publishPredictedArc(new Pose3d[] {});
-        gamePiecePublisher.publishReleasePose(null);
-        gamePiecePublisher.publishImpactPose(null);
-        gamePiecePublisher.publishShotMarkers(null, null, null);
-        Logger.recordOutput("FieldSimulation/TargetPose3d", new Pose3d[] {});
+    boolean released = false;
+    if (superstructure != null) {
+      boolean shooterReady =
+          superstructure.getRollers().shooter == null
+              || superstructure.getRollers().shooter.isAtGoal();
+      boolean armed =
+          predictedShot != null
+              && predictedShot.feasible()
+              && superstructure.hasBall()
+              && shooterReady
+              && outcome.indexerGoal() == IndexerGoal.FORWARD
+              && outcome.shooterTargetVelocityRpm() > 1.0
+              && (outcome.state() == SuperState.SHOOTING
+                  || outcome.state() == SuperState.SHOOT_INTAKE
+                  || outcome.state() == SuperState.FERRYING);
+      released = shotReleaseDetector.update(armed);
+      if (released) {
+        projectileManager.spawn(predictedShot);
+      }
     }
 
-    private static boolean isValidPose(Pose2d pose) {
-        return pose != null
-                && Double.isFinite(pose.getX())
-                && Double.isFinite(pose.getY())
-                && Double.isFinite(pose.getRotation().getRadians());
-    }
+    projectileManager.update(AlignConstants.LOOP_PERIOD_SEC);
+    gamePiecePublisher.publishActiveProjectiles(projectileManager.activeProjectilePoses());
+    shotReviewEvents.recordShotRelease(released);
+    Logger.recordOutput("FieldSimulation/ProjectileCount", projectileManager.activeCount());
+    Logger.recordOutput("FieldSimulation/ProjectileSpawnCount", projectileManager.spawnedCount());
+  }
 
-    private static Translation2d sanitize(Translation2d velocity) {
-        if (velocity == null
-                || !Double.isFinite(velocity.getX())
-                || !Double.isFinite(velocity.getY())) {
-            return new Translation2d();
-        }
-        return velocity;
-    }
+  public void reset() {
+    projectileManager.clear();
+    shotReleaseDetector.reset();
+    clearPredictionOutputs();
+    gamePiecePublisher.publishActiveProjectiles(new Pose3d[] {});
+  }
 
-    private static Translation3d getHubTarget(Pose2d pose) {
-        DriverStation.Alliance alliance = DriverStation.getAlliance().orElseGet(() -> inferAllianceFromPose(pose));
-        return alliance == DriverStation.Alliance.Blue
-                ? GlobalConstants.FieldConstants.Hub.innerCenterPoint
-                : new Translation3d(
-                        GlobalConstants.FieldConstants.fieldLength
-                                - GlobalConstants.FieldConstants.Hub.innerCenterPoint.getX(),
-                        GlobalConstants.FieldConstants.Hub.innerCenterPoint.getY(),
-                        GlobalConstants.FieldConstants.Hub.innerCenterPoint.getZ());
-    }
+  private void clearPredictionOutputs() {
+    gamePiecePublisher.publishPredictedArc(new Pose3d[] {});
+    gamePiecePublisher.publishReleasePose(null);
+    gamePiecePublisher.publishImpactPose(null);
+    gamePiecePublisher.publishShotMarkers(null, null, null);
+    Logger.recordOutput("FieldSimulation/TargetPose3d", new Pose3d[] {});
+  }
 
-    private static Translation3d getHubConeTop(Pose2d pose) {
-        DriverStation.Alliance alliance = DriverStation.getAlliance().orElseGet(() -> inferAllianceFromPose(pose));
-        return alliance == DriverStation.Alliance.Blue
-                ? GlobalConstants.FieldConstants.Hub.topCenterPoint
-                : new Translation3d(
-                        GlobalConstants.FieldConstants.fieldLength
-                                - GlobalConstants.FieldConstants.Hub.topCenterPoint.getX(),
-                        GlobalConstants.FieldConstants.Hub.topCenterPoint.getY(),
-                        GlobalConstants.FieldConstants.Hub.topCenterPoint.getZ());
-    }
+  private static boolean isValidPose(Pose2d pose) {
+    return pose != null
+        && Double.isFinite(pose.getX())
+        && Double.isFinite(pose.getY())
+        && Double.isFinite(pose.getRotation().getRadians());
+  }
 
-    private static DriverStation.Alliance inferAllianceFromPose(Pose2d pose) {
-        return pose != null && pose.getX() <= GlobalConstants.FieldConstants.fieldLength * 0.5
-                ? DriverStation.Alliance.Blue
-                : DriverStation.Alliance.Red;
+  private static Translation2d sanitize(Translation2d velocity) {
+    if (velocity == null
+        || !Double.isFinite(velocity.getX())
+        || !Double.isFinite(velocity.getY())) {
+      return new Translation2d();
     }
+    return velocity;
+  }
+
+  private static Translation3d getHubTarget(Pose2d pose) {
+    DriverStation.Alliance alliance =
+        DriverStation.getAlliance().orElseGet(() -> inferAllianceFromPose(pose));
+    return alliance == DriverStation.Alliance.Blue
+        ? GlobalConstants.FieldConstants.Hub.innerCenterPoint
+        : new Translation3d(
+            GlobalConstants.FieldConstants.fieldLength
+                - GlobalConstants.FieldConstants.Hub.innerCenterPoint.getX(),
+            GlobalConstants.FieldConstants.Hub.innerCenterPoint.getY(),
+            GlobalConstants.FieldConstants.Hub.innerCenterPoint.getZ());
+  }
+
+  private static Translation3d getHubConeTop(Pose2d pose) {
+    DriverStation.Alliance alliance =
+        DriverStation.getAlliance().orElseGet(() -> inferAllianceFromPose(pose));
+    return alliance == DriverStation.Alliance.Blue
+        ? GlobalConstants.FieldConstants.Hub.topCenterPoint
+        : new Translation3d(
+            GlobalConstants.FieldConstants.fieldLength
+                - GlobalConstants.FieldConstants.Hub.topCenterPoint.getX(),
+            GlobalConstants.FieldConstants.Hub.topCenterPoint.getY(),
+            GlobalConstants.FieldConstants.Hub.topCenterPoint.getZ());
+  }
+
+  private static DriverStation.Alliance inferAllianceFromPose(Pose2d pose) {
+    return pose != null && pose.getX() <= GlobalConstants.FieldConstants.fieldLength * 0.5
+        ? DriverStation.Alliance.Blue
+        : DriverStation.Alliance.Red;
+  }
 }

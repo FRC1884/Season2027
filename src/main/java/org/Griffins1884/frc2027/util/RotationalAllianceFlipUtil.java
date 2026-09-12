@@ -4,17 +4,14 @@ import edu.wpi.first.math.geometry.*;
 import org.Griffins1884.frc2027.GlobalConstants.FieldConstants;
 
 /**
- * Utility functions for flipping from the blue (default) to red alliance for
- * mirrored fields. All
+ * Utility functions for flipping from the blue (default) to red alliance for mirrored fields. All
  * credit goes to team 5712.
  */
 public class RotationalAllianceFlipUtil {
-  private RotationalAllianceFlipUtil() {
-  }
+  private RotationalAllianceFlipUtil() {}
 
   /**
-   * Flips an x coordinate to the correct side of the field based on the current
-   * alliance color.
+   * Flips an x coordinate to the correct side of the field based on the current alliance color.
    *
    * @param xCoordinate The x coordinate to be flipped.
    * @return The flipped x coordinate.
@@ -36,8 +33,7 @@ public class RotationalAllianceFlipUtil {
   }
 
   /**
-   * Flips a translation to the correct side of the field based on the current
-   * alliance color.
+   * Flips a translation to the correct side of the field based on the current alliance color.
    *
    * @param translation The translation to be flipped.
    * @return The flipped translation.
@@ -51,8 +47,7 @@ public class RotationalAllianceFlipUtil {
   }
 
   /**
-   * Flips a 3D translation to the correct side of the field based on the current
-   * alliance color.
+   * Flips a 3D translation to the correct side of the field based on the current alliance color.
    *
    * @param translation The 3D translation to be flipped across the XY-plane.
    * @return The flipped 3D translation.
@@ -81,8 +76,7 @@ public class RotationalAllianceFlipUtil {
   }
 
   /**
-   * Flips a pose to the correct side of the field based on the current alliance
-   * color.
+   * Flips a pose to the correct side of the field based on the current alliance color.
    *
    * @param pose The pose to be flipped.
    * @return The flipped pose.
@@ -94,15 +88,16 @@ public class RotationalAllianceFlipUtil {
     if (!shouldFlip(pose)) {
       return pose;
     }
-    Translation2d flippedTranslation = new Translation2d(
-        FieldConstants.fieldLength - pose.getX(), FieldConstants.fieldWidth - pose.getY());
-    Rotation2d flippedRotation = new Rotation2d(-pose.getRotation().getCos(), -pose.getRotation().getSin());
+    Translation2d flippedTranslation =
+        new Translation2d(
+            FieldConstants.fieldLength - pose.getX(), FieldConstants.fieldWidth - pose.getY());
+    Rotation2d flippedRotation =
+        new Rotation2d(-pose.getRotation().getCos(), -pose.getRotation().getSin());
     return new Pose2d(flippedTranslation, flippedRotation);
   }
 
   /**
-   * Flips a 3D pose to the correct side of the field based on the current
-   * alliance color.
+   * Flips a 3D pose to the correct side of the field based on the current alliance color.
    *
    * @param pose The 3D pose to be flipped across the XY-plane.
    * @return The flipped 3D pose.

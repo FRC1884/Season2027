@@ -7,34 +7,33 @@ import org.Griffins1884.frc2027.subsystems.leds.LEDSubsystem;
 import org.Griffins1884.frc2027.subsystems.swerve.SwerveSubsystem;
 
 public class AutoCommands {
-    private AutoCommands() {
-    }
+  private AutoCommands() {}
 
-    public static void registerAutoCommands(
-            Superstructure superstructure, SwerveSubsystem drive, LEDSubsystem leds) {
+  public static void registerAutoCommands(
+      Superstructure superstructure, SwerveSubsystem drive, LEDSubsystem leds) {
 
-        NamedCommands.registerCommand(
-                "GetRShoot",
-                Commands.sequence(superstructure.setSuperStateCmd(Superstructure.SuperState.SHOOTING)));
+    NamedCommands.registerCommand(
+        "GetRShoot",
+        Commands.sequence(superstructure.setSuperStateCmd(Superstructure.SuperState.SHOOTING)));
 
-        NamedCommands.registerCommand("AlignToHP", DriveCommands.alignToHPd(drive));
+    NamedCommands.registerCommand("AlignToHP", DriveCommands.alignToHPd(drive));
 
-        NamedCommands.registerCommand("AlignToDepot", DriveCommands.alignToDepot(drive));
+    NamedCommands.registerCommand("AlignToDepot", DriveCommands.alignToDepot(drive));
 
-        NamedCommands.registerCommand("Shoot", Commands.runOnce(superstructure::toggleShootEnabled));
+    NamedCommands.registerCommand("Shoot", Commands.runOnce(superstructure::toggleShootEnabled));
 
-        NamedCommands.registerCommand(
-                "Idling",
-                Commands.sequence(superstructure.setSuperStateCmd(Superstructure.SuperState.IDLING)));
+    NamedCommands.registerCommand(
+        "Idling",
+        Commands.sequence(superstructure.setSuperStateCmd(Superstructure.SuperState.IDLING)));
 
-        NamedCommands.registerCommand(
-                "Intake", superstructure.setSuperStateCmd(Superstructure.SuperState.INTAKING));
+    NamedCommands.registerCommand(
+        "Intake", superstructure.setSuperStateCmd(Superstructure.SuperState.INTAKING));
 
-        NamedCommands.registerCommand(
-                "ShootIntake", superstructure.setSuperStateCmd(Superstructure.SuperState.SHOOT_INTAKE));
+    NamedCommands.registerCommand(
+        "ShootIntake", superstructure.setSuperStateCmd(Superstructure.SuperState.SHOOT_INTAKE));
 
-        // NamedCommands.registerCommand("WhiteFlashLEDs", leds.whiteFlash());
+    // NamedCommands.registerCommand("WhiteFlashLEDs", leds.whiteFlash());
 
-        // NamedCommands.registerCommand("RainbowLEDs", leds.rainbow());
-    }
+    // NamedCommands.registerCommand("RainbowLEDs", leds.rainbow());
+  }
 }

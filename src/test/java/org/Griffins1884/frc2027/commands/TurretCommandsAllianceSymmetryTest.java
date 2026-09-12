@@ -17,25 +17,28 @@ class TurretCommandsAllianceSymmetryTest {
     Pose2d redPose = mirrorPose(bluePose);
 
     Translation2d blueTarget = GlobalConstants.FieldConstants.Hub.topCenterPoint.toTranslation2d();
-    Translation2d redTarget = GlobalConstants.FieldConstants.Hub.oppTopCenterPoint.toTranslation2d();
+    Translation2d redTarget =
+        GlobalConstants.FieldConstants.Hub.oppTopCenterPoint.toTranslation2d();
 
     Translation2d blueVelocity = new Translation2d(1.1, -0.35);
     Translation2d redVelocity = mirrorVector(blueVelocity);
     Translation2d blueAcceleration = new Translation2d(0.18, 0.05);
     Translation2d redAcceleration = mirrorVector(blueAcceleration);
 
-    Translation2d blueAimPoint = TurretCommands.shootingWhileMoving(
-        () -> bluePose,
-        () -> blueTarget,
-        () -> blueVelocity,
-        () -> blueAcceleration,
-        distance -> 0.82);
-    Translation2d redAimPoint = TurretCommands.shootingWhileMoving(
-        () -> redPose,
-        () -> redTarget,
-        () -> redVelocity,
-        () -> redAcceleration,
-        distance -> 0.82);
+    Translation2d blueAimPoint =
+        TurretCommands.shootingWhileMoving(
+            () -> bluePose,
+            () -> blueTarget,
+            () -> blueVelocity,
+            () -> blueAcceleration,
+            distance -> 0.82);
+    Translation2d redAimPoint =
+        TurretCommands.shootingWhileMoving(
+            () -> redPose,
+            () -> redTarget,
+            () -> redVelocity,
+            () -> redAcceleration,
+            distance -> 0.82);
 
     assertEquals(mirrorX(blueAimPoint.getX()), redAimPoint.getX(), EPSILON);
     assertEquals(blueAimPoint.getY(), redAimPoint.getY(), EPSILON);
@@ -54,18 +57,20 @@ class TurretCommandsAllianceSymmetryTest {
     Translation2d blueAcceleration = new Translation2d(-0.11, 0.09);
     Translation2d redAcceleration = mirrorVector(blueAcceleration);
 
-    Translation2d blueAimPoint = TurretCommands.shootingWhileMoving(
-        () -> bluePose,
-        () -> blueTarget,
-        () -> blueVelocity,
-        () -> blueAcceleration,
-        distance -> 0.67);
-    Translation2d redAimPoint = TurretCommands.shootingWhileMoving(
-        () -> redPose,
-        () -> redTarget,
-        () -> redVelocity,
-        () -> redAcceleration,
-        distance -> 0.67);
+    Translation2d blueAimPoint =
+        TurretCommands.shootingWhileMoving(
+            () -> bluePose,
+            () -> blueTarget,
+            () -> blueVelocity,
+            () -> blueAcceleration,
+            distance -> 0.67);
+    Translation2d redAimPoint =
+        TurretCommands.shootingWhileMoving(
+            () -> redPose,
+            () -> redTarget,
+            () -> redVelocity,
+            () -> redAcceleration,
+            distance -> 0.67);
 
     assertEquals(mirrorX(blueAimPoint.getX()), redAimPoint.getX(), EPSILON);
     assertEquals(blueAimPoint.getY(), redAimPoint.getY(), EPSILON);

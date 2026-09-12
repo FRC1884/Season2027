@@ -23,7 +23,8 @@ public class StateGraph<V extends Enum<V>, T extends Transition<? extends Enum<V
   }
 
   public void setEdge(T transition) {
-    adjacencyMap[transition.getStartState().ordinal()][transition.getEndState().ordinal()] = transition;
+    adjacencyMap[transition.getStartState().ordinal()][transition.getEndState().ordinal()] =
+        transition;
   }
 
   public void addEdge(T transition) {

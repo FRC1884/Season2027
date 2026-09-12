@@ -27,8 +27,7 @@ public class IndexerSubsystem extends VelocityRollerMechanism<IndexerSubsystem.I
     }
   }
 
-  @Setter
-  private IndexerGoal goal = IndexerGoal.IDLING;
+  @Setter private IndexerGoal goal = IndexerGoal.IDLING;
 
   public IndexerSubsystem(String name, IndexerIO io) {
     super(

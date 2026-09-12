@@ -7,10 +7,7 @@ import java.util.Set;
 import org.Griffins1884.frc2027.GlobalConstants;
 import org.Griffins1884.frc2027.mechanisms.MechanismTelemetry;
 
-/**
- * Runtime logging/tuning profile shared by mechanisms and future dashboard
- * config UI.
- */
+/** Runtime logging/tuning profile shared by mechanisms and future dashboard config UI. */
 public record RuntimeModeProfile(
     GlobalConstants.LoggingMode loggingMode,
     boolean tuningEnabled,

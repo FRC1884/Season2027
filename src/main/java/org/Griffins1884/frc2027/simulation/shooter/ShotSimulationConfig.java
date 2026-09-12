@@ -5,9 +5,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import org.Griffins1884.frc2027.subsystems.shooter.ShooterConstants;
 import org.Griffins1884.frc2027.subsystems.shooter.ShooterPivotConstants;
 
-/**
- * Geometry and simple projectile constants used by the shot-math visualizer.
- */
+/** Geometry and simple projectile constants used by the shot-math visualizer. */
 public record ShotSimulationConfig(
     Translation3d turretMountMeters,
     ExitSample lowAngleExitSample,
@@ -20,25 +18,29 @@ public record ShotSimulationConfig(
 
   public ShotSimulationConfig {
     turretMountMeters = turretMountMeters != null ? turretMountMeters : new Translation3d();
-    lowAngleExitSample = lowAngleExitSample != null
-        ? lowAngleExitSample
-        : new ExitSample(27.0, 0.057400, 0.0, 0.670908);
-    highAngleExitSample = highAngleExitSample != null
-        ? highAngleExitSample
-        : new ExitSample(60.0, 0.010047, 0.0, 0.625973);
-    pivotCalibration = pivotCalibration != null
-        ? pivotCalibration
-        : new PivotCalibration(
-            ShooterPivotConstants.SOFT_LIMIT_MIN,
-            ShooterPivotConstants.SOFT_LIMIT_MAX,
-            pivotPositionToLaunchAngleDegrees(ShooterPivotConstants.SOFT_LIMIT_MIN),
-            pivotPositionToLaunchAngleDegrees(ShooterPivotConstants.SOFT_LIMIT_MAX));
-    flywheelCalibration = flywheelCalibration != null
-        ? flywheelCalibration
-        : new FlywheelCalibration(
-            ShooterConstants.FLYWHEEL_RADIUS_METERS,
-            ShooterConstants.FLYWHEEL_GEAR_RATIO,
-            ShooterConstants.SLIP_FACTOR.get());
+    lowAngleExitSample =
+        lowAngleExitSample != null
+            ? lowAngleExitSample
+            : new ExitSample(27.0, 0.057400, 0.0, 0.670908);
+    highAngleExitSample =
+        highAngleExitSample != null
+            ? highAngleExitSample
+            : new ExitSample(60.0, 0.010047, 0.0, 0.625973);
+    pivotCalibration =
+        pivotCalibration != null
+            ? pivotCalibration
+            : new PivotCalibration(
+                ShooterPivotConstants.SOFT_LIMIT_MIN,
+                ShooterPivotConstants.SOFT_LIMIT_MAX,
+                pivotPositionToLaunchAngleDegrees(ShooterPivotConstants.SOFT_LIMIT_MIN),
+                pivotPositionToLaunchAngleDegrees(ShooterPivotConstants.SOFT_LIMIT_MAX));
+    flywheelCalibration =
+        flywheelCalibration != null
+            ? flywheelCalibration
+            : new FlywheelCalibration(
+                ShooterConstants.FLYWHEEL_RADIUS_METERS,
+                ShooterConstants.FLYWHEEL_GEAR_RATIO,
+                ShooterConstants.SLIP_FACTOR.get());
     physics = physics != null ? physics : new PhysicsConfig(9.80665, 0.0, 0.0);
     integrationStepSeconds = integrationStepSeconds > 0.0 ? integrationStepSeconds : 0.05;
     maxSimulationTimeSeconds = maxSimulationTimeSeconds > 0.0 ? maxSimulationTimeSeconds : 5.0;
@@ -85,7 +87,8 @@ public record ShotSimulationConfig(
     if (Math.abs(highAngle - lowAngle) < 1e-9) {
       return lowAngleExitSample.toTranslation3d();
     }
-    double clampedAngle = clamp(launchAngleDegrees, Math.min(lowAngle, highAngle), Math.max(lowAngle, highAngle));
+    double clampedAngle =
+        clamp(launchAngleDegrees, Math.min(lowAngle, highAngle), Math.max(lowAngle, highAngle));
     double ratio = (clampedAngle - lowAngle) / (highAngle - lowAngle);
     return new Translation3d(
         lerp(lowAngleExitSample.localXMeters(), highAngleExitSample.localXMeters(), ratio),
@@ -150,6 +153,5 @@ public record ShotSimulationConfig(
   public record PhysicsConfig(
       double gravityMetersPerSecondSquared,
       double linearDragPerSecond,
-      double quadraticDragPerMeter) {
-  }
+      double quadraticDragPerMeter) {}
 }

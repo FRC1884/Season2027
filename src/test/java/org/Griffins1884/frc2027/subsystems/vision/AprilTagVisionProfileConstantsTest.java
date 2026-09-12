@@ -17,7 +17,8 @@ class AprilTagVisionProfileConstantsTest {
   @Test
   void ll4NoArgMethods_matchExplicitLl4Profile() {
     double[] implicitLl4 = AprilTagVisionConstants.getLimelightStandardDeviations();
-    double[] explicitLl4 = AprilTagVisionConstants.getLimelightStandardDeviations(VisionIO.LimelightProfile.LL4);
+    double[] explicitLl4 =
+        AprilTagVisionConstants.getLimelightStandardDeviations(VisionIO.LimelightProfile.LL4);
 
     assertArrayEquals(explicitLl4, implicitLl4, 1e-9);
     assertEquals(
@@ -32,36 +33,42 @@ class AprilTagVisionProfileConstantsTest {
 
   @Test
   void ll3Thresholds_areStricterThanLl4Defaults() {
-    double ll3Quality = AprilTagVisionConstants.getMegatag2SingleTagQualityCutoff(VisionIO.LimelightProfile.LL3);
-    double ll4Quality = AprilTagVisionConstants.getMegatag2SingleTagQualityCutoff(VisionIO.LimelightProfile.LL4);
+    double ll3Quality =
+        AprilTagVisionConstants.getMegatag2SingleTagQualityCutoff(VisionIO.LimelightProfile.LL3);
+    double ll4Quality =
+        AprilTagVisionConstants.getMegatag2SingleTagQualityCutoff(VisionIO.LimelightProfile.LL4);
     assertTrue(ll3Quality > ll4Quality, "LL3 should demand stronger single-tag quality");
 
     assertTrue(
-        AprilTagVisionConstants.getLimelightYawGateMaxDistMeters(
-            VisionIO.LimelightProfile.LL3) < AprilTagVisionConstants.getLimelightYawGateMaxDistMeters(
+        AprilTagVisionConstants.getLimelightYawGateMaxDistMeters(VisionIO.LimelightProfile.LL3)
+            < AprilTagVisionConstants.getLimelightYawGateMaxDistMeters(
                 VisionIO.LimelightProfile.LL4));
     assertTrue(
         AprilTagVisionConstants.getLimelightYawGateMaxYawRateDegPerSec(
-            VisionIO.LimelightProfile.LL3) < AprilTagVisionConstants.getLimelightYawGateMaxYawRateDegPerSec(
+                VisionIO.LimelightProfile.LL3)
+            < AprilTagVisionConstants.getLimelightYawGateMaxYawRateDegPerSec(
                 VisionIO.LimelightProfile.LL4));
     assertTrue(
-        AprilTagVisionConstants.getLimelightYawGateMaxYawResidualDeg(
-            VisionIO.LimelightProfile.LL3) < AprilTagVisionConstants.getLimelightYawGateMaxYawResidualDeg(
+        AprilTagVisionConstants.getLimelightYawGateMaxYawResidualDeg(VisionIO.LimelightProfile.LL3)
+            < AprilTagVisionConstants.getLimelightYawGateMaxYawResidualDeg(
                 VisionIO.LimelightProfile.LL4));
     assertTrue(
-        AprilTagVisionConstants.getLimelightYawGateMaxFrameAgeSec(
-            VisionIO.LimelightProfile.LL3) < AprilTagVisionConstants.getLimelightYawGateMaxFrameAgeSec(
+        AprilTagVisionConstants.getLimelightYawGateMaxFrameAgeSec(VisionIO.LimelightProfile.LL3)
+            < AprilTagVisionConstants.getLimelightYawGateMaxFrameAgeSec(
                 VisionIO.LimelightProfile.LL4));
     assertTrue(
         AprilTagVisionConstants.getLimelightMaxTranslationResidualMeters(
-            VisionIO.LimelightProfile.LL3) < AprilTagVisionConstants.getLimelightMaxTranslationResidualMeters(
+                VisionIO.LimelightProfile.LL3)
+            < AprilTagVisionConstants.getLimelightMaxTranslationResidualMeters(
                 VisionIO.LimelightProfile.LL4));
   }
 
   @Test
   void ll3Megatag2Stddevs_areInflatedComparedToLl4() {
-    double[] ll3 = AprilTagVisionConstants.getLimelightStandardDeviations(VisionIO.LimelightProfile.LL3);
-    double[] ll4 = AprilTagVisionConstants.getLimelightStandardDeviations(VisionIO.LimelightProfile.LL4);
+    double[] ll3 =
+        AprilTagVisionConstants.getLimelightStandardDeviations(VisionIO.LimelightProfile.LL3);
+    double[] ll4 =
+        AprilTagVisionConstants.getLimelightStandardDeviations(VisionIO.LimelightProfile.LL4);
 
     assertEquals(6, ll3.length);
     assertEquals(6, ll4.length);

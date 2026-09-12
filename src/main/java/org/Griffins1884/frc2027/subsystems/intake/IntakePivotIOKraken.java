@@ -5,13 +5,13 @@ import org.Griffins1884.frc2027.mechanisms.arms.MechanismArmIOKraken;
 public class IntakePivotIOKraken extends MechanismArmIOKraken implements IntakePivotIO {
   public IntakePivotIOKraken(int id, boolean inverted) {
     super(
-        new int[] { id },
+        new int[] {id},
         IntakePivotConstants.CURRENT_LIMIT_AMPS,
         IntakePivotConstants.BRAKE_MODE,
         IntakePivotConstants.FORWARD_LIMIT,
         IntakePivotConstants.REVERSE_LIMIT,
         IntakePivotConstants.POSITION_COEFFICIENT,
-        new boolean[] { inverted },
+        new boolean[] {inverted},
         IntakePivotConstants.CAN_BUS,
         IntakePivotConstants.MOTION_MAGIC_CRUISE_VEL.get(),
         IntakePivotConstants.MOTION_MAGIC_ACCEL.get(),

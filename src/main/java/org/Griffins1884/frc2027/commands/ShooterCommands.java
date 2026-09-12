@@ -44,14 +44,16 @@ public class ShooterCommands {
     ANGLE
   }
 
-  private record LookupPoint(double pivotOutput, double rpm) {
-  }
+  private record LookupPoint(double pivotOutput, double rpm) {}
 
   private static final NavigableMap<Double, Double> legacyAngleByDistance = buildLegacyAngleTable();
   private static final NavigableMap<Double, Double> legacyRpmByDistance = buildLegacyRpmTable();
-  private static final NavigableMap<Double, LookupPoint> ballisticLookupByDistance = buildBallisticLookupTable();
-  private static final NavigableMap<Double, Double> ballisticAngleByDistance = buildBallisticAngleTable();
-  private static final NavigableMap<Double, Double> ballisticRpmByDistance = buildBallisticRpmTable();
+  private static final NavigableMap<Double, LookupPoint> ballisticLookupByDistance =
+      buildBallisticLookupTable();
+  private static final NavigableMap<Double, Double> ballisticAngleByDistance =
+      buildBallisticAngleTable();
+  private static final NavigableMap<Double, Double> ballisticRpmByDistance =
+      buildBallisticRpmTable();
 
   public static Map<Vals, Double> calc(
       Pose2d robot, Translation2d target, Superstructure.SuperState state) {
@@ -71,7 +73,8 @@ public class ShooterCommands {
     distanceX -= shooterDistanceCenter * Math.sin(Math.toRadians(yawAngle));
     distanceY += shooterDistanceCenter * Math.cos(Math.toRadians(yawAngle));
 
-    distance = (double) Math.round(Math.hypot(Math.abs(distanceX), Math.abs(distanceY)) * 100) / 100;
+    distance =
+        (double) Math.round(Math.hypot(Math.abs(distanceX), Math.abs(distanceY)) * 100) / 100;
 
     Logger.recordOutput("Shooter/distanceee", distance);
 
@@ -248,14 +251,17 @@ public class ShooterCommands {
   private static NavigableMap<Double, LookupPoint> buildBallisticLookupTable() {
     NavigableMap<Double, LookupPoint> table = new TreeMap<>();
 
-    int steps = (int) Math.round((TABLE_MAX_DISTANCE_METERS - TABLE_MIN_DISTANCE_METERS) / TABLE_STEP_METERS);
+    int steps =
+        (int)
+            Math.round((TABLE_MAX_DISTANCE_METERS - TABLE_MIN_DISTANCE_METERS) / TABLE_STEP_METERS);
     for (int i = 0; i <= steps; i++) {
       double distanceMeters = roundToTenth(TABLE_MIN_DISTANCE_METERS + (i * TABLE_STEP_METERS));
       LookupPoint point = solveBalancedLookup(distanceMeters);
       if (point == null) {
-        point = table.isEmpty()
-            ? new LookupPoint(PIVOT_OUTPUT_MIN, SOLVER_MAX_RPM)
-            : table.lastEntry().getValue();
+        point =
+            table.isEmpty()
+                ? new LookupPoint(PIVOT_OUTPUT_MIN, SOLVER_MAX_RPM)
+                : table.lastEntry().getValue();
       }
       table.put(distanceMeters, point);
     }
@@ -278,7 +284,9 @@ public class ShooterCommands {
     double bestScore = Double.POSITIVE_INFINITY;
     LookupPoint bestPoint = null;
 
-    for (double output = PIVOT_OUTPUT_MIN; output <= PIVOT_OUTPUT_MAX + 1e-9; output += PIVOT_OUTPUT_SEARCH_STEP) {
+    for (double output = PIVOT_OUTPUT_MIN;
+        output <= PIVOT_OUTPUT_MAX + 1e-9;
+        output += PIVOT_OUTPUT_SEARCH_STEP) {
       double pivotDeg = pivotOutputToVerticalDownDegrees(output);
       double launchElevationDeg = 90.0 - pivotDeg;
       double launchElevationRad = Math.toRadians(launchElevationDeg);
@@ -302,8 +310,9 @@ public class ShooterCommands {
         continue;
       }
 
-      double score = (BALANCED_WEIGHT_RPM * (rpm / SOLVER_MAX_RPM))
-          + (BALANCED_WEIGHT_TOF * (tof / TOF_NORMALIZATION_SECONDS));
+      double score =
+          (BALANCED_WEIGHT_RPM * (rpm / SOLVER_MAX_RPM))
+              + (BALANCED_WEIGHT_TOF * (tof / TOF_NORMALIZATION_SECONDS));
       if (score < bestScore) {
         bestScore = score;
         bestPoint = new LookupPoint(output, rpm);
@@ -354,8 +363,7 @@ public class ShooterCommands {
       double exitVelocityMetersPerSecond,
       double predictedHeightMeters,
       double heightErrorMeters,
-      boolean feasible) {
-  }
+      boolean feasible) {}
 
   public static Command pivotOpenLoop(ShooterPivotSubsystem pivot, double percent) {
     if (pivot == null) {

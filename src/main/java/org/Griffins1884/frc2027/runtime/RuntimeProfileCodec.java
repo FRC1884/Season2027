@@ -13,14 +13,14 @@ import org.Griffins1884.frc2027.mechanisms.MechanismTelemetry;
 public final class RuntimeProfileCodec {
   private static final ObjectMapper mapper = new ObjectMapper();
 
-  private RuntimeProfileCodec() {
-  }
+  private RuntimeProfileCodec() {}
 
   public static RuntimeModeProfile fromJson(String json) throws JsonProcessingException {
     RuntimeProfileDto dto = mapper.readValue(json, RuntimeProfileDto.class);
-    GlobalConstants.LoggingMode loggingMode = dto.loggingMode != null
-        ? GlobalConstants.LoggingMode.valueOf(dto.loggingMode.trim().toUpperCase())
-        : GlobalConstants.LoggingMode.COMP;
+    GlobalConstants.LoggingMode loggingMode =
+        dto.loggingMode != null
+            ? GlobalConstants.LoggingMode.valueOf(dto.loggingMode.trim().toUpperCase())
+            : GlobalConstants.LoggingMode.COMP;
     return new RuntimeModeProfile(
         loggingMode,
         dto.tuningEnabled,

@@ -59,23 +59,19 @@ public class Superstructure extends SubsystemBase {
       boolean shooterPivotManual,
       double shooterPivotPosition,
       String turretAction,
-      Translation2d turretTarget) {
-  }
+      Translation2d turretTarget) {}
 
-  public record StateRequestResult(boolean accepted, String reason) {
-  }
+  public record StateRequestResult(boolean accepted, String reason) {}
 
   private final SwerveSubsystem drive;
-  @Setter
-  private TurretSubsystem turret;
+  @Setter private TurretSubsystem turret;
 
   @Getter
-  private final LoggedDashboardChooser<SuperState> stateChooser = new LoggedDashboardChooser<>("Superstructure State");
+  private final LoggedDashboardChooser<SuperState> stateChooser =
+      new LoggedDashboardChooser<>("Superstructure State");
 
-  @Getter
-  private SuperState requestedState = SuperState.IDLING;
-  @Getter
-  private SuperState currentState = SuperState.IDLING;
+  @Getter private SuperState requestedState = SuperState.IDLING;
+  @Getter private SuperState currentState = SuperState.IDLING;
   private boolean stateOverrideActive = false;
   private boolean autoStateEnabled = true;
   private boolean autonomousHoldEnabled = false;
@@ -84,30 +80,21 @@ public class Superstructure extends SubsystemBase {
   private boolean wasTeleopEnabled = false;
   private boolean wasAutonomousEnabled = false;
   private boolean indexerActive = false;
-  @Setter
-  private boolean shooterPivotExternalControl = false;
+  @Setter private boolean shooterPivotExternalControl = false;
   private DoubleSupplier manualTurretAxis = () -> 0.0;
   private DoubleSupplier manualPivotAxis = () -> 0.0;
 
   private Supplier<Optional<Pose2d>> autoStartPoseSupplier = Optional::empty;
 
-  private final Debouncer ballPresentDebouncer = new Debouncer(SuperstructureConstants.BALL_PRESENCE_DEBOUNCE_SEC.get(),
-      DebounceType.kBoth);
-  @Setter
-  private boolean turretExternalControl = false;
-  @Setter
-  @Getter
-  private boolean shootEnabled = false;
-  @Getter
-  private boolean intakeRollersHeld = false;
-  @Getter
-  private boolean intakeDeployed = false;
-  @Getter
-  private boolean intakeStowRollerActive = false;
-  @Getter
-  private boolean shootReadyLatched = false;
-  @Getter
-  private boolean turretReadyForFeed = false;
+  private final Debouncer ballPresentDebouncer =
+      new Debouncer(SuperstructureConstants.BALL_PRESENCE_DEBOUNCE_SEC.get(), DebounceType.kBoth);
+  @Setter private boolean turretExternalControl = false;
+  @Setter @Getter private boolean shootEnabled = false;
+  @Getter private boolean intakeRollersHeld = false;
+  @Getter private boolean intakeDeployed = false;
+  @Getter private boolean intakeStowRollerActive = false;
+  @Getter private boolean shootReadyLatched = false;
+  @Getter private boolean turretReadyForFeed = false;
 
   private IntakeGoal lastIntakeGoal = IntakeGoal.IDLING;
   private IndexerGoal lastIndexerGoal = IndexerGoal.IDLING;
@@ -119,10 +106,8 @@ public class Superstructure extends SubsystemBase {
   private String lastTurretAction = "HOLD";
   private Translation2d lastTurretTarget = null;
   private final Rollers rollers = new Rollers();
-  @Getter
-  private final Elevators elevators = new Elevators();
-  @Getter
-  private final Arms arms = new Arms();
+  @Getter private final Elevators elevators = new Elevators();
+  @Getter private final Arms arms = new Arms();
   private static final double SYS_ID_IDLE_WAIT_SECONDS = 0.5;
 
   public Superstructure(SwerveSubsystem drive) {
@@ -442,9 +427,10 @@ public class Superstructure extends SubsystemBase {
     if (alliance.isEmpty()) {
       return null;
     }
-    double xBlue = alliance.get() == DriverStation.Alliance.Red
-        ? GlobalConstants.FieldConstants.fieldLength - pose.getX()
-        : pose.getX();
+    double xBlue =
+        alliance.get() == DriverStation.Alliance.Red
+            ? GlobalConstants.FieldConstants.fieldLength - pose.getX()
+            : pose.getX();
     if (GlobalConstants.isDebugMode()) {
       Logger.recordOutput("Superstructure/AutoXBlue", xBlue);
     }
@@ -659,8 +645,7 @@ public class Superstructure extends SubsystemBase {
     return null;
   }
 
-  private void enterState(SuperState state) {
-  }
+  private void enterState(SuperState state) {}
 
   private void applyState(SuperState state) {
     boolean indexerRequested = isIndexerRequested();
@@ -926,9 +911,10 @@ public class Superstructure extends SubsystemBase {
     Optional<DriverStation.Alliance> alliance = AllianceFlipUtil.resolveAlliance(pose);
     double xBlue;
     if (alliance.isPresent()) {
-      xBlue = alliance.get() == DriverStation.Alliance.Red
-          ? GlobalConstants.FieldConstants.fieldLength - pose.getX()
-          : pose.getX();
+      xBlue =
+          alliance.get() == DriverStation.Alliance.Red
+              ? GlobalConstants.FieldConstants.fieldLength - pose.getX()
+              : pose.getX();
     } else {
       xBlue = Math.min(pose.getX(), GlobalConstants.FieldConstants.fieldLength - pose.getX());
     }
@@ -937,8 +923,9 @@ public class Superstructure extends SubsystemBase {
 
   public Translation2d getHubTarget() {
     Pose2d pose = drive != null ? drive.getPose() : null;
-    boolean isBlue = AllianceFlipUtil.resolveAlliance(pose)
-        .orElseGet(() -> inferAllianceFromPose(pose)) == DriverStation.Alliance.Blue;
+    boolean isBlue =
+        AllianceFlipUtil.resolveAlliance(pose).orElseGet(() -> inferAllianceFromPose(pose))
+            == DriverStation.Alliance.Blue;
     return isBlue
         ? GlobalConstants.FieldConstants.Hub.topCenterPoint.toTranslation2d()
         : GlobalConstants.FieldConstants.Hub.oppTopCenterPoint.toTranslation2d();
@@ -957,8 +944,9 @@ public class Superstructure extends SubsystemBase {
 
   public Translation2d getFerryingTarget() {
     Pose2d pose = drive != null ? drive.getPose() : null;
-    boolean isBlue = AllianceFlipUtil.resolveAlliance(pose)
-        .orElseGet(() -> inferAllianceFromPose(pose)) == DriverStation.Alliance.Blue;
+    boolean isBlue =
+        AllianceFlipUtil.resolveAlliance(pose).orElseGet(() -> inferAllianceFromPose(pose))
+            == DriverStation.Alliance.Blue;
     boolean yChange = false;
     if (drive != null) {
       yChange = drive.getPose().getY() > 4.0;
@@ -993,8 +981,9 @@ public class Superstructure extends SubsystemBase {
 
   private boolean isBallPresent() {
     double currentAmps = getBallSenseCurrentAmps();
-    boolean present = ballPresentDebouncer.calculate(
-        currentAmps >= SuperstructureConstants.BALL_PRESENT_CURRENT_AMPS.get());
+    boolean present =
+        ballPresentDebouncer.calculate(
+            currentAmps >= SuperstructureConstants.BALL_PRESENT_CURRENT_AMPS.get());
     Logger.recordOutput("Superstructure/BallCurrentAmps", currentAmps);
     Logger.recordOutput("Superstructure/BallPresent", present);
     return present;
@@ -1068,23 +1057,22 @@ public class Superstructure extends SubsystemBase {
       Command dynamicForward,
       Command dynamicReverse) {
     return Commands.sequence(
-        sysIdPhase(name, "QuasistaticForward"),
-        quasistaticForward,
-        Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
-        sysIdPhase(name, "QuasistaticReverse"),
-        quasistaticReverse,
-        Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
-        sysIdPhase(name, "DynamicForward"),
-        dynamicForward,
-        Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
-        sysIdPhase(name, "DynamicReverse"),
-        dynamicReverse)
+            sysIdPhase(name, "QuasistaticForward"),
+            quasistaticForward,
+            Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
+            sysIdPhase(name, "QuasistaticReverse"),
+            quasistaticReverse,
+            Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
+            sysIdPhase(name, "DynamicForward"),
+            dynamicForward,
+            Commands.waitSeconds(SYS_ID_IDLE_WAIT_SECONDS),
+            sysIdPhase(name, "DynamicReverse"),
+            dynamicReverse)
         .finallyDo(interrupted -> logSysIdStatus(false, "NONE", "NONE"))
         .withName(name + "SysIdRoutine");
   }
 
-  public void close() {
-  }
+  public void close() {}
 
   public SuperstructureOutcome getOutcomeSnapshot() {
     return new SuperstructureOutcome(

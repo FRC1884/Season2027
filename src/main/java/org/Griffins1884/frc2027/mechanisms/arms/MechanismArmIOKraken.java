@@ -24,11 +24,14 @@ public class MechanismArmIOKraken implements MechanismArmIO {
   private final TalonFX leader;
   private final TalonFXConfiguration config = new TalonFXConfiguration();
   private final VoltageOut voltageRequest = new VoltageOut(0.0);
-  private final PositionTorqueCurrentFOC positionTorqueRequest = new PositionTorqueCurrentFOC(0.0).withUpdateFreqHz(0);
-  private final MotionMagicTorqueCurrentFOC motionMagicRequest = new MotionMagicTorqueCurrentFOC(0.0)
-      .withUpdateFreqHz(0);
-  private final PositionVoltage positionVoltageRequest = new PositionVoltage(0.0).withUpdateFreqHz(0);
-  private final MotionMagicVoltage motionMagicVoltageRequest = new MotionMagicVoltage(0.0).withUpdateFreqHz(0);
+  private final PositionTorqueCurrentFOC positionTorqueRequest =
+      new PositionTorqueCurrentFOC(0.0).withUpdateFreqHz(0);
+  private final MotionMagicTorqueCurrentFOC motionMagicRequest =
+      new MotionMagicTorqueCurrentFOC(0.0).withUpdateFreqHz(0);
+  private final PositionVoltage positionVoltageRequest =
+      new PositionVoltage(0.0).withUpdateFreqHz(0);
+  private final MotionMagicVoltage motionMagicVoltageRequest =
+      new MotionMagicVoltage(0.0).withUpdateFreqHz(0);
   private final double positionCoefficient;
   private final MechanismDefinition.KrakenFeatureConfig krakenFeatures;
   private boolean useMotionMagic;
@@ -112,17 +115,18 @@ public class MechanismArmIOKraken implements MechanismArmIO {
       double motionMagicJerk,
       MechanismDefinition.KrakenFeatureConfig krakenFeatures) {
     this.positionCoefficient = positionCoefficient;
-    this.krakenFeatures = krakenFeatures != null
-        ? krakenFeatures
-        : MechanismDefinition.KrakenFeatureConfig.disabled();
+    this.krakenFeatures =
+        krakenFeatures != null
+            ? krakenFeatures
+            : MechanismDefinition.KrakenFeatureConfig.disabled();
     this.useMotionMagic = false;
 
     motors = new TalonFX[ids.length];
     leader = motors[0] = new TalonFX(ids[0], canBus);
 
     config.MotorOutput.NeutralMode = brake ? NeutralModeValue.Brake : NeutralModeValue.Coast;
-    InvertedValue leaderInvertedValue = inverted[0] ? InvertedValue.Clockwise_Positive
-        : InvertedValue.CounterClockwise_Positive;
+    InvertedValue leaderInvertedValue =
+        inverted[0] ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
     config.MotorOutput.Inverted = leaderInvertedValue;
     config.CurrentLimits.SupplyCurrentLimit = currentLimitAmps;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
@@ -154,9 +158,10 @@ public class MechanismArmIOKraken implements MechanismArmIO {
     if (ids.length > 1) {
       for (int i = 1; i < ids.length; i++) {
         TalonFX follower = motors[i] = new TalonFX(ids[i], canBus);
-        config.MotorOutput.Inverted = inverted[i]
-            ? InvertedValue.Clockwise_Positive
-            : InvertedValue.CounterClockwise_Positive;
+        config.MotorOutput.Inverted =
+            inverted[i]
+                ? InvertedValue.Clockwise_Positive
+                : InvertedValue.CounterClockwise_Positive;
         tryUntilOk(5, () -> follower.getConfigurator().apply(config, 0.25));
         config.MotorOutput.Inverted = leaderInvertedValue;
         follower.setControl(new Follower(leader.getDeviceID(), MotorAlignmentValue.Aligned));

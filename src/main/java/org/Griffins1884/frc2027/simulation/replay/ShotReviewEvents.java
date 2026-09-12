@@ -3,10 +3,7 @@ package org.Griffins1884.frc2027.simulation.replay;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
 
-/**
- * Records shot-review markers that can be aligned with replay and external
- * video.
- */
+/** Records shot-review markers that can be aligned with replay and external video. */
 public final class ShotReviewEvents {
   private int releaseCount = 0;
   private double lastReleaseTimestampSec = Double.NaN;

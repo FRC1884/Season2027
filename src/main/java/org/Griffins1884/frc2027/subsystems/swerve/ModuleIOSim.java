@@ -24,9 +24,10 @@ public class ModuleIOSim implements ModuleIO {
 
   private boolean driveClosedLoop = false;
   private boolean turnClosedLoop = false;
-  private final PIDController driveController = new PIDController(DRIVE_MOTOR_GAINS.kP().get(), 0,
-      DRIVE_MOTOR_GAINS.kD().get());
-  private final PIDController turnController = new PIDController(ROTATOR_GAINS.kP().get(), 0, ROTATOR_GAINS.kD().get());
+  private final PIDController driveController =
+      new PIDController(DRIVE_MOTOR_GAINS.kP().get(), 0, DRIVE_MOTOR_GAINS.kD().get());
+  private final PIDController turnController =
+      new PIDController(ROTATOR_GAINS.kP().get(), 0, ROTATOR_GAINS.kD().get());
   private final int tuningId = System.identityHashCode(this);
   private double driveFFVolts = 0.0;
   private double driveAppliedVolts = 0.0;
@@ -43,12 +44,14 @@ public class ModuleIOSim implements ModuleIO {
     this.moduleSimulation = moduleSimulation;
     this.terrainSimulation = terrainSimulation;
     this.tractionCorner = tractionCorner;
-    this.driveMotor = moduleSimulation
-        .useGenericMotorControllerForDrive()
-        .withCurrentLimit(Amps.of(DRIVE_MOTOR_CURRENT_LIMIT));
-    this.turnMotor = moduleSimulation
-        .useGenericControllerForSteer()
-        .withCurrentLimit(Amps.of(ROTATOR_MOTOR_CURRENT_LIMIT_AMPS));
+    this.driveMotor =
+        moduleSimulation
+            .useGenericMotorControllerForDrive()
+            .withCurrentLimit(Amps.of(DRIVE_MOTOR_CURRENT_LIMIT));
+    this.turnMotor =
+        moduleSimulation
+            .useGenericControllerForSteer()
+            .withCurrentLimit(Amps.of(ROTATOR_MOTOR_CURRENT_LIMIT_AMPS));
 
     // Enable wrapping for turn PID
     turnController.enableContinuousInput(-Math.PI, Math.PI);
@@ -70,16 +73,18 @@ public class ModuleIOSim implements ModuleIO {
         ROTATOR_GAINS.kD());
     // Run closed-loop control
     if (driveClosedLoop) {
-      driveAppliedVolts = driveFFVolts
-          + driveController.calculate(
-              moduleSimulation.getDriveWheelFinalSpeed().in(RadiansPerSecond));
+      driveAppliedVolts =
+          driveFFVolts
+              + driveController.calculate(
+                  moduleSimulation.getDriveWheelFinalSpeed().in(RadiansPerSecond));
       driveAppliedVolts *= tractionDriveScale();
     } else {
       driveController.reset();
     }
     if (turnClosedLoop) {
-      turnAppliedVolts = turnController.calculate(moduleSimulation.getSteerAbsoluteFacing().getRadians())
-          * turnAuthorityScale();
+      turnAppliedVolts =
+          turnController.calculate(moduleSimulation.getSteerAbsoluteFacing().getRadians())
+              * turnAuthorityScale();
     } else {
       turnController.reset();
     }
@@ -98,15 +103,17 @@ public class ModuleIOSim implements ModuleIO {
     // Update turn inputs
     inputs.turnConnected = true;
     inputs.turnPosition = moduleSimulation.getSteerAbsoluteFacing();
-    inputs.turnVelocityRadPerSec = moduleSimulation.getSteerAbsoluteEncoderSpeed().in(RadiansPerSecond);
+    inputs.turnVelocityRadPerSec =
+        moduleSimulation.getSteerAbsoluteEncoderSpeed().in(RadiansPerSecond);
     inputs.turnAppliedVolts = turnAppliedVolts;
     inputs.turnCurrentAmps = Math.abs(moduleSimulation.getSteerMotorStatorCurrent().in(Amps));
 
     // Update odometry inputs
     inputs.odometryTimestamps = SparkUtil.getSimulationOdometryTimeStamps();
-    inputs.odometryDrivePositionsRad = Arrays.stream(moduleSimulation.getCachedDriveWheelFinalPositions())
-        .mapToDouble(angle -> angle.in(Radians))
-        .toArray();
+    inputs.odometryDrivePositionsRad =
+        Arrays.stream(moduleSimulation.getCachedDriveWheelFinalPositions())
+            .mapToDouble(angle -> angle.in(Radians))
+            .toArray();
     inputs.odometryTurnPositions = moduleSimulation.getCachedSteerAbsolutePositions();
   }
 
@@ -125,8 +132,9 @@ public class ModuleIOSim implements ModuleIO {
   @Override
   public void setDriveVelocity(double velocityRadPerSec) {
     driveClosedLoop = true;
-    driveFFVolts = DRIVE_MOTOR_GAINS.kS().get() * Math.signum(velocityRadPerSec)
-        + DRIVE_MOTOR_GAINS.kV().get() * velocityRadPerSec;
+    driveFFVolts =
+        DRIVE_MOTOR_GAINS.kS().get() * Math.signum(velocityRadPerSec)
+            + DRIVE_MOTOR_GAINS.kV().get() * velocityRadPerSec;
     driveController.setSetpoint(velocityRadPerSec);
   }
 

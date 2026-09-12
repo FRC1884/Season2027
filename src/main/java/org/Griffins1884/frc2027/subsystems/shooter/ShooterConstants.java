@@ -7,42 +7,43 @@ import org.Griffins1884.frc2027.mechanisms.MechanismDefinition;
 import org.Griffins1884.frc2027.util.LoggedTunableNumber;
 
 public final class ShooterConstants {
-    public enum ShotLookupMode {
-        LOOKUP_TABLE,
-        BALLISTIC_MODEL
-    }
+  public enum ShotLookupMode {
+    LOOKUP_TABLE,
+    BALLISTIC_MODEL
+  }
 
-    public static final CANBus CAN_BUS = new CANBus("rio");
+  public static final CANBus CAN_BUS = new CANBus("rio");
 
-    public static final int[] SHOOTER_IDS = CanIDConstants.SHOOTER_IDS;
-    public static final boolean[] SHOOTER_INVERTED = { false, true };
-    public static final int CURRENT_LIMIT_AMPS = 40;
-    public static final double CLOSED_LOOP_RAMP_SECONDS = 0.01;
-    public static final MechanismDefinition.KrakenFeatureConfig KRAKEN_FEATURES = new MechanismDefinition.KrakenFeatureConfig(
-            true, true, true, 100, true);
-    public static final boolean BRAKE_MODE = false;
-    public static final double REDUCTION = 1.0;
+  public static final int[] SHOOTER_IDS = CanIDConstants.SHOOTER_IDS;
+  public static final boolean[] SHOOTER_INVERTED = {false, true};
+  public static final int CURRENT_LIMIT_AMPS = 40;
+  public static final double CLOSED_LOOP_RAMP_SECONDS = 0.01;
+  public static final MechanismDefinition.KrakenFeatureConfig KRAKEN_FEATURES =
+      new MechanismDefinition.KrakenFeatureConfig(true, true, true, 100, true);
+  public static final boolean BRAKE_MODE = false;
+  public static final double REDUCTION = 1.0;
 
-    public static final double TARGET_RPM = 5000.0;
-    public static final double MAX_DISTANCE = 8.83;
+  public static final double TARGET_RPM = 5000.0;
+  public static final double MAX_DISTANCE = 8.83;
 
-    public static final GlobalConstants.Gains GAINS = new GlobalConstants.Gains("Shooter/Gains", 125, 0.01, 1, 1.4621,
-            0.016, 0.010901);
-    public static final LoggedTunableNumber RECOVERY_ERROR_GAIN_VOLTS_PER_RPM = new LoggedTunableNumber(
-            "Shooter/RecoveryErrorGainVoltsPerRpm", 0.0035);
-    public static final LoggedTunableNumber RECOVERY_CURRENT_THRESHOLD_AMPS = new LoggedTunableNumber(
-            "Shooter/RecoveryCurrentThresholdAmps", 30.0);
-    public static final LoggedTunableNumber RECOVERY_CURRENT_GAIN_VOLTS_PER_AMP = new LoggedTunableNumber(
-            "Shooter/RecoveryCurrentGainVoltsPerAmp", 0.03);
-    public static final LoggedTunableNumber RECOVERY_MAX_BOOST_VOLTS = new LoggedTunableNumber(
-            "Shooter/RecoveryMaxBoostVolts", 5.0);
-    public static final double VELOCITY_TOLERANCE = 100;
-    public static final double MAX_VOLTAGE = 12.0;
+  public static final GlobalConstants.Gains GAINS =
+      new GlobalConstants.Gains("Shooter/Gains", 125, 0.01, 1, 1.4621, 0.016, 0.010901);
+  public static final LoggedTunableNumber RECOVERY_ERROR_GAIN_VOLTS_PER_RPM =
+      new LoggedTunableNumber("Shooter/RecoveryErrorGainVoltsPerRpm", 0.0035);
+  public static final LoggedTunableNumber RECOVERY_CURRENT_THRESHOLD_AMPS =
+      new LoggedTunableNumber("Shooter/RecoveryCurrentThresholdAmps", 30.0);
+  public static final LoggedTunableNumber RECOVERY_CURRENT_GAIN_VOLTS_PER_AMP =
+      new LoggedTunableNumber("Shooter/RecoveryCurrentGainVoltsPerAmp", 0.03);
+  public static final LoggedTunableNumber RECOVERY_MAX_BOOST_VOLTS =
+      new LoggedTunableNumber("Shooter/RecoveryMaxBoostVolts", 5.0);
+  public static final double VELOCITY_TOLERANCE = 100;
+  public static final double MAX_VOLTAGE = 12.0;
 
-    public static final double FLYWHEEL_RADIUS_METERS = 0.05;
-    public static final double FLYWHEEL_GEAR_RATIO = REDUCTION;
-    public static final LoggedTunableNumber SLIP_FACTOR = new LoggedTunableNumber("Shooter/SlipFactor", 0.64);
-    public static final double EXIT_HEIGHT_METERS = 0.587;
-    public static final double TARGET_HEIGHT_METERS = GlobalConstants.FieldConstants.Hub.innerHeight;
-    public static final ShotLookupMode SHOT_LOOKUP_MODE = ShotLookupMode.LOOKUP_TABLE;
+  public static final double FLYWHEEL_RADIUS_METERS = 0.05;
+  public static final double FLYWHEEL_GEAR_RATIO = REDUCTION;
+  public static final LoggedTunableNumber SLIP_FACTOR =
+      new LoggedTunableNumber("Shooter/SlipFactor", 0.64);
+  public static final double EXIT_HEIGHT_METERS = 0.587;
+  public static final double TARGET_HEIGHT_METERS = GlobalConstants.FieldConstants.Hub.innerHeight;
+  public static final ShotLookupMode SHOT_LOOKUP_MODE = ShotLookupMode.LOOKUP_TABLE;
 }

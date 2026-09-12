@@ -73,12 +73,9 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
- * This class is where the bulk of the robot should be declared. Since
- * Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in
- * the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of
- * the robot (including
+ * This class is where the bulk of the robot should be declared. Since Command-based is a
+ * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
+ * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
@@ -105,9 +102,7 @@ public class RobotContainer {
   private final RobotStateVisualizer robotStateVisualizer;
   private boolean autoAllianceZeroed = false;
 
-  /**
-   * The container for the robot. Contains subsystems, OI devices, and commands.
-   */
+  /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Validate the declarative mechanism catalog up front so config errors fail
     // early.
@@ -117,68 +112,64 @@ public class RobotContainer {
     characterizationChooser.addDefaultOption("None", characterizationIdleCommand);
 
     if (DRIVETRAIN_ENABLED) {
-      drive = switch (MODE) {
-        case REAL:
-          // Real robot, instantiate hardware IO implementations
-          yield new SwerveSubsystem(
-              switch (GYRO_TYPE) {
-                case PIGEON -> new GyroIOPigeon2();
-                case NAVX -> new GyroIONavX();
-                case ADIS -> new GyroIO() {
-                };
-              },
-              new ModuleIOFullKraken(FRONT_LEFT),
-              new ModuleIOFullKraken(FRONT_RIGHT),
-              new ModuleIOFullKraken(BACK_LEFT),
-              new ModuleIOFullKraken(BACK_RIGHT));
-        case SIM:
-          MapleArenaSetup.ensure2026RebuiltArena();
-          this.driveSimulation = requireCommandableDriveSimulation(
-              DriveSimulationFactories.mapleTerrainAware(
-                  new SwerveDriveSimulation(
-                      SwerveConstants.MAPLE_SIM_CONFIG, new Pose2d(3, 3, new Rotation2d())),
-                  Rebuilt2026FieldModel.contactModel(),
-                  Rebuilt2026FieldModel.CHASSIS_FOOTPRINT,
-                  Rebuilt2026FieldModel.CHASSIS_MASS_PROPERTIES));
-          this.mapleDriveSimulation = requireMapleTerrainAwareSimulation(driveSimulation);
-          // Add the simulated drivetrain to the simulation field
-          SimulatedArena.getInstance()
-              .addDriveTrainSimulation(mapleDriveSimulation.mapleSimulation());
+      drive =
+          switch (MODE) {
+            case REAL:
+              // Real robot, instantiate hardware IO implementations
+              yield new SwerveSubsystem(
+                  switch (GYRO_TYPE) {
+                    case PIGEON -> new GyroIOPigeon2();
+                    case NAVX -> new GyroIONavX();
+                    case ADIS -> new GyroIO() {};
+                  },
+                  new ModuleIOFullKraken(FRONT_LEFT),
+                  new ModuleIOFullKraken(FRONT_RIGHT),
+                  new ModuleIOFullKraken(BACK_LEFT),
+                  new ModuleIOFullKraken(BACK_RIGHT));
+            case SIM:
+              MapleArenaSetup.ensure2026RebuiltArena();
+              this.driveSimulation =
+                  requireCommandableDriveSimulation(
+                      DriveSimulationFactories.mapleTerrainAware(
+                          new SwerveDriveSimulation(
+                              SwerveConstants.MAPLE_SIM_CONFIG, new Pose2d(3, 3, new Rotation2d())),
+                          Rebuilt2026FieldModel.contactModel(),
+                          Rebuilt2026FieldModel.CHASSIS_FOOTPRINT,
+                          Rebuilt2026FieldModel.CHASSIS_MASS_PROPERTIES));
+              this.mapleDriveSimulation = requireMapleTerrainAwareSimulation(driveSimulation);
+              // Add the simulated drivetrain to the simulation field
+              SimulatedArena.getInstance()
+                  .addDriveTrainSimulation(mapleDriveSimulation.mapleSimulation());
 
-          // Sim robot, instantiate physics sim IO implementations
-          yield new SwerveSubsystem(
-              new GyroIOSim(mapleDriveSimulation),
-              new ModuleIOSim(
-                  mapleDriveSimulation,
-                  SwerveCorner.FRONT_LEFT,
-                  mapleDriveSimulation.getModules()[0]),
-              new ModuleIOSim(
-                  mapleDriveSimulation,
-                  SwerveCorner.FRONT_RIGHT,
-                  mapleDriveSimulation.getModules()[1]),
-              new ModuleIOSim(
-                  mapleDriveSimulation,
-                  SwerveCorner.REAR_LEFT,
-                  mapleDriveSimulation.getModules()[2]),
-              new ModuleIOSim(
-                  mapleDriveSimulation,
-                  SwerveCorner.REAR_RIGHT,
-                  mapleDriveSimulation.getModules()[3]));
+              // Sim robot, instantiate physics sim IO implementations
+              yield new SwerveSubsystem(
+                  new GyroIOSim(mapleDriveSimulation),
+                  new ModuleIOSim(
+                      mapleDriveSimulation,
+                      SwerveCorner.FRONT_LEFT,
+                      mapleDriveSimulation.getModules()[0]),
+                  new ModuleIOSim(
+                      mapleDriveSimulation,
+                      SwerveCorner.FRONT_RIGHT,
+                      mapleDriveSimulation.getModules()[1]),
+                  new ModuleIOSim(
+                      mapleDriveSimulation,
+                      SwerveCorner.REAR_LEFT,
+                      mapleDriveSimulation.getModules()[2]),
+                  new ModuleIOSim(
+                      mapleDriveSimulation,
+                      SwerveCorner.REAR_RIGHT,
+                      mapleDriveSimulation.getModules()[3]));
 
-        default:
-          // Replayed robot, disable IO implementations
-          yield new SwerveSubsystem(
-              new GyroIO() {
-              },
-              new ModuleIO() {
-              },
-              new ModuleIO() {
-              },
-              new ModuleIO() {
-              },
-              new ModuleIO() {
-              });
-      };
+            default:
+              // Replayed robot, disable IO implementations
+              yield new SwerveSubsystem(
+                  new GyroIO() {},
+                  new ModuleIO() {},
+                  new ModuleIO() {},
+                  new ModuleIO() {},
+                  new ModuleIO() {});
+          };
       superstructure = new Superstructure(drive);
 
     } else {
@@ -187,23 +178,23 @@ public class RobotContainer {
     }
 
     if (SHOOTER_PIVOT_ENABLED) {
-      shooterPivot = switch (MODE) {
-        case REAL -> new ShooterPivotSubsystem("ShooterPivot", new ShooterPivotIOKraken());
-        case SIM -> new ShooterPivotSubsystem("ShooterPivot", new ShooterPivotIOSim());
-        default -> new ShooterPivotSubsystem("ShooterPivot", new ShooterPivotIO() {
-        });
-      };
+      shooterPivot =
+          switch (MODE) {
+            case REAL -> new ShooterPivotSubsystem("ShooterPivot", new ShooterPivotIOKraken());
+            case SIM -> new ShooterPivotSubsystem("ShooterPivot", new ShooterPivotIOSim());
+            default -> new ShooterPivotSubsystem("ShooterPivot", new ShooterPivotIO() {});
+          };
     } else {
       shooterPivot = null;
     }
 
     if (TURRET_ENABLED) {
-      turret = switch (MODE) {
-        case REAL -> new TurretSubsystem(new TurretIOKraken());
-        case SIM -> new TurretSubsystem(new TurretIOSim());
-        default -> new TurretSubsystem(new TurretIO() {
-        });
-      };
+      turret =
+          switch (MODE) {
+            case REAL -> new TurretSubsystem(new TurretIOKraken());
+            case SIM -> new TurretSubsystem(new TurretIOSim());
+            default -> new TurretSubsystem(new TurretIO() {});
+          };
 
       superstructure.setTurret(turret);
     } else {
@@ -222,51 +213,47 @@ public class RobotContainer {
     }
 
     if (VISION_ENABLED && drive != null) {
-      vision = switch (MODE) {
-        case REAL, SIM ->
-          new Vision(
-              drive,
-              drive::getPose,
-              () -> Math.toRadians(drive.getYawRateDegreesPerSec()),
-              () -> {
-                var speeds = drive.getRobotRelativeSpeeds();
-                return Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
-              },
-              LEFT_CAM_ENABLED
-                  ? (IS_LIMELIGHT
-                      ? new AprilTagVisionIOLimelight(LEFT_CAM_CONSTANTS, drive)
-                      : new AprilTagVisionIONorthstar(
-                          LEFT_CAM_CONSTANTS, LEFT_CAM_NORTHSTAR_CONFIG, drive))
-                  : new VisionIO() {
-                  },
-              RIGHT_CAM_ENABLED
-                  ? (IS_LIMELIGHT
-                      ? new AprilTagVisionIOLimelight(RIGHT_CAM_CONSTANTS, drive)
-                      : new AprilTagVisionIONorthstar(
-                          RIGHT_CAM_CONSTANTS, RIGHT_CAM_NORTHSTAR_CONFIG, drive))
-                  : new VisionIO() {
-                  },
-              MIDDLE_RIGHT_CAM_ENABLED
-                  ? (IS_LIMELIGHT
-                      ? new AprilTagVisionIOLimelight(MIDDLE_RIGHT_CAM_CONSTANTS, drive)
-                      : new AprilTagVisionIONorthstar(
-                          MIDDLE_RIGHT_CAM_CONSTANTS,
-                          MIDDLE_RIGHT_CAM_NORTHSTAR_CONFIG,
-                          drive))
-                  : new VisionIO() {
-                  });
-        default -> new Vision(drive, new VisionIO() {
-        }, new VisionIO() {
-        });
-      };
-    } else
-      vision = null;
+      vision =
+          switch (MODE) {
+            case REAL, SIM ->
+                new Vision(
+                    drive,
+                    drive::getPose,
+                    () -> Math.toRadians(drive.getYawRateDegreesPerSec()),
+                    () -> {
+                      var speeds = drive.getRobotRelativeSpeeds();
+                      return Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+                    },
+                    LEFT_CAM_ENABLED
+                        ? (IS_LIMELIGHT
+                            ? new AprilTagVisionIOLimelight(LEFT_CAM_CONSTANTS, drive)
+                            : new AprilTagVisionIONorthstar(
+                                LEFT_CAM_CONSTANTS, LEFT_CAM_NORTHSTAR_CONFIG, drive))
+                        : new VisionIO() {},
+                    RIGHT_CAM_ENABLED
+                        ? (IS_LIMELIGHT
+                            ? new AprilTagVisionIOLimelight(RIGHT_CAM_CONSTANTS, drive)
+                            : new AprilTagVisionIONorthstar(
+                                RIGHT_CAM_CONSTANTS, RIGHT_CAM_NORTHSTAR_CONFIG, drive))
+                        : new VisionIO() {},
+                    MIDDLE_RIGHT_CAM_ENABLED
+                        ? (IS_LIMELIGHT
+                            ? new AprilTagVisionIOLimelight(MIDDLE_RIGHT_CAM_CONSTANTS, drive)
+                            : new AprilTagVisionIONorthstar(
+                                MIDDLE_RIGHT_CAM_CONSTANTS,
+                                MIDDLE_RIGHT_CAM_NORTHSTAR_CONFIG,
+                                drive))
+                        : new VisionIO() {});
+            default -> new Vision(drive, new VisionIO() {}, new VisionIO() {});
+          };
+    } else vision = null;
 
     leds = LEDS_ENABLED ? new LEDSubsystem() : null;
 
     if (Config.Subsystems.WEBUI_ENABLED) {
-      operatorBoard = new OperatorBoardTracker(
-          new OperatorBoardIOServer(), superstructure, drive, turret, vision);
+      operatorBoard =
+          new OperatorBoardTracker(
+              new OperatorBoardIOServer(), superstructure, drive, turret, vision);
     } else {
       operatorBoard = null;
     }
@@ -354,15 +341,16 @@ public class RobotContainer {
 
     superstructure.registerSuperstructureCharacterization(() -> characterizationChooser);
     if (turret != null) {
-      Command turretSysIdFull = Commands.sequence(
-          turret.sysIdQuasistatic(SysIdRoutine.Direction.kForward),
-          Commands.waitSeconds(0.5),
-          turret.sysIdQuasistatic(SysIdRoutine.Direction.kReverse),
-          Commands.waitSeconds(0.5),
-          turret.sysIdDynamic(SysIdRoutine.Direction.kForward),
-          Commands.waitSeconds(0.5),
-          turret.sysIdDynamic(SysIdRoutine.Direction.kReverse))
-          .ignoringDisable(true);
+      Command turretSysIdFull =
+          Commands.sequence(
+                  turret.sysIdQuasistatic(SysIdRoutine.Direction.kForward),
+                  Commands.waitSeconds(0.5),
+                  turret.sysIdQuasistatic(SysIdRoutine.Direction.kReverse),
+                  Commands.waitSeconds(0.5),
+                  turret.sysIdDynamic(SysIdRoutine.Direction.kForward),
+                  Commands.waitSeconds(0.5),
+                  turret.sysIdDynamic(SysIdRoutine.Direction.kReverse))
+              .ignoringDisable(true);
       characterizationChooser.addOption("Turret | SysId (Full Routine)", turretSysIdFull);
       characterizationChooser.addOption(
           "Turret | SysId (Quasistatic Forward)",
@@ -388,11 +376,9 @@ public class RobotContainer {
   }
 
   /**
-   * Use this method to define your button->command mappings. Buttons can be
-   * created by
+   * Use this method to define your button->command mappings. Buttons can be created by
    * instantiating a {@link GenericHID} or one of its subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing
-   * it to a {@link
+   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   @SuppressWarnings("unused")
@@ -445,22 +431,24 @@ public class RobotContainer {
           .whileTrue(TurretCommands.turretOpenLoop(turret, -0.1))
           .whileFalse(TurretCommands.turretOpenLoop(turret, 0));
 
-      Command resetOdometryCmd = Commands.runOnce(
-          () -> {
-            if (drive == null) {
-              return;
-            }
-            var alliance = DriverStation.getAlliance();
-            if (alliance.isEmpty()) {
-              Logger.recordOutput("Odometry/AllianceZero/Failed", true);
-              Logger.recordOutput("Odometry/AllianceZero/Reason", "ALLIANCE_UNKNOWN");
-              return;
-            }
-            drive.zeroGyroAndOdometryToAllianceWall(alliance.get());
-          },
-          drive);
+      Command resetOdometryCmd =
+          Commands.runOnce(
+              () -> {
+                if (drive == null) {
+                  return;
+                }
+                var alliance = DriverStation.getAlliance();
+                if (alliance.isEmpty()) {
+                  Logger.recordOutput("Odometry/AllianceZero/Failed", true);
+                  Logger.recordOutput("Odometry/AllianceZero/Reason", "ALLIANCE_UNKNOWN");
+                  return;
+                }
+                drive.zeroGyroAndOdometryToAllianceWall(alliance.get());
+              },
+              drive);
       if (LEDS_ENABLED && leds != null) {
-        resetOdometryCmd = resetOdometryCmd.andThen(leds.whiteFlash().repeatedly().withTimeout(2.0));
+        resetOdometryCmd =
+            resetOdometryCmd.andThen(leds.whiteFlash().repeatedly().withTimeout(2.0));
       }
       driver.resetOdometry().onTrue(resetOdometryCmd.ignoringDisable(true));
     }
@@ -468,7 +456,7 @@ public class RobotContainer {
     if (LEDS_ENABLED && leds != null) {
       leds.setDefaultCommand(
           leds.allianceColor(
-              () -> DriverStation.getAlliance().orElse(Alliance.Red).equals(Alliance.Red))
+                  () -> DriverStation.getAlliance().orElse(Alliance.Red).equals(Alliance.Red))
               .repeatedly());
 
       new Trigger(() -> DriverStation.isTeleop() && DriverStation.getMatchTime() < 25)
@@ -514,12 +502,10 @@ public class RobotContainer {
   /**
    * Use this to pass the autonomwous command to the main {@link Robot} class.
    *
-   * @return the command to run in autonomous, or null if the auto chooser is not
-   *         initialized.
+   * @return the command to run in autonomous, or null if the auto chooser is not initialized.
    */
   public Command getAutonomousCommand() {
-    if (!AUTONOMOUS_ENABLED)
-      return null;
+    if (!AUTONOMOUS_ENABLED) return null;
     Command selected = operatorBoard != null ? operatorBoard.getAutonomousCommand() : null;
     superstructure.setAutonomousHoldEnabled(selected == null);
     return selected;
@@ -551,8 +537,7 @@ public class RobotContainer {
   }
 
   public void resetSimulationField() {
-    if (MODE != RobotMode.SIM || driveSimulation == null || drive == null)
-      return;
+    if (MODE != RobotMode.SIM || driveSimulation == null || drive == null) return;
 
     resetRobotToPose(new Pose2d(3, 3, new Rotation2d()), true);
   }
@@ -584,11 +569,12 @@ public class RobotContainer {
 
   public void displaySimFieldToAdvantageScope() {
     if (drive != null && turret != null && MODE == RobotMode.SIM) {
-      Translation2d turretTarget = TurretCommands.predictShootingWhileMoving(
-          drive::getPose,
-          TurretConstants::getSimTarget,
-          drive::getFieldVelocity,
-          drive::getFieldAcceleration);
+      Translation2d turretTarget =
+          TurretCommands.predictShootingWhileMoving(
+              drive::getPose,
+              TurretConstants::getSimTarget,
+              drive::getFieldVelocity,
+              drive::getFieldAcceleration);
       Logger.recordOutput(
           "FieldSimulation/TurretTarget", new Pose2d(turretTarget, new Rotation2d()));
     }

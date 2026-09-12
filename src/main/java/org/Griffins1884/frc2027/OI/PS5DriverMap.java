@@ -12,8 +12,7 @@ public class PS5DriverMap extends CommandPS5Controller implements DriverMap {
   /**
    * Construct an instance of a controller.
    *
-   * @param port The port index on the Driver Station that the controller is
-   *             plugged into.
+   * @param port The port index on the Driver Station that the controller is plugged into.
    */
   public PS5DriverMap(int port) {
     super(port);

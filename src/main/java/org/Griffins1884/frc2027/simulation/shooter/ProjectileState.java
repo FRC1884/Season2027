@@ -4,10 +4,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 
-/**
- * Mutable projectile state used for predicted trajectories and live simulated
- * shots.
- */
+/** Mutable projectile state used for predicted trajectories and live simulated shots. */
 public final class ProjectileState {
   private final double spawnTimestampSec;
   private Translation3d positionMeters;
@@ -19,7 +16,8 @@ public final class ProjectileState {
       Translation3d velocityMetersPerSecond,
       double spawnTimestampSec) {
     this.positionMeters = positionMeters != null ? positionMeters : new Translation3d();
-    this.velocityMetersPerSecond = velocityMetersPerSecond != null ? velocityMetersPerSecond : new Translation3d();
+    this.velocityMetersPerSecond =
+        velocityMetersPerSecond != null ? velocityMetersPerSecond : new Translation3d();
     this.spawnTimestampSec = spawnTimestampSec;
     active = true;
   }
@@ -54,9 +52,10 @@ public final class ProjectileState {
     }
 
     Translation3d acceleration = accelerationFor(physics);
-    positionMeters = positionMeters
-        .plus(velocityMetersPerSecond.times(dtSeconds))
-        .plus(acceleration.times(0.5 * dtSeconds * dtSeconds));
+    positionMeters =
+        positionMeters
+            .plus(velocityMetersPerSecond.times(dtSeconds))
+            .plus(acceleration.times(0.5 * dtSeconds * dtSeconds));
     velocityMetersPerSecond = velocityMetersPerSecond.plus(acceleration.times(dtSeconds));
     if (positionMeters.getZ() <= 0.0 && velocityMetersPerSecond.getZ() <= 0.0) {
       positionMeters = new Translation3d(positionMeters.getX(), positionMeters.getY(), 0.0);
@@ -66,9 +65,10 @@ public final class ProjectileState {
 
   private Translation3d accelerationFor(ShotSimulationConfig.PhysicsConfig physics) {
     double speed = velocityMetersPerSecond.getNorm();
-    Translation3d drag = velocityMetersPerSecond
-        .times(-physics.linearDragPerSecond())
-        .plus(velocityMetersPerSecond.times(-physics.quadraticDragPerMeter() * speed));
+    Translation3d drag =
+        velocityMetersPerSecond
+            .times(-physics.linearDragPerSecond())
+            .plus(velocityMetersPerSecond.times(-physics.quadraticDragPerMeter() * speed));
     Translation3d gravity = new Translation3d(0.0, 0.0, -physics.gravityMetersPerSecondSquared());
     return drag.plus(gravity);
   }

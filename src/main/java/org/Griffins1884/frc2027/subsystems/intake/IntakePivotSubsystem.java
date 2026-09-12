@@ -35,9 +35,7 @@ public class IntakePivotSubsystem extends SubsystemBase {
     }
   }
 
-  @Setter
-  @Getter
-  private IntakePivotGoal goal = IntakePivotGoal.IDLING;
+  @Setter @Getter private IntakePivotGoal goal = IntakePivotGoal.IDLING;
   private final IntakePivotArm primary;
   private final IntakePivotArm secondary;
   private final DigitalInput primaryZeroLimitSwitch;
@@ -52,8 +50,10 @@ public class IntakePivotSubsystem extends SubsystemBase {
   public IntakePivotSubsystem(String name, IntakePivotIO primaryIO, IntakePivotIO secondaryIO) {
     primary = new IntakePivotArm(name, primaryIO, () -> goal);
     secondary = new IntakePivotArm(name + "Follower", secondaryIO, () -> goal);
-    primaryZeroLimitSwitch = createLimitSwitch(IntakePivotConstants.PRIMARY_ZERO_LIMIT_SWITCH_DIO_CHANNEL);
-    secondaryZeroLimitSwitch = createLimitSwitch(IntakePivotConstants.SECONDARY_ZERO_LIMIT_SWITCH_DIO_CHANNEL);
+    primaryZeroLimitSwitch =
+        createLimitSwitch(IntakePivotConstants.PRIMARY_ZERO_LIMIT_SWITCH_DIO_CHANNEL);
+    secondaryZeroLimitSwitch =
+        createLimitSwitch(IntakePivotConstants.SECONDARY_ZERO_LIMIT_SWITCH_DIO_CHANNEL);
   }
 
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
@@ -188,10 +188,12 @@ public class IntakePivotSubsystem extends SubsystemBase {
       zeroConditionDetected = isZeroingConditionMet();
       zeroingDetectSamples = zeroConditionDetected ? zeroingDetectSamples + 1 : 0;
 
-      int requiredSamples = Math.max(
-          1,
-          (int) Math.ceil(
-              IntakePivotConstants.HARDSTOP_SPIKE_DEBOUNCE_SEC.get() / LOOP_PERIOD_SEC));
+      int requiredSamples =
+          Math.max(
+              1,
+              (int)
+                  Math.ceil(
+                      IntakePivotConstants.HARDSTOP_SPIKE_DEBOUNCE_SEC.get() / LOOP_PERIOD_SEC));
       if (zeroingDetectSamples >= requiredSamples) {
         zeroingLatched = true;
         zeroingRequested = false;
@@ -242,7 +244,8 @@ public class IntakePivotSubsystem extends SubsystemBase {
     }
 
     double maxTrim = Math.max(0.0, IntakePivotConstants.SYNC_MAX_TRIM_RAD.get());
-    double correction = clamp(syncError * IntakePivotConstants.SYNC_CORRECTION_KP.get(), -maxTrim, maxTrim);
+    double correction =
+        clamp(syncError * IntakePivotConstants.SYNC_CORRECTION_KP.get(), -maxTrim, maxTrim);
 
     double primaryGoal = safePosition - (correction * 0.5);
     double secondaryGoal = safePosition + (correction * 0.5);
@@ -320,9 +323,11 @@ public class IntakePivotSubsystem extends SubsystemBase {
   }
 
   private boolean isCurrentSpikeZeroDetected() {
-    double maxCurrentAmps = Math.max(
-        Math.abs(primary.getSupplyCurrentAmps()), Math.abs(secondary.getSupplyCurrentAmps()));
-    double maxVelocityRadPerSec = Math.max(Math.abs(primary.getVelocity()), Math.abs(secondary.getVelocity()));
+    double maxCurrentAmps =
+        Math.max(
+            Math.abs(primary.getSupplyCurrentAmps()), Math.abs(secondary.getSupplyCurrentAmps()));
+    double maxVelocityRadPerSec =
+        Math.max(Math.abs(primary.getVelocity()), Math.abs(secondary.getVelocity()));
     double currentThresholdAmps = IntakePivotConstants.HARDSTOP_STOW_CURRENT_AMPS.get();
 
     Logger.recordOutput("IntakePivot/HardStop/CurrentAmps", maxCurrentAmps);

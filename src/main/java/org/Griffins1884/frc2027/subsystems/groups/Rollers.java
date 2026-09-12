@@ -20,42 +20,43 @@ import org.Griffins1884.frc2027.subsystems.intake.ToothRolloutSubsystem;
 import org.Griffins1884.frc2027.subsystems.shooter.*;
 
 public class Rollers extends SubsystemBase {
-    public IntakeSubsystem intake = (INTAKE_ENABLED)
-            ? new IntakeSubsystem(
-                    "Intake",
-                    (GlobalConstants.MODE == GlobalConstants.RobotMode.SIM)
-                            ? new IntakeIOSim(DCMotor.getNeoVortex(2), 1, 1)
-                            : new IntakeIOKraken())
-            : null;
-    public ShooterSubsystem shooter = (SHOOTER_ENABLED)
-            ? new ShooterSubsystem(
-                    "Shooter",
-                    (GlobalConstants.MODE == GlobalConstants.RobotMode.SIM)
-                            ? new ShooterIOSim(DCMotor.getNeoVortex(2), 1, 1)
-                            : new ShooterIOKraken())
-            : null;
-    public IndexerSubsystem indexer = (INDEXER_ENABLED)
-            ? new IndexerSubsystem(
-                    "Indexer",
-                    (GlobalConstants.MODE == GlobalConstants.RobotMode.SIM)
-                            ? new IndexerIOSim(DCMotor.getNeoVortex(2), 1, 1)
-                            : new IndexerIOKraken())
-            : null;
-    public ToothRolloutSubsystem toothRollout = TOOTH_ROLLOUT_ENABLED
-            ? new ToothRolloutSubsystem("ToothRollout", new ToothRolloutIOStub())
-            : null;
-    public SpindexerSubsystem spindexer = SPINDEXER_ENABLED ? new SpindexerSubsystem("Spindexer", new SpindexerIOStub())
-            : null;
+  public IntakeSubsystem intake =
+      (INTAKE_ENABLED)
+          ? new IntakeSubsystem(
+              "Intake",
+              (GlobalConstants.MODE == GlobalConstants.RobotMode.SIM)
+                  ? new IntakeIOSim(DCMotor.getNeoVortex(2), 1, 1)
+                  : new IntakeIOKraken())
+          : null;
+  public ShooterSubsystem shooter =
+      (SHOOTER_ENABLED)
+          ? new ShooterSubsystem(
+              "Shooter",
+              (GlobalConstants.MODE == GlobalConstants.RobotMode.SIM)
+                  ? new ShooterIOSim(DCMotor.getNeoVortex(2), 1, 1)
+                  : new ShooterIOKraken())
+          : null;
+  public IndexerSubsystem indexer =
+      (INDEXER_ENABLED)
+          ? new IndexerSubsystem(
+              "Indexer",
+              (GlobalConstants.MODE == GlobalConstants.RobotMode.SIM)
+                  ? new IndexerIOSim(DCMotor.getNeoVortex(2), 1, 1)
+                  : new IndexerIOKraken())
+          : null;
+  public ToothRolloutSubsystem toothRollout =
+      TOOTH_ROLLOUT_ENABLED
+          ? new ToothRolloutSubsystem("ToothRollout", new ToothRolloutIOStub())
+          : null;
+  public SpindexerSubsystem spindexer =
+      SPINDEXER_ENABLED ? new SpindexerSubsystem("Spindexer", new SpindexerIOStub()) : null;
 
-    @Override
-    public void periodic() {
-    }
+  @Override
+  public void periodic() {}
 
-    private static final class ToothRolloutIOStub
-            implements org.Griffins1884.frc2027.subsystems.intake.ToothRolloutIO {
-    }
+  private static final class ToothRolloutIOStub
+      implements org.Griffins1884.frc2027.subsystems.intake.ToothRolloutIO {}
 
-    private static final class SpindexerIOStub
-            implements org.Griffins1884.frc2027.subsystems.indexer.SpindexerIO {
-    }
+  private static final class SpindexerIOStub
+      implements org.Griffins1884.frc2027.subsystems.indexer.SpindexerIO {}
 }

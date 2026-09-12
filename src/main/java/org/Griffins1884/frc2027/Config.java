@@ -46,7 +46,8 @@ public final class Config {
 
     public static final int DRIVER_PORT = 0;
     public static final DriverControllerType COMPBOT_DRIVER = DriverControllerType.PS5_PRO;
-    public static final DriverControllerType SIMBOT_DRIVER = DriverControllerType.SIM_XBOX_UNIVERSAL;
+    public static final DriverControllerType SIMBOT_DRIVER =
+        DriverControllerType.SIM_XBOX_UNIVERSAL;
 
     public static DriverMap getDriverController() {
       return createDriverController(resolveFallbackControllerType());

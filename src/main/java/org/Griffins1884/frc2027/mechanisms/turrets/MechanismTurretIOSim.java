@@ -29,7 +29,7 @@ public class MechanismTurretIOSim implements MechanismTurretIO {
     }
     sim.update(0.02);
     if (inputs.connected.length != 1) {
-      inputs.connected = new boolean[] { true };
+      inputs.connected = new boolean[] {true};
     } else {
       inputs.connected[0] = true;
     }

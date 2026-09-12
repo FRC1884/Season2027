@@ -17,12 +17,8 @@ public interface GyroIO {
     public Rotation2d[] odometryYawPositions = new Rotation2d[] {};
   }
 
-  public default void updateInputs(GyroIOInputs inputs) {
-  }
+  public default void updateInputs(GyroIOInputs inputs) {}
 
-  /**
-   * Resets the reported yaw to the provided field-relative heading in degrees.
-   */
-  public default void resetYaw(double yawDegrees) {
-  }
+  /** Resets the reported yaw to the provided field-relative heading in degrees. */
+  public default void resetYaw(double yawDegrees) {}
 }

@@ -6,27 +6,24 @@ import edu.wpi.first.math.geometry.Translation3d;
 /**
  * Geometry, calibration, physics, and search parameters for shot modeling.
  *
- * <p>
- * This version fixes two issues with the old config:
+ * <p>This version fixes two issues with the old config:
  *
  * <ol>
- * <li>Pivot calibration supports mechanisms where launch angle decreases as
- * motor rotations
- * increase.
- * <li>The shooter exit point is no longer treated as fixed. It is modeled as:
- * <ul>
- * <li>changing with pivot angle, and
- * <li>rotating with turret yaw around the turret center.
- * </ul>
+ *   <li>Pivot calibration supports mechanisms where launch angle decreases as motor rotations
+ *       increase.
+ *   <li>The shooter exit point is no longer treated as fixed. It is modeled as:
+ *       <ul>
+ *         <li>changing with pivot angle, and
+ *         <li>rotating with turret yaw around the turret center.
+ *       </ul>
  * </ol>
  *
- * <p>
- * Coordinate convention assumed here:
+ * <p>Coordinate convention assumed here:
  *
  * <ul>
- * <li>+X = forward
- * <li>+Y = left
- * <li>+Z = up
+ *   <li>+X = forward
+ *   <li>+Y = left
+ *   <li>+Z = up
  * </ul>
  */
 public record ShotModelConfig(
@@ -40,13 +37,15 @@ public record ShotModelConfig(
   public ShotModelConfig {
     turretMount = turretMount != null ? turretMount : new MountPose(0.0, 0.0, 0.0);
 
-    exitGeometry = exitGeometry != null
-        ? exitGeometry
-        : new ExitGeometry(
-            new ExitSample(60.0, 0.010047, 0.0, 0.625973),
-            new ExitSample(27.0, 0.057400, 0.0, 0.670908));
+    exitGeometry =
+        exitGeometry != null
+            ? exitGeometry
+            : new ExitGeometry(
+                new ExitSample(60.0, 0.010047, 0.0, 0.625973),
+                new ExitSample(27.0, 0.057400, 0.0, 0.670908));
 
-    pivotCalibration = pivotCalibration != null ? pivotCalibration : new PivotCalibration(0.0, 1.6, 60.0, 27.0);
+    pivotCalibration =
+        pivotCalibration != null ? pivotCalibration : new PivotCalibration(0.0, 1.6, 60.0, 27.0);
 
     flywheel = flywheel != null ? flywheel : new FlywheelConfig(0.0508, 1.0, 0.83, 2000.0, 5500.0);
 
@@ -58,22 +57,20 @@ public record ShotModelConfig(
   /**
    * Competition/default config from the numbers you provided.
    *
-   * <p>
-   * Inputs used:
+   * <p>Inputs used:
    *
    * <ul>
-   * <li>Robot center = (0,0,0)
-   * <li>Turret center = -17.7 mm forward from robot center
-   * <li>At 60 deg launch: exit = (-7.653 mm, 0, 625.973 mm) in robot coordinates
-   * <li>At 27 deg launch: exit = (39.7 mm, 0, 670.908 mm) in robot coordinates
+   *   <li>Robot center = (0,0,0)
+   *   <li>Turret center = -17.7 mm forward from robot center
+   *   <li>At 60 deg launch: exit = (-7.653 mm, 0, 625.973 mm) in robot coordinates
+   *   <li>At 27 deg launch: exit = (39.7 mm, 0, 670.908 mm) in robot coordinates
    * </ul>
    *
-   * <p>
-   * Relative-to-turret exit points therefore become:
+   * <p>Relative-to-turret exit points therefore become:
    *
    * <ul>
-   * <li>60 deg: (10.047 mm, 0, 625.973 mm)
-   * <li>27 deg: (57.400 mm, 0, 670.908 mm)
+   *   <li>60 deg: (10.047 mm, 0, 625.973 mm)
+   *   <li>27 deg: (57.400 mm, 0, 670.908 mm)
    * </ul>
    */
   public static ShotModelConfig defaultConfig() {
@@ -89,29 +86,26 @@ public record ShotModelConfig(
   }
 
   /**
-   * Returns shooter exit position in robot coordinates for the provided motor
-   * rotations and turret
+   * Returns shooter exit position in robot coordinates for the provided motor rotations and turret
    * yaw.
    *
-   * <p>
-   * The exit point:
+   * <p>The exit point:
    *
    * <ol>
-   * <li>is interpolated from launch angle / pivot state, in turret-local
-   * coordinates
-   * <li>is then rotated about turret Z by turretYaw
-   * <li>is then translated by turretMount into robot coordinates
+   *   <li>is interpolated from launch angle / pivot state, in turret-local coordinates
+   *   <li>is then rotated about turret Z by turretYaw
+   *   <li>is then translated by turretMount into robot coordinates
    * </ol>
    */
   public Translation3d shooterExitPositionMeters(
       double pivotMotorRotations, Rotation2d turretYawFromRobotForward) {
-    double launchAngleDeg = pivotCalibration.motorRotationsToLaunchAngleDegrees(pivotMotorRotations);
+    double launchAngleDeg =
+        pivotCalibration.motorRotationsToLaunchAngleDegrees(pivotMotorRotations);
     return shooterExitPositionMetersForLaunchAngle(launchAngleDeg, turretYawFromRobotForward);
   }
 
   /**
-   * Returns shooter exit position in robot coordinates for a desired launch angle
-   * and turret yaw.
+   * Returns shooter exit position in robot coordinates for a desired launch angle and turret yaw.
    */
   public Translation3d shooterExitPositionMetersForLaunchAngle(
       double launchAngleDegrees, Rotation2d turretYawFromRobotForward) {
@@ -120,12 +114,10 @@ public record ShotModelConfig(
     return turretMount.toTranslation3d().plus(rotatedLocalExit);
   }
 
-  /**
-   * Returns the local (turret-frame) exit position for the given pivot motor
-   * rotations.
-   */
+  /** Returns the local (turret-frame) exit position for the given pivot motor rotations. */
   public Translation3d shooterExitLocalPositionMeters(double pivotMotorRotations) {
-    double launchAngleDeg = pivotCalibration.motorRotationsToLaunchAngleDegrees(pivotMotorRotations);
+    double launchAngleDeg =
+        pivotCalibration.motorRotationsToLaunchAngleDegrees(pivotMotorRotations);
     return exitGeometry.exitPositionLocalMeters(launchAngleDeg);
   }
 
@@ -159,9 +151,7 @@ public record ShotModelConfig(
   /**
    * Maps pivot motor rotations to launch angle.
    *
-   * <p>
-   * This supports both increasing and decreasing angle-vs-rotations
-   * relationships.
+   * <p>This supports both increasing and decreasing angle-vs-rotations relationships.
    */
   public record PivotCalibration(
       double minMotorRotations,
@@ -200,7 +190,8 @@ public record ShotModelConfig(
 
     public double launchAngleDegreesToMotorRotations(double launchAngleDegrees) {
       double clamped = clampLaunchAngleDegrees(launchAngleDegrees);
-      double angleSpan = launchAngleAtMaxMotorRotationsDegrees - launchAngleAtMinMotorRotationsDegrees;
+      double angleSpan =
+          launchAngleAtMaxMotorRotationsDegrees - launchAngleAtMinMotorRotationsDegrees;
 
       if (Math.abs(angleSpan) < 1e-9) {
         return minMotorRotations;
@@ -214,12 +205,9 @@ public record ShotModelConfig(
   }
 
   /**
-   * A measured local shooter exit point corresponding to a particular launch
-   * angle.
+   * A measured local shooter exit point corresponding to a particular launch angle.
    *
-   * <p>
-   * These coordinates are relative to the turret frame before turret yaw rotation
-   * is applied.
+   * <p>These coordinates are relative to the turret frame before turret yaw rotation is applied.
    */
   public record ExitSample(
       double launchAngleDegrees, double localXMeters, double localYMeters, double localZMeters) {
@@ -232,11 +220,8 @@ public record ShotModelConfig(
   /**
    * Models how the shooter exit point moves with pivot angle in the turret frame.
    *
-   * <p>
-   * This is currently a linear interpolation between two measured samples. That
-   * is a much better
-   * approximation than a fixed exit point, and turret rotation is then handled by
-   * rotating the
+   * <p>This is currently a linear interpolation between two measured samples. That is a much better
+   * approximation than a fixed exit point, and turret rotation is then handled by rotating the
    * local point into robot coordinates.
    */
   public record ExitGeometry(ExitSample sampleA, ExitSample sampleB) {
@@ -305,14 +290,12 @@ public record ShotModelConfig(
   public record PhysicsConfig(
       double gravityMetersPerSecondSquared,
       double linearDragPerSecond,
-      double quadraticDragPerMeter) {
-  }
+      double quadraticDragPerMeter) {}
 
   public record SearchConfig(
       double rpmStep,
       double launchAngleStepDegrees,
       double integrationStepSeconds,
       double maxSimulationTimeSeconds,
-      double solutionToleranceMeters) {
-  }
+      double solutionToleranceMeters) {}
 }

@@ -50,8 +50,7 @@ public abstract class PositionArmMechanism<G extends PositionArmMechanism.PivotG
       boolean softLimitsEnabled,
       double softLimitMin,
       double softLimitMax,
-      double maxVoltage) {
-  }
+      double maxVoltage) {}
 
   public interface PivotGoal {
     DoubleSupplier getAngle();
@@ -74,8 +73,7 @@ public abstract class PositionArmMechanism<G extends PositionArmMechanism.PivotG
   private final ArmConfig config;
   private final int tuningId = System.identityHashCode(this);
 
-  @Getter
-  private double goalPosition = 0.0;
+  @Getter private double goalPosition = 0.0;
 
   private ControlMode controlMode = ControlMode.CLOSED_LOOP;
   private double openLoopPercent = 0.0;
@@ -120,25 +118,29 @@ public abstract class PositionArmMechanism<G extends PositionArmMechanism.PivotG
 
     pidController = new PIDController(config.kP().get(), config.kI().get(), config.kD().get());
     pidController.setTolerance(config.positionTolerance());
-    feedforward = new ArmFeedforward(
-        config.kS().get(), config.kG().get(), config.kV().get(), config.kA().get());
+    feedforward =
+        new ArmFeedforward(
+            config.kS().get(), config.kG().get(), config.kV().get(), config.kA().get());
 
-    Consumer<SysIdRoutineLog> sysIdLog = log -> log.motor(name)
-        .voltage(Volts.of(inputs.appliedVoltage))
-        .angularVelocity(RadiansPerSecond.of(inputs.velocity))
-        .angularPosition(Radian.of(inputs.encoderPosition));
-    sysIdRoutine = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            null,
-            null,
-            Seconds.of(4),
-            state -> {
-              if (RuntimeModeManager.isDebugEnabled(mechanismKey)) {
-                Logger.recordOutput("Arms/" + name + "/SysIdState", state.toString());
-              }
-            }),
-        new SysIdRoutine.Mechanism(
-            voltage -> io.setVoltage(voltage.in(Volts)), sysIdLog, this));
+    Consumer<SysIdRoutineLog> sysIdLog =
+        log ->
+            log.motor(name)
+                .voltage(Volts.of(inputs.appliedVoltage))
+                .angularVelocity(RadiansPerSecond.of(inputs.velocity))
+                .angularPosition(Radian.of(inputs.encoderPosition));
+    sysIdRoutine =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                null,
+                Seconds.of(4),
+                state -> {
+                  if (RuntimeModeManager.isDebugEnabled(mechanismKey)) {
+                    Logger.recordOutput("Arms/" + name + "/SysIdState", state.toString());
+                  }
+                }),
+            new SysIdRoutine.Mechanism(
+                voltage -> io.setVoltage(voltage.in(Volts)), sysIdLog, this));
 
     disconnected = new Alert("Motor(s) disconnected on arm: " + name + "!", Alert.AlertType.kError);
     stateTimer.start();
@@ -183,7 +185,8 @@ public abstract class PositionArmMechanism<G extends PositionArmMechanism.PivotG
       initialized = true;
     }
 
-    double requestedGoal = manualGoalActive ? manualGoalPosition : getGoal().getAngle().getAsDouble();
+    double requestedGoal =
+        manualGoalActive ? manualGoalPosition : getGoal().getAngle().getAsDouble();
     goalPosition = clampGoal(requestedGoal);
     inputs.goal = goalPosition;
 
@@ -239,7 +242,8 @@ public abstract class PositionArmMechanism<G extends PositionArmMechanism.PivotG
 
     double pidOutput = pidController.calculate(position, goalPosition);
     double feedforwardOutput = feedforward.calculate(position, inputs.velocity);
-    double outputVoltage = MathUtil.clamp(pidOutput + feedforwardOutput, -config.maxVoltage(), config.maxVoltage());
+    double outputVoltage =
+        MathUtil.clamp(pidOutput + feedforwardOutput, -config.maxVoltage(), config.maxVoltage());
 
     io.setVoltage(outputVoltage);
 

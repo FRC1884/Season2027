@@ -16,20 +16,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Exports raw and solved shot sweeps for offline fitting or MCP/LLM analysis.
- */
+/** Exports raw and solved shot sweeps for offline fitting or MCP/LLM analysis. */
 public final class ShotSweepExporterMain {
-  private static final ObjectMapper JSON = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+  private static final ObjectMapper JSON =
+      new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
   private static final double DEFAULT_TARGET_HEIGHT_METERS = 56.5 * 0.0254;
 
-  private ShotSweepExporterMain() {
-  }
+  private ShotSweepExporterMain() {}
 
   public static void main(String... args) throws IOException {
     Map<String, String> options = parseArgs(args);
-    Path outputDir = Paths.get(options.getOrDefault("--output-dir", "build/reports/ballistics"))
-        .toAbsolutePath();
+    Path outputDir =
+        Paths.get(options.getOrDefault("--output-dir", "build/reports/ballistics"))
+            .toAbsolutePath();
     Files.createDirectories(outputDir);
 
     ShotModelConfig config = ShotModelConfig.defaultConfig();
@@ -41,16 +40,19 @@ public final class ShotSweepExporterMain {
 
     for (double distanceMeters : sweep.distanceMeters().values()) {
       for (double lateralMeters : sweep.targetLateralMeters().values()) {
-        Translation3d targetPosition = new Translation3d(distanceMeters, lateralMeters, DEFAULT_TARGET_HEIGHT_METERS);
+        Translation3d targetPosition =
+            new Translation3d(distanceMeters, lateralMeters, DEFAULT_TARGET_HEIGHT_METERS);
         for (double forwardVelocity : sweep.robotForwardVelocityMetersPerSecond().values()) {
           for (double lateralVelocity : sweep.robotLateralVelocityMetersPerSecond().values()) {
-            ShotModel.ShotScenario scenario = new ShotModel.ShotScenario(
-                targetPosition, new Translation2d(forwardVelocity, lateralVelocity));
+            ShotModel.ShotScenario scenario =
+                new ShotModel.ShotScenario(
+                    targetPosition, new Translation2d(forwardVelocity, lateralVelocity));
             ShotModel.ShotSolution best = model.solve(scenario);
             bestSolutions.add(new SolutionSample(scenario, best));
             for (double angleDegrees : sweep.launchAngleDegrees().values()) {
               for (double wheelRpm : sweep.wheelRpm().values()) {
-                ShotModel.LaunchCommand command = new ShotModel.LaunchCommand(wheelRpm, angleDegrees);
+                ShotModel.LaunchCommand command =
+                    new ShotModel.LaunchCommand(wheelRpm, angleDegrees);
                 samples.add(new GridSample(scenario, command, model.predict(scenario, command)));
               }
             }
@@ -59,15 +61,16 @@ public final class ShotSweepExporterMain {
       }
     }
 
-    SweepExport export = new SweepExport(
-        Instant.now().toString(),
-        model.name(),
-        config,
-        sweep,
-        samples.size(),
-        bestSolutions.size(),
-        samples,
-        bestSolutions);
+    SweepExport export =
+        new SweepExport(
+            Instant.now().toString(),
+            model.name(),
+            config,
+            sweep,
+            samples.size(),
+            bestSolutions.size(),
+            samples,
+            bestSolutions);
 
     Path jsonPath = outputDir.resolve("shot-sweep.json");
     Path rawCsvPath = outputDir.resolve("shot-sweep.csv");
@@ -172,11 +175,9 @@ public final class ShotSweepExporterMain {
   record GridSample(
       ShotModel.ShotScenario scenario,
       ShotModel.LaunchCommand command,
-      ShotModel.ShotPrediction prediction) {
-  }
+      ShotModel.ShotPrediction prediction) {}
 
-  record SolutionSample(ShotModel.ShotScenario scenario, ShotModel.ShotSolution solution) {
-  }
+  record SolutionSample(ShotModel.ShotScenario scenario, ShotModel.ShotSolution solution) {}
 
   record SweepExport(
       String generatedAt,
@@ -186,8 +187,7 @@ public final class ShotSweepExporterMain {
       int rawSampleCount,
       int solvedScenarioCount,
       List<GridSample> rawSamples,
-      List<SolutionSample> bestSolutions) {
-  }
+      List<SolutionSample> bestSolutions) {}
 
   record SweepDefinition(
       SweepAxis distanceMeters,

@@ -187,13 +187,13 @@ enum DriverControllerLayout {
       case "xbox", "simxboxuniversal", "sim-xbox-universal" -> XBOX;
       case "ps4", "dualshock4", "dualshock-4" -> PS4;
       case "ps5",
-          "ps5pro",
-          "ps5-pro",
-          "dualsense",
-          "dualsenseedge",
-          "dualsense-edge",
-          "genericgamepad" ->
-        PS5_PRO;
+              "ps5pro",
+              "ps5-pro",
+              "dualsense",
+              "dualsenseedge",
+              "dualsense-edge",
+              "genericgamepad" ->
+          PS5_PRO;
       default -> PS5_PRO;
     };
   }

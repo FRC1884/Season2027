@@ -15,80 +15,83 @@ import org.littletonrobotics.junction.Logger;
 
 /** have fun :) */
 public class GamePieceVisualizer {
-    private static Supplier<Pose3d> blueSpeaker = Pose3d::new;
-    private static final Transform3d defaultLauncherTransform = new Transform3d(-0.008, 0, 0.19,
-            new Rotation3d(0.0, Units.degreesToRadians(-25.0), 0.0));
-    private static Supplier<Pose2d> robotPoseSupplier = Pose2d::new;
+  private static Supplier<Pose3d> blueSpeaker = Pose3d::new;
+  private static final Transform3d defaultLauncherTransform =
+      new Transform3d(-0.008, 0, 0.19, new Rotation3d(0.0, Units.degreesToRadians(-25.0), 0.0));
+  private static Supplier<Pose2d> robotPoseSupplier = Pose2d::new;
 
-    public static void setRobotPoseSupplier(Supplier<Pose2d> supplier) {
-        robotPoseSupplier = supplier;
-    }
+  public static void setRobotPoseSupplier(Supplier<Pose2d> supplier) {
+    robotPoseSupplier = supplier;
+  }
 
-    public static void setTargetSupplier(Supplier<Pose3d> supplier) {
-        blueSpeaker = supplier;
-    }
+  public static void setTargetSupplier(Supplier<Pose3d> supplier) {
+    blueSpeaker = supplier;
+  }
 
-    public static Command shoot(
-            DoubleSupplier shotDuration, Supplier<Transform3d> launcherTransform) {
-        return new ScheduleCommand( // Branch off and exit immediately
-                defer(
-                        () -> {
-                            final Pose3d startPose = new Pose3d(robotPoseSupplier.get())
-                                    .transformBy(launcherTransform.get());
-                            final Pose3d endPose = blueSpeaker.get();
+  public static Command shoot(
+      DoubleSupplier shotDuration, Supplier<Transform3d> launcherTransform) {
+    return new ScheduleCommand( // Branch off and exit immediately
+        defer(
+                () -> {
+                  final Pose3d startPose =
+                      new Pose3d(robotPoseSupplier.get()).transformBy(launcherTransform.get());
+                  final Pose3d endPose = blueSpeaker.get();
 
-                            final Timer timer = new Timer();
-                            timer.start();
-                            return run(() -> Logger.recordOutput(
-                                    "GamePieceVisualizer",
-                                    new Pose3d[] {
-                                            startPose.interpolate(
-                                                    endPose, timer.get() / shotDuration.getAsDouble())
-                                    }))
-                                    .until(() -> timer.hasElapsed(shotDuration.getAsDouble()))
-                                    .finallyDo(() -> Logger.recordOutput("GamePieceVisualizer", new Pose3d[] {}));
-                        },
-                        Set.of())
-                        .ignoringDisable(true));
-    }
+                  final Timer timer = new Timer();
+                  timer.start();
+                  return run(() ->
+                          Logger.recordOutput(
+                              "GamePieceVisualizer",
+                              new Pose3d[] {
+                                startPose.interpolate(
+                                    endPose, timer.get() / shotDuration.getAsDouble())
+                              }))
+                      .until(() -> timer.hasElapsed(shotDuration.getAsDouble()))
+                      .finallyDo(() -> Logger.recordOutput("GamePieceVisualizer", new Pose3d[] {}));
+                },
+                Set.of())
+            .ignoringDisable(true));
+  }
 
-    public static Command shoot(DoubleSupplier shotDuration, DoubleSupplier launcherPitch) {
-        return shoot(
-                shotDuration,
-                () -> new Transform3d(
-                        defaultLauncherTransform.getTranslation(),
-                        new Rotation3d(
-                                defaultLauncherTransform.getRotation().getX(),
-                                -launcherPitch.getAsDouble(),
-                                defaultLauncherTransform.getRotation().getZ())));
-    }
+  public static Command shoot(DoubleSupplier shotDuration, DoubleSupplier launcherPitch) {
+    return shoot(
+        shotDuration,
+        () ->
+            new Transform3d(
+                defaultLauncherTransform.getTranslation(),
+                new Rotation3d(
+                    defaultLauncherTransform.getRotation().getX(),
+                    -launcherPitch.getAsDouble(),
+                    defaultLauncherTransform.getRotation().getZ())));
+  }
 
-    public static Command shoot(DoubleSupplier shotDuration) {
-        return shoot(
-                shotDuration,
-                () -> (-Math.atan2(
-                        blueSpeaker.get().getZ(),
-                        blueSpeaker
-                                .get()
-                                .toPose2d()
-                                .getTranslation()
-                                .getDistance(
-                                        robotPoseSupplier
-                                                .get()
-                                                .transformBy(
-                                                        new Transform2d(
-                                                                defaultLauncherTransform
-                                                                        .getTranslation()
-                                                                        .toTranslation2d()
-                                                                        .getX(),
-                                                                defaultLauncherTransform
-                                                                        .getTranslation()
-                                                                        .toTranslation2d()
-                                                                        .getY(),
-                                                                defaultLauncherTransform
-                                                                        .getTranslation()
-                                                                        .toTranslation2d()
-                                                                        .getAngle()))
-                                                .getTranslation()))));
-    }
+  public static Command shoot(DoubleSupplier shotDuration) {
+    return shoot(
+        shotDuration,
+        () ->
+            (-Math.atan2(
+                blueSpeaker.get().getZ(),
+                blueSpeaker
+                    .get()
+                    .toPose2d()
+                    .getTranslation()
+                    .getDistance(
+                        robotPoseSupplier
+                            .get()
+                            .transformBy(
+                                new Transform2d(
+                                    defaultLauncherTransform
+                                        .getTranslation()
+                                        .toTranslation2d()
+                                        .getX(),
+                                    defaultLauncherTransform
+                                        .getTranslation()
+                                        .toTranslation2d()
+                                        .getY(),
+                                    defaultLauncherTransform
+                                        .getTranslation()
+                                        .toTranslation2d()
+                                        .getAngle()))
+                            .getTranslation()))));
+  }
 }

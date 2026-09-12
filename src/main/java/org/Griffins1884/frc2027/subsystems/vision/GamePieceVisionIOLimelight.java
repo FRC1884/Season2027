@@ -6,18 +6,14 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.RobotController;
 import lombok.Getter;
 
-/**
- * IO implementation for a Limelight camera on a game element detection
- * pipeline.
- */
+/** IO implementation for a Limelight camera on a game element detection pipeline. */
 public class GamePieceVisionIOLimelight implements VisionIO {
   private static final long FLUSH_PERIOD_MICROS = 100_000;
 
   private final DoubleSubscriber latencySubscriber;
   private final DoubleSubscriber txSubscriber;
   private final DoubleSubscriber tySubscriber;
-  @Getter
-  private final CameraConstants cameraConstants;
+  @Getter private final CameraConstants cameraConstants;
   private long lastFlushMicros = Long.MIN_VALUE;
 
   /**
@@ -38,12 +34,12 @@ public class GamePieceVisionIOLimelight implements VisionIO {
         .publish()
         .accept(
             new double[] {
-                cameraConstants.robotToCamera().getX(),
-                cameraConstants.robotToCamera().getY(),
-                cameraConstants.robotToCamera().getZ(),
-                cameraConstants.robotToCamera().getRotation().getX(),
-                cameraConstants.robotToCamera().getRotation().getY(),
-                cameraConstants.robotToCamera().getRotation().getZ()
+              cameraConstants.robotToCamera().getX(),
+              cameraConstants.robotToCamera().getY(),
+              cameraConstants.robotToCamera().getZ(),
+              cameraConstants.robotToCamera().getRotation().getX(),
+              cameraConstants.robotToCamera().getRotation().getY(),
+              cameraConstants.robotToCamera().getRotation().getZ()
             });
   }
 
@@ -53,8 +49,9 @@ public class GamePieceVisionIOLimelight implements VisionIO {
     // 250ms
     inputs.connected = (RobotController.getFPGATime() - latencySubscriber.getLastChange()) < 250;
     // Update target observation
-    inputs.latestTargetObservation = new TargetObservation(
-        Rotation2d.fromDegrees(txSubscriber.get()), Rotation2d.fromDegrees(tySubscriber.get()));
+    inputs.latestTargetObservation =
+        new TargetObservation(
+            Rotation2d.fromDegrees(txSubscriber.get()), Rotation2d.fromDegrees(tySubscriber.get()));
 
     long nowMicros = RobotController.getFPGATime();
     if (nowMicros - lastFlushMicros >= FLUSH_PERIOD_MICROS) {

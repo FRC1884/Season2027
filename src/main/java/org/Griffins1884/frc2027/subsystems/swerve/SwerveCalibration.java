@@ -4,10 +4,10 @@ import edu.wpi.first.wpilibj.Preferences;
 
 public final class SwerveCalibration {
   private static final String WHEEL_RADIUS_KEY = "Swerve/Calibration/WheelRadiusMeters";
-  private static final String MODULE_ZERO_TRIM_PREFIX = "Swerve/Calibration/ModuleZeroTrimRotations/";
+  private static final String MODULE_ZERO_TRIM_PREFIX =
+      "Swerve/Calibration/ModuleZeroTrimRotations/";
 
-  private SwerveCalibration() {
-  }
+  private SwerveCalibration() {}
 
   public static double getWheelRadiusMeters(double fallbackMeters) {
     return Preferences.getDouble(WHEEL_RADIUS_KEY, fallbackMeters);

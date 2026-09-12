@@ -7,30 +7,22 @@ import java.util.Optional;
 import org.Griffins1884.frc2027.GlobalConstants.FieldConstants;
 
 /**
- * Utility functions for flipping from the blue (default) to red alliance for
- * mirrored fields. All
+ * Utility functions for flipping from the blue (default) to red alliance for mirrored fields. All
  * credit goes to team 5712.
  */
 public class AllianceFlipUtil {
   private static Optional<Alliance> cachedAlliance = Optional.empty();
 
-  private AllianceFlipUtil() {
-  }
+  private AllianceFlipUtil() {}
 
-  /**
-   * Returns the current DriverStation alliance, updating the cache when
-   * available.
-   */
+  /** Returns the current DriverStation alliance, updating the cache when available. */
   public static Optional<Alliance> getAlliance() {
     Optional<Alliance> liveAlliance = DriverStation.getAlliance();
     liveAlliance.ifPresent(alliance -> cachedAlliance = Optional.of(alliance));
     return liveAlliance;
   }
 
-  /**
-   * Returns DriverStation alliance or the last known alliance if DS is
-   * temporarily unknown.
-   */
+  /** Returns DriverStation alliance or the last known alliance if DS is temporarily unknown. */
   public static Optional<Alliance> getAllianceWithFallback() {
     Optional<Alliance> liveAlliance = getAlliance();
     return liveAlliance.isPresent() ? liveAlliance : cachedAlliance;
@@ -66,8 +58,7 @@ public class AllianceFlipUtil {
   }
 
   /**
-   * Flips an x coordinate to the correct side of the field based on the current
-   * alliance color.
+   * Flips an x coordinate to the correct side of the field based on the current alliance color.
    *
    * @param xCoordinate The x coordinate to be flipped.
    * @return The flipped x coordinate.
@@ -81,8 +72,7 @@ public class AllianceFlipUtil {
   }
 
   /**
-   * Flips a translation to the correct side of the field based on the current
-   * alliance color.
+   * Flips a translation to the correct side of the field based on the current alliance color.
    *
    * @param translation The translation to be flipped.
    * @return The flipped translation.
@@ -96,8 +86,7 @@ public class AllianceFlipUtil {
   }
 
   /**
-   * Flips a 3D translation to the correct side of the field based on the current
-   * alliance color.
+   * Flips a 3D translation to the correct side of the field based on the current alliance color.
    *
    * @param translation The 3D translation to be flipped across the XY-plane.
    * @return The flipped 3D translation.
@@ -125,8 +114,7 @@ public class AllianceFlipUtil {
   }
 
   /**
-   * Flips a pose to the correct side of the field based on the current alliance
-   * color.
+   * Flips a pose to the correct side of the field based on the current alliance color.
    *
    * @param pose The pose to be flipped.
    * @return The flipped pose.
@@ -138,15 +126,16 @@ public class AllianceFlipUtil {
     if (!shouldFlip(pose)) {
       return pose;
     }
-    Translation2d flippedTranslation = new Translation2d(
-        FieldConstants.fieldLength - pose.getX(), FieldConstants.fieldWidth - pose.getY());
-    Rotation2d flippedRotation = new Rotation2d(-pose.getRotation().getCos(), pose.getRotation().getSin());
+    Translation2d flippedTranslation =
+        new Translation2d(
+            FieldConstants.fieldLength - pose.getX(), FieldConstants.fieldWidth - pose.getY());
+    Rotation2d flippedRotation =
+        new Rotation2d(-pose.getRotation().getCos(), pose.getRotation().getSin());
     return new Pose2d(flippedTranslation, flippedRotation);
   }
 
   /**
-   * Flips a 3D pose to the correct side of the field based on the current
-   * alliance color.
+   * Flips a 3D pose to the correct side of the field based on the current alliance color.
    *
    * @param pose The 3D pose to be flipped across the XY-plane.
    * @return The flipped 3D pose.

@@ -5,12 +5,9 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import lombok.Getter;
 
 public class Transition<E extends Enum<E>> {
-  @Getter
-  protected final E startState;
-  @Getter
-  protected final E endState;
-  @Getter
-  private final Command command;
+  @Getter protected final E startState;
+  @Getter protected final E endState;
+  @Getter private final Command command;
 
   public Transition(E startState, E endState, Command command) {
     this.startState = startState;
@@ -29,8 +26,7 @@ public class Transition<E extends Enum<E>> {
   }
 
   /**
-   * A string representation of the transition to be easily printed (generally,
-   * print the start,
+   * A string representation of the transition to be easily printed (generally, print the start,
    * end, and interruption states, as well as whatever you're running)
    */
   public String toString() {
@@ -43,8 +39,7 @@ public class Transition<E extends Enum<E>> {
   }
 
   /**
-   * Run (or start) the transition, then return a BooleanSupplier indicating
-   * whether it is finished
+   * Run (or start) the transition, then return a BooleanSupplier indicating whether it is finished
    *
    * @return whether the transition is finished
    */

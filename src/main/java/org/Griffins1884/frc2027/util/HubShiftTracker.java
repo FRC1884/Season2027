@@ -7,15 +7,13 @@ import java.util.Optional;
 /**
  * Implements 2026 REBUILT hub-active shifting rules.
  *
- * <p>
- * Manual summary:
+ * <p>Manual summary:
  *
  * <ul>
- * <li>AUTO, TRANSITION SHIFT, and END GAME: both hubs active.
- * <li>SHIFT 1-4: exactly one hub is active.
- * <li>The alliance that scored more fuel in AUTO has their hub inactive for
- * SHIFT 1.
- * <li>Hub activeness alternates at the start of each subsequent alliance shift.
+ *   <li>AUTO, TRANSITION SHIFT, and END GAME: both hubs active.
+ *   <li>SHIFT 1-4: exactly one hub is active.
+ *   <li>The alliance that scored more fuel in AUTO has their hub inactive for SHIFT 1.
+ *   <li>Hub activeness alternates at the start of each subsequent alliance shift.
  * </ul>
  */
 public final class HubShiftTracker {
@@ -46,11 +44,9 @@ public final class HubShiftTracker {
       HubStatus ourHubStatus,
       boolean ourHubActive,
       String gameDataRaw,
-      String recommendation) {
-  }
+      String recommendation) {}
 
-  private HubShiftTracker() {
-  }
+  private HubShiftTracker() {}
 
   public static Snapshot fromDriverStation() {
     String gameData = DriverStation.getGameSpecificMessage();
@@ -88,13 +84,14 @@ public final class HubShiftTracker {
         || timeframe == MatchTimeframe.SHIFT_3
         || timeframe == MatchTimeframe.SHIFT_4) {
       if (autoWinner.isPresent()) {
-        int shiftNumber = switch (timeframe) {
-          case SHIFT_1 -> 1;
-          case SHIFT_2 -> 2;
-          case SHIFT_3 -> 3;
-          case SHIFT_4 -> 4;
-          default -> 0;
-        };
+        int shiftNumber =
+            switch (timeframe) {
+              case SHIFT_1 -> 1;
+              case SHIFT_2 -> 2;
+              case SHIFT_3 -> 3;
+              case SHIFT_4 -> 4;
+              default -> 0;
+            };
         boolean winnerInactiveThisShift = (shiftNumber % 2) == 1; // winner inactive on SHIFT 1/3
         if (autoWinner.get() == DriverStation.Alliance.Red) {
           red = winnerInactiveThisShift ? HubStatus.INACTIVE : HubStatus.ACTIVE;
@@ -144,16 +141,11 @@ public final class HubShiftTracker {
     // Shift3: 1:20-0:55 (80-55)
     // Shift4: 0:55-0:30 (55-30)
     // Endgame: 0:30-0:00 (30-0)
-    if (matchTimeSeconds > 130.0)
-      return MatchTimeframe.TRANSITION;
-    if (matchTimeSeconds > 105.0)
-      return MatchTimeframe.SHIFT_1;
-    if (matchTimeSeconds > 80.0)
-      return MatchTimeframe.SHIFT_2;
-    if (matchTimeSeconds > 55.0)
-      return MatchTimeframe.SHIFT_3;
-    if (matchTimeSeconds > 30.0)
-      return MatchTimeframe.SHIFT_4;
+    if (matchTimeSeconds > 130.0) return MatchTimeframe.TRANSITION;
+    if (matchTimeSeconds > 105.0) return MatchTimeframe.SHIFT_1;
+    if (matchTimeSeconds > 80.0) return MatchTimeframe.SHIFT_2;
+    if (matchTimeSeconds > 55.0) return MatchTimeframe.SHIFT_3;
+    if (matchTimeSeconds > 30.0) return MatchTimeframe.SHIFT_4;
     return MatchTimeframe.ENDGAME;
   }
 
@@ -168,20 +160,22 @@ public final class HubShiftTracker {
     String upper = raw.toUpperCase(Locale.ROOT);
 
     // Common cases are "R" or "B". Be conservative to avoid false positives.
-    boolean mentionsRed = upper.equals("R")
-        || upper.equals("RED")
-        || upper.contains(" RED ")
-        || upper.startsWith("RED")
-        || upper.endsWith("RED")
-        || upper.contains("RED:")
-        || upper.contains("RED=");
-    boolean mentionsBlue = upper.equals("B")
-        || upper.equals("BLUE")
-        || upper.contains(" BLUE ")
-        || upper.startsWith("BLUE")
-        || upper.endsWith("BLUE")
-        || upper.contains("BLUE:")
-        || upper.contains("BLUE=");
+    boolean mentionsRed =
+        upper.equals("R")
+            || upper.equals("RED")
+            || upper.contains(" RED ")
+            || upper.startsWith("RED")
+            || upper.endsWith("RED")
+            || upper.contains("RED:")
+            || upper.contains("RED=");
+    boolean mentionsBlue =
+        upper.equals("B")
+            || upper.equals("BLUE")
+            || upper.contains(" BLUE ")
+            || upper.startsWith("BLUE")
+            || upper.endsWith("BLUE")
+            || upper.contains("BLUE:")
+            || upper.contains("BLUE=");
 
     if (mentionsRed == mentionsBlue) {
       return Optional.empty();

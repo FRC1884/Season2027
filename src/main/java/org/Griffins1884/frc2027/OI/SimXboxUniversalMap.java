@@ -12,8 +12,7 @@ public class SimXboxUniversalMap extends CommandXboxController implements Driver
   /**
    * Construct an instance of a controller.
    *
-   * @param port The port index on the Driver Station that the controller is
-   *             plugged into.
+   * @param port The port index on the Driver Station that the controller is plugged into.
    */
   public SimXboxUniversalMap(int port) {
     super(port);
