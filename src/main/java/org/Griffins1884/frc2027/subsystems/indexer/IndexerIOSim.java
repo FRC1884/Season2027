@@ -1,0 +1,10 @@
+package org.Griffins1884.frc2027.subsystems.indexer;
+
+import edu.wpi.first.math.system.plant.DCMotor;
+import org.Griffins1884.frc2027.mechanisms.rollers.MechanismRollerIOSim;
+
+public class IndexerIOSim extends MechanismRollerIOSim implements IndexerIO {
+  public IndexerIOSim(DCMotor motorModel, double reduction, double moi) {
+    super(motorModel, reduction, moi);
+  }
+}

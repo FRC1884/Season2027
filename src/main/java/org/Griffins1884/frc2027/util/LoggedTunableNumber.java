@@ -73,7 +73,7 @@ public class LoggedTunableNumber implements DoubleSupplier {
       hasDefault = true;
       this.defaultValue = defaultValue;
       if (isDashboardEnabled()) {
-        initializeDashboardNumber();
+        dashboardNumber = new LoggedNetworkNumber(key, defaultValue);
       }
     }
   }
@@ -87,20 +87,7 @@ public class LoggedTunableNumber implements DoubleSupplier {
     if (!hasDefault) {
       return 0.0;
     } else {
-      if (isDashboardEnabled()) {
-        initializeDashboardNumber();
-        return dashboardNumber.get();
-      }
-      return defaultValue;
-    }
-  }
-
-  private void initializeDashboardNumber() {
-    if (dashboardNumber == null) {
-      dashboardNumber = new LoggedNetworkNumber(key, defaultValue);
-      // The constructor preserves an existing NT entry but initially returns the default.
-      // Acquire through AdvantageKit so the first enabled read also respects replay inputs.
-      dashboardNumber.periodic();
+      return isDashboardEnabled() ? dashboardNumber.get() : defaultValue;
     }
   }
 
@@ -138,12 +125,7 @@ public class LoggedTunableNumber implements DoubleSupplier {
    */
   public static void ifChanged(
       int id, Consumer<double[]> action, LoggedTunableNumber... tunableNumbers) {
-    boolean changed = false;
-    for (LoggedTunableNumber number : tunableNumbers) {
-      // Each number owns state: do not short-circuit later change-tracking updates.
-      changed |= number.hasChanged(id);
-    }
-    if (changed) {
+    if (Arrays.stream(tunableNumbers).anyMatch(tunableNumber -> tunableNumber.hasChanged(id))) {
       action.accept(Arrays.stream(tunableNumbers).mapToDouble(LoggedTunableNumber::get).toArray());
     }
   }

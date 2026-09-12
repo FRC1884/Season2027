@@ -9,6 +9,11 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import java.util.function.DoubleSupplier;
 
 public class PS5DriverMap extends CommandPS5Controller implements DriverMap {
+  /**
+   * Construct an instance of a controller.
+   *
+   * @param port The port index on the Driver Station that the controller is plugged into.
+   */
   public PS5DriverMap(int port) {
     super(port);
   }
@@ -34,18 +39,44 @@ public class PS5DriverMap extends CommandPS5Controller implements DriverMap {
   }
 
   @Override
-  public Trigger resetHeading() {
-    return touchpad();
+  public Trigger alignWithBall() {
+    return circle();
   }
 
   @Override
-  public Trigger robotRelativeOverride() {
-    return L2();
+  public Trigger shootToggle() {
+    return cross();
+  }
+
+  @Override
+  public Trigger intakeRollersHold() {
+    return R1();
+  }
+
+  @Override
+  public Trigger intakeDeployToggle() {
+    return triangle();
+  }
+
+  public Trigger shooterPivotUp() {
+    return button(50);
+  }
+
+  public Trigger shooterPivotDown() {
+    return button(51);
+  }
+
+  public Trigger turretLeft() {
+    return button(52);
+  }
+
+  public Trigger turretRight() {
+    return button(53);
   }
 
   @Override
   public Command rumble() {
     return startEnd(
-        () -> getHID().setRumble(kBothRumble, 1.0), () -> getHID().setRumble(kBothRumble, 0.0));
+        () -> getHID().setRumble(kBothRumble, 1), () -> getHID().setRumble(kBothRumble, 0));
   }
 }

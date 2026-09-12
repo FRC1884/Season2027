@@ -33,6 +33,7 @@ import org.Griffins1884.frc2027.util.RobotLogging;
  * cameras in FRC. This library supports all Limelight features including AprilTag tracking, Neural
  * Networks, and standard color/retroreflective tracking.
  */
+@SuppressWarnings("unused")
 public class LimelightHelpers {
 
   private static final Map<String, DoubleArrayEntry> doubleArrayEntries = new ConcurrentHashMap<>();
@@ -747,7 +748,8 @@ public class LimelightHelpers {
       if (this == obj) return true;
       if (obj == null || getClass() != obj.getClass()) return false;
       PoseEstimate that = (PoseEstimate) obj;
-      // We don't compare the timestampSeconds as it isn't relevant for equality and makes
+      // We don't compare the timestampSeconds as it isn't relevant for equality and
+      // makes
       // unit testing harder
       return Double.compare(that.latency, latency) == 0
           && tagCount == that.tagCount

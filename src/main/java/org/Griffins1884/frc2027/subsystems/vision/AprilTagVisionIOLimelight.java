@@ -10,13 +10,15 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import java.util.Arrays;
 import java.util.Objects;
+import lombok.Getter;
 import org.Griffins1884.frc2027.subsystems.swerve.SwerveSubsystem;
 import org.Griffins1884.frc2027.util.RobotLogging;
 import org.littletonrobotics.junction.Logger;
 
 /** Hardware implementation of VisionIO using Limelight cameras. */
 public class AprilTagVisionIOLimelight implements VisionIO {
-  // Timeout window for considering the Limelight disconnected, in FPGA microseconds.
+  // Timeout window for considering the Limelight disconnected, in FPGA
+  // microseconds.
   private static final double DISCONNECT_TIMEOUT_MICROS = 250_000.0;
 
   // MegaTag2 covariance scaling constants.
@@ -28,7 +30,7 @@ public class AprilTagVisionIOLimelight implements VisionIO {
 
   private final String limelightName;
   private final SwerveSubsystem drive;
-  private final CameraConstants cameraConstants;
+  @Getter private final CameraConstants cameraConstants;
   private int imuMode = -1;
 
   /** Creates a new Limelight vision IO instance. */
@@ -38,11 +40,6 @@ public class AprilTagVisionIOLimelight implements VisionIO {
     this.limelightName = cameraConstants.cameraName();
     this.table = NetworkTableInstance.getDefault().getTable(this.limelightName);
     setLLSettings();
-  }
-
-  @Override
-  public CameraConstants getCameraConstants() {
-    return cameraConstants;
   }
 
   /** Configures Limelight camera poses in robot coordinate system. */
@@ -75,7 +72,8 @@ public class AprilTagVisionIOLimelight implements VisionIO {
     double gyroYawDeg = drive.getRawestGyroRotation().getDegrees();
     double gyroYawRateDegPerSec = drive.getYawRateDegreesPerSec();
 
-    // MegaTag2 requires current robot orientation to be pushed every loop before reading the
+    // MegaTag2 requires current robot orientation to be pushed every loop before
+    // reading the
     // estimate.
     LimelightHelpers.SetRobotOrientation(
         limelightName, gyroYawDeg, 0.0, 0.0, gyroYawRateDegPerSec, 0.0, 0.0);
@@ -226,7 +224,8 @@ public class AprilTagVisionIOLimelight implements VisionIO {
         .toArray();
   }
 
-  // Compute the mean ambiguity across all detected fiducials; default to 1.0 when none exist.
+  // Compute the mean ambiguity across all detected fiducials; default to 1.0 when
+  // none exist.
   private static double calculateAverageAmbiguity(LimelightHelpers.RawFiducial[] fiducials) {
     if (fiducials == null || fiducials.length == 0) {
       return 1.0;

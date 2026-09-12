@@ -1,0 +1,31 @@
+package org.Griffins1884.frc2027.subsystems.turret;
+
+import org.Griffins1884.frc2027.mechanisms.RobotMechanismDefinitions;
+import org.Griffins1884.frc2027.mechanisms.turrets.PositionTurretMechanism;
+
+public class TurretSubsystem extends PositionTurretMechanism {
+  public TurretSubsystem(TurretIO io) {
+    super(
+        "Turret",
+        RobotMechanismDefinitions.TURRET,
+        io,
+        new TurretConfig(
+            TurretConstants.KP,
+            TurretConstants.KI,
+            TurretConstants.KD,
+            TurretConstants.POSITION_TOLERANCE_RAD,
+            TurretConstants.MAX_VELOCITY_RAD_PER_SEC,
+            TurretConstants.MAX_ACCEL_RAD_PER_SEC2,
+            TurretConstants.SOFT_LIMITS_ENABLED,
+            TurretConstants.SOFT_LIMIT_MIN_RAD,
+            TurretConstants.SOFT_LIMIT_MAX_RAD,
+            TurretConstants.USE_ABSOLUTE_ENCODER,
+            TurretConstants.ABSOLUTE_ENCODER_OFFSET_RAD,
+            TurretConstants.ABSOLUTE_ENCODER_PORT,
+            TurretConstants.ABSOLUTE_SYNC_THRESHOLD_RAD,
+            TurretConstants.MAX_VOLTAGE));
+    if (TurretConstants.CONTINUOUS_INPUT) {
+      enableContinuousInput(0.0, 2.0 * Math.PI);
+    }
+  }
+}

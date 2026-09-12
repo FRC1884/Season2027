@@ -9,6 +9,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import org.Griffins1884.frc2027.subsystems.swerve.SwerveSubsystem;
+import org.Griffins1884.frc2027.util.AllianceFlipUtil;
 import org.Griffins1884.frc2027.util.RobotLogging;
 import org.littletonrobotics.junction.Logger;
 
@@ -27,7 +28,7 @@ public class AutoAlignToPoseCommand extends Command {
   private final boolean stopOnEnd;
 
   public AutoAlignToPoseCommand(SwerveSubsystem drive, Pose2d target) {
-    this(drive, target, 1.0, 0.0, 0.1, true);
+    this(drive, target, 1.0, 0.0, 0.1, true, true);
   }
 
   public AutoAlignToPoseCommand(
@@ -36,7 +37,7 @@ public class AutoAlignToPoseCommand extends Command {
       double constraintFactor,
       double endVelocity,
       double tolerance) {
-    this(drive, target, constraintFactor, endVelocity, tolerance, true);
+    this(drive, target, constraintFactor, endVelocity, tolerance, true, true);
   }
 
   public AutoAlignToPoseCommand(
@@ -45,9 +46,21 @@ public class AutoAlignToPoseCommand extends Command {
       double constraintFactor,
       double endVelocity,
       double tolerance,
+      boolean targetInBlueFrame) {
+    this(drive, target, constraintFactor, endVelocity, tolerance, targetInBlueFrame, true);
+  }
+
+  public AutoAlignToPoseCommand(
+      SwerveSubsystem drive,
+      Pose2d target,
+      double constraintFactor,
+      double endVelocity,
+      double tolerance,
+      boolean targetInBlueFrame,
       boolean stopOnEnd) {
     this.drive = drive;
-    this.target = target;
+    this.target =
+        target == null ? null : (targetInBlueFrame ? AllianceFlipUtil.apply(target) : target);
     this.constraintFactor = Math.max(0.0, constraintFactor);
     this.endVelocity = endVelocity;
     this.toleranceOverride = tolerance;
@@ -71,13 +84,15 @@ public class AutoAlignToPoseCommand extends Command {
                 AlignConstants.Auto.MAX_ANGULAR_ACCEL_RAD_PER_SEC2.get()),
             AlignConstants.LOOP_PERIOD_SEC);
     applyTuning();
-    addRequirements(drive);
+    if (drive != null) {
+      addRequirements(drive);
+    }
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
   }
 
   @Override
   public void initialize() {
-    if (target == null) return;
+    if (drive == null || target == null) return;
     updateTuningIfChanged(true);
 
     Pose2d currentPose = drive.getPose();
@@ -120,7 +135,7 @@ public class AutoAlignToPoseCommand extends Command {
 
   @Override
   public void execute() {
-    if (target == null) {
+    if (drive == null || target == null) {
       return;
     }
     updateTuningIfChanged(false);
@@ -190,7 +205,7 @@ public class AutoAlignToPoseCommand extends Command {
 
   @Override
   public void end(boolean interrupted) {
-    if (stopOnEnd) {
+    if (stopOnEnd && drive != null) {
       drive.runVelocity(new ChassisSpeeds());
     }
   }
@@ -201,7 +216,8 @@ public class AutoAlignToPoseCommand extends Command {
   }
 
   private void updateTuningIfChanged(boolean force) {
-    // Apply new constants only when tunables change to avoid unnecessary allocations and
+    // Apply new constants only when tunables change to avoid unnecessary
+    // allocations and
     // controller churn on the roboRIO.
     boolean changed =
         AlignConstants.Auto.TRANSLATION_GAINS.kP().hasChanged(tuningId)

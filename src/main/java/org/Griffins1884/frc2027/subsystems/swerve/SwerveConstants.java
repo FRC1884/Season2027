@@ -6,19 +6,21 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Volts;
 import static java.lang.Math.PI;
 import static org.Griffins1884.frc2027.GlobalConstants.ROBOT;
+import static org.Griffins1884.frc2027.subsystems.swerve.SwerveConstants.ROBOT_MASS;
 
 import com.ctre.phoenix6.CANBus;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import org.Griffins1884.frc2027.CanIDConstants;
 import org.Griffins1884.frc2027.GlobalConstants.Gains;
-import org.Griffins1884.frc2027.GlobalConstants.RobotType;
 import org.Griffins1884.frc2027.util.swerve.ModuleLimits;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 
+@SuppressWarnings("unused")
 public final class SwerveConstants {
   // Gyro
   public static enum GyroType {
@@ -29,24 +31,40 @@ public final class SwerveConstants {
 
   public static final GyroType GYRO_TYPE = GyroType.PIGEON;
 
-  /** Meters */
-  public static final double TRACK_WIDTH = Units.inchesToMeters(27.5);
+  // Swerve music (Kraken-only).
+  // CTRE Orchestra expects a .chrp file (place it under src/main/deploy/music).
+  public static final String SWERVE_MUSIC_FILE = "music/swerve.chrp";
 
   /** Meters */
-  public static final double WHEEL_BASE = Units.inchesToMeters(27.5);
+  public static final double TRACK_WIDTH =
+      switch (ROBOT) {
+        case COMPBOT, SIMBOT -> Units.inchesToMeters(27.5);
+      };
 
   /** Meters */
-  public static final double BUMPER_LENGTH = Units.inchesToMeters(34.0);
+  public static final double WHEEL_BASE =
+      switch (ROBOT) {
+        case COMPBOT, SIMBOT -> Units.inchesToMeters(27.5);
+      };
 
   /** Meters */
-  public static final double BUMPER_WIDTH = Units.inchesToMeters(34.0);
+  public static final double BUMPER_LENGTH =
+      switch (ROBOT) {
+        case COMPBOT, SIMBOT -> Units.inchesToMeters(34.0);
+      };
+
+  /** Meters */
+  public static final double BUMPER_WIDTH =
+      switch (ROBOT) {
+        case COMPBOT, SIMBOT -> Units.inchesToMeters(34.0);
+      };
 
   public static final Translation2d[] MODULE_TRANSLATIONS =
       new Translation2d[] {
-        new Translation2d(TRACK_WIDTH / 2.0, WHEEL_BASE / 2.0),
-        new Translation2d(TRACK_WIDTH / 2.0, -WHEEL_BASE / 2.0),
-        new Translation2d(-TRACK_WIDTH / 2.0, WHEEL_BASE / 2.0),
-        new Translation2d(-TRACK_WIDTH / 2.0, -WHEEL_BASE / 2.0)
+        new Translation2d(WHEEL_BASE / 2.0, TRACK_WIDTH / 2.0),
+        new Translation2d(WHEEL_BASE / 2.0, -TRACK_WIDTH / 2.0),
+        new Translation2d(-WHEEL_BASE / 2.0, TRACK_WIDTH / 2.0),
+        new Translation2d(-WHEEL_BASE / 2.0, -TRACK_WIDTH / 2.0)
       };
 
   /** Meters */
@@ -69,65 +87,45 @@ public final class SwerveConstants {
       boolean turnInverted,
       boolean encoderInverted) {}
 
-  static final int PIGEON_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 60;
-      };
-  ;
-  private static final int FRD_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 13;
-      };
-  private static final int FRR_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 12;
-      };
-  private static final int FRR_CANCODER_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 4;
-      };
-  private static final int FLD_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 11;
-      };
-  private static final int FLR_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 10;
-      };
-  private static final int FLR_CANCODER_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 3;
-      };
-  private static final int BRD_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 14;
-      };
-  private static final int BRR_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 15;
-      };
-  private static final int BRR_CANCODER_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 5;
-      };
-  private static final int BLD_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 16;
-      };
-  private static final int BLR_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 17;
-      };
-  private static final int BLR_CANCODER_ID =
-      switch (ROBOT) {
-        case COMPBOT, DBOT, SIMBOT -> 6;
-      };
+  static final int PIGEON_ID = CanIDConstants.PIGEON_ID;
+  private static final int FRD_ID = CanIDConstants.FRD_ID;
+  private static final int FRR_ID = CanIDConstants.FRR_ID;
+  private static final int FRR_CANCODER_ID = CanIDConstants.FRR_CANCODER_ID;
+  private static final int FLD_ID = CanIDConstants.FLD_ID;
+  private static final int FLR_ID = CanIDConstants.FLR_ID;
+  private static final int FLR_CANCODER_ID = CanIDConstants.FLR_CANCODER_ID;
+  private static final int BRD_ID = CanIDConstants.BRD_ID;
+  private static final int BRR_ID = CanIDConstants.BRR_ID;
+  private static final int BRR_CANCODER_ID = CanIDConstants.BRR_CANCODER_ID;
+  private static final int BLD_ID = CanIDConstants.BLD_ID;
+  private static final int BLR_ID = CanIDConstants.BLR_ID;
+  private static final int BLR_CANCODER_ID = CanIDConstants.BLR_CANCODER_ID;
 
   // Zeroed rotation values for each module, see setup instructions
-  private static final Rotation2d FLR_ZERO = Rotation2d.fromRadians(-0.482666015625 * (2 * PI));
-  private static final Rotation2d FRR_ZERO = Rotation2d.fromRadians(-0.111328125 * (2 * PI));
-  private static final Rotation2d BLR_ZERO = Rotation2d.fromRadians(0.00390625 * (2 * PI));
-  private static final Rotation2d BRR_ZERO = Rotation2d.fromRadians(-0.290283203125 * (2 * PI));
+  private static final Rotation2d COMPBOT_FLR_ZERO =
+      Rotation2d.fromRadians(-0.482666015625 * (2 * PI));
+  private static final Rotation2d COMPBOT_FRR_ZERO =
+      Rotation2d.fromRadians(-0.111328125 * (2 * PI));
+  private static final Rotation2d COMPBOT_BLR_ZERO = Rotation2d.fromRadians(0.00390625 * (2 * PI));
+  private static final Rotation2d COMPBOT_BRR_ZERO =
+      Rotation2d.fromRadians(-0.290283203125 * (2 * PI));
+
+  private static final Rotation2d FLR_ZERO =
+      switch (ROBOT) {
+        case COMPBOT, SIMBOT -> COMPBOT_FLR_ZERO;
+      };
+  private static final Rotation2d FRR_ZERO =
+      switch (ROBOT) {
+        case COMPBOT, SIMBOT -> COMPBOT_FRR_ZERO;
+      };
+  private static final Rotation2d BLR_ZERO =
+      switch (ROBOT) {
+        case COMPBOT, SIMBOT -> COMPBOT_BLR_ZERO;
+      };
+  private static final Rotation2d BRR_ZERO =
+      switch (ROBOT) {
+        case COMPBOT, SIMBOT -> COMPBOT_BRR_ZERO;
+      };
 
   // Inverted encoders or turn motors
   private static final boolean FLR_INVERTED = false;
@@ -139,7 +137,8 @@ public final class SwerveConstants {
   private static final boolean BRR_INVERTED = false;
   private static final boolean BRR_ENCODER_INVERTED = false;
 
-  // Constants for each module. Add the CANCoder id between the rotator id and offset params
+  // Constants for each module. Add the CANCoder id between the rotator id and
+  // offset params
   public static final ModuleConstants FRONT_LEFT =
       new ModuleConstants(
           "Front Left",
@@ -183,8 +182,10 @@ public final class SwerveConstants {
   /** Wheel rotations induced per full steering rotation at the motor sensor. */
   public static final double KRAKEN_STEER_DRIVE_COUPLING_RATIO = 4.5;
 
+  public static final double THEORETICAL_MAX_LINEAR_SPEED = 5.3;
+
   /** Meters per second */
-  public static final double MAX_LINEAR_SPEED = ROBOT == RobotType.COMPBOT ? 5.4804 : 8.0;
+  public static final double MAX_LINEAR_SPEED = THEORETICAL_MAX_LINEAR_SPEED * 0.85;
 
   /** Radians per second */
   public static final double MAX_ANGULAR_SPEED = (0.5 * MAX_LINEAR_SPEED) / DRIVE_BASE_RADIUS;
@@ -199,7 +200,7 @@ public final class SwerveConstants {
   private static final double MAPLE_SIM_WHEEL_FRICTION_COEFF = Math.min(WHEEL_FRICTION_COEFF, 1.35);
 
   /** Kilograms */
-  public static final double ROBOT_MASS = 45.0;
+  public static final double ROBOT_MASS = Units.lbsToKilograms(135.0);
 
   /** Kilograms per square meter */
   public static final double ROBOT_INERTIA = 6.883;
@@ -208,14 +209,14 @@ public final class SwerveConstants {
   public static final DCMotor DRIVE_GEARBOX = DCMotor.getKrakenX60Foc(1);
 
   public static final double DRIVE_GEAR_RATIO = 5.08; // Spark Max
-  public static final double KRAKEN_DRIVE_GEAR_RATIO = 6.03; // MK5n R2 drive ratio
+  public static final double KRAKEN_DRIVE_GEAR_RATIO = 6.03; // MK5n R2 Sdrive ratio (per team)
 
   static final boolean DRIVE_INVERTED = true;
 
   /** Amps */
   static final int DRIVE_MOTOR_CURRENT_LIMIT = 40;
 
-  public static final int KRAKEN_DRIVE_CURRENT_LIMIT = 40;
+  static final int KRAKEN_DRIVE_CURRENT_LIMIT = 40;
 
   /** Amps */
   static final double DRIVE_MOTOR_MAX_TORQUE = DRIVE_GEARBOX.getTorque(DRIVE_MOTOR_CURRENT_LIMIT);
@@ -223,14 +224,13 @@ public final class SwerveConstants {
   // Drive motor PID configuration
   static final Gains DRIVE_MOTOR_GAINS =
       switch (ROBOT) {
-        case COMPBOT, DBOT ->
-            new Gains("Swerve/DriveMotor/Compbot", 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0);
+        case COMPBOT -> new Gains("Swerve/DriveMotor/Compbot", 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0);
         case SIMBOT -> new Gains("Swerve/DriveMotor/Simbot", 0.05, 0.0, 0.0, 0.0, 0.0789, 0.0, 0.0);
       };
   // Torque-current gains for Kraken FOC (amps-based, per-radian units)
   static final Gains KRAKEN_DRIVE_TORQUE_GAINS =
       switch (ROBOT) {
-        case COMPBOT, DBOT ->
+        case COMPBOT ->
             new Gains("Swerve/KrakenDriveTorque/Compbot", 45.0, 0.0, 0.0, 5.0, 0.4, 0.0, 0.0);
         case SIMBOT ->
             new Gains("Swerve/KrakenDriveTorque/Simbot", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
@@ -244,7 +244,7 @@ public final class SwerveConstants {
   static final double DRIVE_ENCODER_VELOCITY_FACTOR = (2 * Math.PI) / 60.0 / DRIVE_GEAR_RATIO;
 
   // Rotator motor configuration
-  public static final DCMotor TURN_GEARBOX = DCMotor.getKrakenX44Foc(1);
+  public static final DCMotor TURN_GEARBOX = DCMotor.getKrakenX60Foc(1);
 
   public static final double ROTATOR_GEAR_RATIO = 9424.0 / 203.0;
   public static final double KRAKEN_ROTATOR_GEAR_RATIO = 287.0 / 11.0;
@@ -254,25 +254,23 @@ public final class SwerveConstants {
 
   static final int KRAKEN_ROTATOR_CURRENT_LIMIT_AMPS = 20;
 
-  static final boolean ROTATOR_INVERTED = false;
-
   // Rotator PID configuration
   static final Gains ROTATOR_GAINS =
       switch (ROBOT) {
-        case COMPBOT, DBOT -> new Gains("Swerve/Rotator/Compbot", 2.0, 0.0, 0.0);
+        case COMPBOT -> new Gains("Swerve/Rotator/Compbot", 2.0, 0.0, 0.0);
         case SIMBOT -> new Gains("Swerve/Rotator/Simbot", 12.0, 0.0, 0.2);
       };
   // Torque-current gains for Kraken turn control (amps-based, per-radian units)
   static final Gains KRAKEN_TURN_TORQUE_GAINS =
       switch (ROBOT) {
-        case COMPBOT, DBOT -> new Gains("Swerve/KrakenTurnTorque/Compbot", 8000.0, 0.0, 50.0);
+        case COMPBOT -> new Gains("Swerve/KrakenTurnTorque/Compbot", 8000.0, 0.0, 50.0);
         case SIMBOT -> new Gains("Swerve/KrakenTurnTorque/Simbot", 0.0, 0.0, 0.0);
       };
 
   /** CanBus */
-  static final boolean canivore = true;
+  static final boolean canivore = false;
 
-  static final CANBus canBus = new CANBus("DriveTrain");
+  static final CANBus canBus = new CANBus("rio");
 
   /** Radians */
   static final double ROTATOR_PID_MIN_INPUT = 0;
@@ -300,34 +298,31 @@ public final class SwerveConstants {
   public static final ModuleLimits KRAKEN_MODULE_LIMITS_FREE =
       new ModuleLimits(MAX_LINEAR_SPEED, MAX_LINEAR_ACCELERATION, MAX_STEERING_VELOCITY);
 
-  public static final DriveTrainSimulationConfig MAPLE_SIM_CONFIG = createMapleSimulationConfig();
-
   @SuppressWarnings("unchecked")
-  private static DriveTrainSimulationConfig createMapleSimulationConfig() {
-    return new DriveTrainSimulationConfig(
-        Kilograms.of(ROBOT_MASS),
-        Meters.of(BUMPER_LENGTH),
-        Meters.of(BUMPER_WIDTH),
-        Meters.of(TRACK_WIDTH),
-        Meters.of(WHEEL_BASE),
-        switch (GYRO_TYPE) {
-          case PIGEON -> COTS.ofPigeon2();
-          case NAVX -> COTS.ofNav2X();
-          case ADIS -> COTS.ofGenericGyro();
-        },
-        () ->
-            new SwerveModuleSimulationConfig(
-                    DRIVE_GEARBOX,
-                    TURN_GEARBOX,
-                    KRAKEN_DRIVE_GEAR_RATIO,
-                    KRAKEN_ROTATOR_GEAR_RATIO,
-                    Volts.of(0.15),
-                    Volts.of(0.20),
-                    Meters.of(NOMINAL_WHEEL_RADIUS),
-                    KilogramSquareMeters.of(0.03),
-                    MAPLE_SIM_WHEEL_FRICTION_COEFF)
-                .get());
-  }
+  public static final DriveTrainSimulationConfig MAPLE_SIM_CONFIG =
+      new DriveTrainSimulationConfig(
+          Kilograms.of(ROBOT_MASS),
+          Meters.of(BUMPER_LENGTH),
+          Meters.of(BUMPER_WIDTH),
+          Meters.of(WHEEL_BASE),
+          Meters.of(TRACK_WIDTH),
+          switch (GYRO_TYPE) {
+            case PIGEON -> COTS.ofPigeon2();
+            case NAVX -> COTS.ofNav2X();
+            case ADIS -> COTS.ofGenericGyro();
+          },
+          () ->
+              new SwerveModuleSimulationConfig(
+                      DRIVE_GEARBOX,
+                      TURN_GEARBOX,
+                      KRAKEN_DRIVE_GEAR_RATIO,
+                      KRAKEN_ROTATOR_GEAR_RATIO,
+                      Volts.of(0.15),
+                      Volts.of(0.20),
+                      Meters.of(NOMINAL_WHEEL_RADIUS),
+                      KilogramSquareMeters.of(0.03),
+                      MAPLE_SIM_WHEEL_FRICTION_COEFF)
+                  .get());
 
   public static double getWheelRadiusMeters() {
     return SwerveCalibration.getWheelRadiusMeters(NOMINAL_WHEEL_RADIUS);

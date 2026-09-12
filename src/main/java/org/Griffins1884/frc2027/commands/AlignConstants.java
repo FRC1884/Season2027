@@ -3,11 +3,12 @@ package org.Griffins1884.frc2027.commands;
 import org.Griffins1884.frc2027.GlobalConstants.Gains;
 import org.Griffins1884.frc2027.util.LoggedTunableNumber;
 
-/** Shared tuning values for drivetrain alignment and characterization. */
+/** Shared tuning values for the remaining drivetrain and turret alignment flows. */
 public final class AlignConstants {
   private AlignConstants() {}
 
-  // The command scheduler runs at 20 ms; treat this as the effective control-loop period.
+  // The command scheduler runs at 20 ms; treat this as the effective control-loop
+  // period.
   public static final double LOOP_PERIOD_SEC = 0.02;
 
   public static final class Manual {
@@ -52,5 +53,25 @@ public final class AlignConstants {
         new LoggedTunableNumber("Align/WheelRadiusRampRate", 0.1);
 
     private Characterization() {}
+  }
+
+  public static final class TurretAutoAim {
+    public static final LoggedTunableNumber TOF_TOLERANCE_FRACTION =
+        // Keep legacy key spelling ("Toerance") for dashboard compatibility.
+        new LoggedTunableNumber("Align/TofToeranceFraction", 0.01);
+    public static final LoggedTunableNumber KV =
+        new LoggedTunableNumber("Turret/AutoAim/kV", 1.22, true);
+    public static final LoggedTunableNumber KS =
+        new LoggedTunableNumber("Turret/AutoAim/kS", -0.005, true);
+    public static final LoggedTunableNumber BASE_LATENCY_SECONDS =
+        new LoggedTunableNumber("Turret/AutoAim/BaseLatencySeconds", 0.2, true);
+    public static final LoggedTunableNumber MAX_MOTION_SAMPLE_AGE_SECONDS =
+        new LoggedTunableNumber("Turret/AutoAim/MaxMotionSampleAgeSeconds", 0.15, true);
+    public static final LoggedTunableNumber MAX_MOTION_SPEED_MPS =
+        new LoggedTunableNumber("Turret/AutoAim/MaxMotionSpeedMps", 6.0, true);
+    public static final LoggedTunableNumber MAX_MOTION_ACCEL_MPS2 =
+        new LoggedTunableNumber("Turret/AutoAim/MaxMotionAccelMps2", 18.0, true);
+
+    private TurretAutoAim() {}
   }
 }

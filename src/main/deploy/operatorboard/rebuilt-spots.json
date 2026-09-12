@@ -25,24 +25,6 @@
       "xMax": 2.72,
       "yMax": 4.66,
       "locked": true
-    },
-    {
-      "id": "upper-trench",
-      "label": "Upper Trench",
-      "xMin": 4.86,
-      "yMin": 6.9,
-      "xMax": 7.92,
-      "yMax": 8.052,
-      "locked": true
-    },
-    {
-      "id": "lower-trench",
-      "label": "Lower Trench",
-      "xMin": 4.86,
-      "yMin": 0.0,
-      "xMax": 7.92,
-      "yMax": 1.15,
-      "locked": true
     }
   ],
   "spots": [

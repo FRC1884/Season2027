@@ -100,6 +100,7 @@ final class StaticAssetAccess {
   private static SecureDirectoryStream<Path> openSecureRoot(Path path) throws IOException {
     DirectoryStream<Path> opened = Files.newDirectoryStream(path);
     if (opened instanceof SecureDirectoryStream<Path> secure) {
+      opened.close();
       return secure;
     }
     opened.close();

@@ -1,0 +1,248 @@
+package org.Griffins1884.frc2027.commands;
+
+import static org.Griffins1884.frc2027.commands.AlignConstants.TurretAutoAim.*;
+import static org.Griffins1884.frc2027.commands.ShooterCommands.getShooterRpm;
+import static org.ironmaple.simulation.gamepieces.GamePieceProjectile.GRAVITY;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import java.util.Optional;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import org.Griffins1884.frc2027.subsystems.shooter.ShooterConstants;
+import org.Griffins1884.frc2027.subsystems.turret.TurretSubsystem;
+import org.Griffins1884.frc2027.util.RobotLogging;
+import org.Griffins1884.frc2027.util.ShotMath;
+import org.Griffins1884.frc2027.util.TurretUtil;
+import org.littletonrobotics.junction.Logger;
+
+@SuppressWarnings("unused")
+public final class TurretCommands {
+  private TurretCommands() {}
+
+  public static Command turretToZero(TurretSubsystem turret) {
+    if (turret == null) {
+      return Commands.none();
+    }
+    return Commands.runOnce(() -> turret.setGoalRad(0.0), turret);
+  }
+
+  public static Command autoAimToTarget(
+      TurretSubsystem turret,
+      Supplier<Pose2d> robotPoseSupplier,
+      Function<Pose2d, Optional<Translation2d>> targetSupplier) {
+    if (turret == null) {
+      return Commands.none();
+    }
+    return Commands.run(
+        () -> {
+          Pose2d robotPose = robotPoseSupplier != null ? robotPoseSupplier.get() : null;
+          if (robotPose == null) {
+            return;
+          }
+          Optional<Translation2d> target =
+              targetSupplier != null ? targetSupplier.apply(robotPose) : Optional.empty();
+          if (RobotLogging.isDebugMode("turret")) {
+            Logger.recordOutput("Turret/AutoAim/HasTarget", target.isPresent());
+          }
+          if (target.isEmpty()) {
+            turret.setGoalRad(turret.getPositionRad());
+            if (RobotLogging.isDebugMode("turret")) {
+              Logger.recordOutput("Turret/AutoAim/GoalRad", turret.getGoalRad());
+            }
+            return;
+          }
+          double goalRad = TurretUtil.turretAngleToTarget(robotPose, target.get());
+          turret.setGoalRad(goalRad);
+          if (RobotLogging.isDebugMode("turret")) {
+            Logger.recordOutput("Turret/AutoAim/Target", target.get());
+            Logger.recordOutput("Turret/AutoAim/GoalRad", goalRad);
+          }
+        },
+        turret);
+  }
+
+  public static Command autoAimWhileMovingToTarget(
+      TurretSubsystem turret,
+      Supplier<Pose2d> robotPoseSupplier,
+      Function<Pose2d, Optional<Translation2d>> targetSupplier,
+      Supplier<Translation2d> fieldVelocitySupplier,
+      Supplier<Translation2d> fieldAccelerationSupplier) {
+    if (turret == null) {
+      return Commands.none();
+    }
+    return Commands.run(
+        () -> {
+          Pose2d robotPose = robotPoseSupplier != null ? robotPoseSupplier.get() : null;
+          Optional<Translation2d> target =
+              robotPose == null || targetSupplier == null
+                  ? Optional.empty()
+                  : targetSupplier.apply(robotPose);
+          if (RobotLogging.isDebugMode("turret")) {
+            Logger.recordOutput("Turret/AutoAim/HasTarget", target.isPresent());
+          }
+          if (robotPose == null || target.isEmpty()) {
+            turret.setGoalRad(turret.getPositionRad());
+            if (RobotLogging.isDebugMode("turret")) {
+              Logger.recordOutput("Turret/AutoAim/GoalRad", turret.getGoalRad());
+            }
+            return;
+          }
+          Translation2d aimPoint =
+              shootingWhileMoving(
+                  robotPoseSupplier, target::get, fieldVelocitySupplier, fieldAccelerationSupplier);
+          double goalRad = TurretUtil.turretAngleToTarget(robotPose, aimPoint);
+          turret.setGoalRad(goalRad);
+          if (RobotLogging.isDebugMode("turret")) {
+            Logger.recordOutput("Turret/AutoAim/Target", target.get());
+            Logger.recordOutput("Turret/AutoAim/GoalRad", goalRad);
+          }
+        },
+        turret);
+  }
+
+  public static Translation2d shootingWhileMoving(
+      Supplier<Pose2d> robotPoseSupplier,
+      Supplier<Translation2d> targetSupplier,
+      Supplier<Translation2d> fieldVelocitySupplier,
+      Supplier<Translation2d> fieldAccelerationSupplier) {
+    return movingAimPoint(
+        robotPoseSupplier,
+        targetSupplier,
+        fieldVelocitySupplier,
+        fieldAccelerationSupplier,
+        TurretCommands::estimateShotTimeSeconds,
+        true);
+  }
+
+  public static Translation2d predictShootingWhileMoving(
+      Supplier<Pose2d> robotPoseSupplier,
+      Supplier<Translation2d> targetSupplier,
+      Supplier<Translation2d> fieldVelocitySupplier,
+      Supplier<Translation2d> fieldAccelerationSupplier) {
+    return movingAimPoint(
+        robotPoseSupplier,
+        targetSupplier,
+        fieldVelocitySupplier,
+        fieldAccelerationSupplier,
+        TurretCommands::estimateShotTimeSeconds,
+        false);
+  }
+
+  static Translation2d shootingWhileMoving(
+      Supplier<Pose2d> robotPoseSupplier,
+      Supplier<Translation2d> targetSupplier,
+      Supplier<Translation2d> fieldVelocitySupplier,
+      Supplier<Translation2d> fieldAccelerationSupplier,
+      DoubleUnaryOperator shotTimeEstimator) {
+    return movingAimPoint(
+        robotPoseSupplier,
+        targetSupplier,
+        fieldVelocitySupplier,
+        fieldAccelerationSupplier,
+        shotTimeEstimator,
+        true);
+  }
+
+  static Translation2d movingAimPoint(
+      Supplier<Pose2d> robotPoseSupplier,
+      Supplier<Translation2d> targetSupplier,
+      Supplier<Translation2d> fieldVelocitySupplier,
+      Supplier<Translation2d> fieldAccelerationSupplier,
+      DoubleUnaryOperator shotTimeEstimator,
+      boolean logOutputs) {
+    Pose2d currentPose = robotPoseSupplier.get();
+    Translation2d target = targetSupplier.get();
+    if (currentPose == null || target == null) {
+      return new Translation2d();
+    }
+    Translation2d fieldVelocity =
+        sanitizeVector(fieldVelocitySupplier != null ? fieldVelocitySupplier.get() : null);
+    Translation2d aimPoint = ShotMath.compensateTarget(currentPose, target, fieldVelocity);
+    if (logOutputs && RobotLogging.isDebugMode("turret")) {
+      double distance = currentPose.getTranslation().getDistance(aimPoint);
+      Rotation2d angle =
+          new Rotation2d(
+              aimPoint.getX() - currentPose.getX(), aimPoint.getY() - currentPose.getY());
+      Logger.recordOutput("Turret/AutoAim/ShotTime", ShotMath.getTimeOfFlightSeconds(distance));
+      Logger.recordOutput("Turret/AutoAim/Distance", distance);
+      Logger.recordOutput(
+          "Turret/AutoAim/FuturePose",
+          new Pose2d(currentPose.getTranslation(), currentPose.getRotation()));
+      Logger.recordOutput("Turret/AutoAim/FutureTarget", new Pose2d(aimPoint, new Rotation2d()));
+      Logger.recordOutput("Turret/AutoAim/AngleToTarget", angle);
+    }
+    return aimPoint;
+  }
+
+  private static Translation2d sanitizeVector(Translation2d vector) {
+    if (vector == null) {
+      return new Translation2d();
+    }
+    double x = vector.getX();
+    double y = vector.getY();
+    if (!Double.isFinite(x) || !Double.isFinite(y)) {
+      return new Translation2d();
+    }
+    return vector;
+  }
+
+  public static ShooterCommands.ShotTimeEstimate estimateShotTimeDetailed(
+      double distanceMeters,
+      double hoodAngleRad,
+      double shooterExitHeightMeters,
+      double targetHeightMeters,
+      double wheelRpm,
+      double wheelRadiusMeters,
+      double gearRatio,
+      double slipFactor) {
+    if (distanceMeters <= 0.0) {
+      return new ShooterCommands.ShotTimeEstimate(0.0, 0.0, shooterExitHeightMeters, 0.0, false);
+    }
+    double exitVelocity =
+        (wheelRpm / 60.0) * (2.0 * Math.PI) * wheelRadiusMeters * gearRatio * slipFactor;
+    double cos = Math.cos(hoodAngleRad);
+    if (Math.abs(cos) < 1e-6 || exitVelocity <= 1e-6) {
+      return new ShooterCommands.ShotTimeEstimate(
+          0.0, exitVelocity, shooterExitHeightMeters, 0.0, false);
+    }
+    double timeSeconds = distanceMeters / (exitVelocity * cos);
+    double predictedHeight =
+        shooterExitHeightMeters
+            + exitVelocity * Math.sin(hoodAngleRad) * timeSeconds
+            - 0.5 * GRAVITY * timeSeconds * timeSeconds;
+    double heightError = targetHeightMeters - predictedHeight;
+    boolean feasible = !Double.isNaN(timeSeconds) && timeSeconds > 0.0;
+    return new ShooterCommands.ShotTimeEstimate(
+        timeSeconds, exitVelocity, predictedHeight, heightError, feasible);
+  }
+
+  public static double estimateShotTimeSeconds(double distanceMeters) {
+    if (ShooterConstants.SHOT_LOOKUP_MODE == ShooterConstants.ShotLookupMode.LOOKUP_TABLE) {
+      return ShotMath.getTimeOfFlightSeconds(distanceMeters);
+    }
+
+    ShooterCommands.ShotTimeEstimate estimate =
+        estimateShotTimeDetailed(
+            distanceMeters,
+            (Math.PI / 2) - ShooterCommands.getPivotAngleRad(distanceMeters),
+            ShooterConstants.EXIT_HEIGHT_METERS,
+            ShooterConstants.TARGET_HEIGHT_METERS,
+            getShooterRpm(distanceMeters),
+            ShooterConstants.FLYWHEEL_RADIUS_METERS,
+            ShooterConstants.FLYWHEEL_GEAR_RATIO,
+            ShooterConstants.SLIP_FACTOR.get());
+    return estimate.timeSeconds();
+  }
+
+  public static Command turretOpenLoop(TurretSubsystem turret, double percent) {
+    if (turret == null) {
+      return Commands.none();
+    }
+    return Commands.runEnd(() -> turret.setOpenLoop(percent), turret::stopOpenLoop, turret);
+  }
+}

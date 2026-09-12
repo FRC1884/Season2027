@@ -3,9 +3,11 @@ package org.Griffins1884.frc2027.runtime;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.Griffins1884.frc2027.GlobalConstants;
+import org.Griffins1884.frc2027.mechanisms.MechanismTelemetry;
 
 /** JSON codec for runtime profile exchange with the dashboard config page. */
 public final class RuntimeProfileCodec {
@@ -23,8 +25,8 @@ public final class RuntimeProfileCodec {
         loggingMode,
         dto.tuningEnabled,
         dto.debugSubsystems != null ? dto.debugSubsystems : Collections.emptySet(),
-        normalizeSignals(dto.loggedSignals),
-        normalizeSignals(dto.publishedSignals));
+        parseSignals(dto.loggedSignals),
+        parseSignals(dto.publishedSignals));
   }
 
   public static String toJson(RuntimeModeProfile profile) {
@@ -32,8 +34,8 @@ public final class RuntimeProfileCodec {
     dto.loggingMode = profile.loggingMode().name();
     dto.tuningEnabled = profile.tuningEnabled();
     dto.debugSubsystems = new LinkedHashSet<>(profile.debugSubsystems());
-    dto.loggedSignals = new LinkedHashSet<>(profile.loggedSignals());
-    dto.publishedSignals = new LinkedHashSet<>(profile.publishedSignals());
+    dto.loggedSignals = stringifySignals(profile.loggedSignals());
+    dto.publishedSignals = stringifySignals(profile.publishedSignals());
     try {
       return mapper.writeValueAsString(dto);
     } catch (JsonProcessingException ex) {
@@ -41,18 +43,26 @@ public final class RuntimeProfileCodec {
     }
   }
 
-  private static Set<String> normalizeSignals(Set<String> names) {
+  private static Set<MechanismTelemetry.Signal> parseSignals(Set<String> names) {
     if (names == null || names.isEmpty()) {
       return Collections.emptySet();
     }
-    LinkedHashSet<String> signals = new LinkedHashSet<>();
+    EnumSet<MechanismTelemetry.Signal> signals = EnumSet.noneOf(MechanismTelemetry.Signal.class);
     for (String name : names) {
       if (name == null || name.isBlank()) {
         continue;
       }
-      signals.add(name.trim().toUpperCase());
+      signals.add(MechanismTelemetry.Signal.valueOf(name.trim().toUpperCase()));
     }
     return signals;
+  }
+
+  private static Set<String> stringifySignals(Set<MechanismTelemetry.Signal> signals) {
+    LinkedHashSet<String> values = new LinkedHashSet<>();
+    for (MechanismTelemetry.Signal signal : signals) {
+      values.add(signal.name());
+    }
+    return values;
   }
 
   private static final class RuntimeProfileDto {

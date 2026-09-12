@@ -1,0 +1,17 @@
+{
+  "schemaVersion" : "2026.04",
+  "metadata" : {
+    "id" : "20260911-193300-warn",
+    "type" : "diagnosticBundle",
+    "displayName" : "Diagnostic Bundle",
+    "updatedAtIso" : "2026-09-11T19:33:00.055209100Z",
+    "updatedAtEpochMs" : 1789155180055,
+    "buildVersion" : "unspecified",
+    "gitSha" : "70d6fbd2ded1a3940e238886a9bd34aba36dfd9a",
+    "gitBranch" : "Season-2026-Streamlining"
+  },
+  "bundleId" : "20260911-193300-warn",
+  "bundleDirectory" : "C:\\Season2027\\operatorboard-data\\diagnostics\\bundles\\20260911-193300-warn",
+  "overallStatus" : "warn",
+  "files" : [ "summary.json", "observed-data.json", "networktables_snapshot.json", "subsystems.json", "alerts.json", "auto_context.json", "subsystem_descriptions.json", "report.md" ]
+}

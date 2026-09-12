@@ -11,7 +11,6 @@ import static org.Griffins1884.frc2027.GlobalConstants.RobotMode.SIM;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
-import edu.wpi.first.hal.can.CANStatus;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -40,61 +39,31 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
-import java.util.function.DoubleSupplier;
+import lombok.Getter;
 import org.Griffins1884.frc2027.GlobalConstants;
-import org.Griffins1884.frc2027.runtime.RuntimeModeManager;
+import org.Griffins1884.frc2027.commands.AlignConstants;
+import org.Griffins1884.frc2027.subsystems.vision.Vision;
 import org.Griffins1884.frc2027.util.LogRollover;
 import org.Griffins1884.frc2027.util.RobotLogging;
-import org.Griffins1884.frc2027.util.TelemetryCadence;
 import org.Griffins1884.frc2027.util.swerve.SwerveSetpoint;
 import org.Griffins1884.frc2027.util.swerve.SwerveSetpointGenerator;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-public class SwerveSubsystem extends SubsystemBase {
+public class SwerveSubsystem extends SubsystemBase implements Vision.VisionConsumer {
   private static final double DRIVE_SYS_ID_MAX_VOLTAGE = 40.0;
   private static final double TURN_SYS_ID_MAX_VOLTAGE = 12.0;
   private static final double SYS_ID_IDLE_WAIT_SECONDS = 0.5;
 
   static final Lock odometryLock = new ReentrantLock();
-  // Estimator/reset serialization never blocks the high-rate producer, which only uses
-  // odometryLock.
-  private final Object measurementLock = new Object();
-  private final DoubleSupplier controlClock;
-  private final DoubleSupplier radiusSupplier;
-  private final TelemetryCadence telemetryCadence = new TelemetryCadence();
-  private long resetGeneration;
-  private long discardedSnapshotCount;
-  private long invalidSnapshotCount;
-  private long measuredKinematicsCount;
-  private double cycleWheelRadius;
-  private long calibrationRevision;
-  private double lastLoggedRadius = Double.NaN;
-  private final double[] lastLoggedTrims = {Double.NaN, Double.NaN, Double.NaN, Double.NaN};
-  private final String[] calibrationAngleKeys = new String[4];
-  private final String[] calibrationTrimKeys = new String[4];
-  private boolean publishTelemetry = true;
-  private boolean configurationReady = true;
-  private boolean characterizationCycle;
-  private final Alert configurationAlert =
-      new Alert(
-          "Drivetrain configuration incomplete or failed; outputs inhibited.", AlertType.kError);
-  private SwerveModuleState[] measuredStates = {
-    new SwerveModuleState(),
-    new SwerveModuleState(),
-    new SwerveModuleState(),
-    new SwerveModuleState()
-  };
-  private ChassisSpeeds measuredSpeeds = new ChassisSpeeds();
-  private double measuredSpeedMagnitude;
-  private final double[] moduleAcquisitionMs = new double[4];
   private final GyroIO gyroIO;
-  private final GyroIO.GyroIOInputs gyroInputs = new GyroIO.GyroIOInputs();
+  private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   private final SysIdRoutine driveSysId;
   private final SysIdRoutine turnSysId;
   private final Alert gyroDisconnectedAlert =
       new Alert("Disconnected gyro, using kinematics as fallback.", AlertType.kError);
+  private final SwerveMusicPlayer musicPlayer;
   private double requestedTranslationalMps = 0.0;
   private double requestedOmegaRadPerSec = 0.0;
   private int lastCanTxFullCount = 0;
@@ -106,15 +75,11 @@ public class SwerveSubsystem extends SubsystemBase {
   private String observerLatchedIssue = "OK";
   private int observerLatchedModule = -1;
   private double observerHoldUntilSec = 0.0;
-  private String lastAutonomousObserverReport = "";
-  private String lastReportedIssue = "";
-  private int lastReportedModule = -1;
-  private double lastAutonomousObserverReportSec = Double.NEGATIVE_INFINITY;
 
   private SwerveDriveKinematics kinematics =
       new SwerveDriveKinematics(SwerveConstants.MODULE_TRANSLATIONS);
-  private Rotation2d rawGyroRotation = new Rotation2d();
-  private Rotation2d rawestGyroRotation = new Rotation2d();
+  @Getter private Rotation2d rawGyroRotation = new Rotation2d();
+  @Getter private Rotation2d rawestGyroRotation = new Rotation2d();
   private SwerveModulePosition[] lastModulePositions = // For delta tracking
       new SwerveModulePosition[] {
         new SwerveModulePosition(),
@@ -156,49 +121,21 @@ public class SwerveSubsystem extends SubsystemBase {
   private final LinearFilter axFilter = LinearFilter.singlePoleIIR(0.2, LOOP_DT_SEC);
   private final LinearFilter ayFilter = LinearFilter.singlePoleIIR(0.2, LOOP_DT_SEC);
 
-  public Rotation2d getRawGyroRotation() {
-    return rawGyroRotation;
-  }
-
-  public Rotation2d getRawestGyroRotation() {
-    return rawestGyroRotation;
-  }
-
   public SwerveSubsystem(
       GyroIO gyroIO,
       ModuleIO flModuleIO,
       ModuleIO frModuleIO,
       ModuleIO blModuleIO,
       ModuleIO brModuleIO) {
-    this(
-        gyroIO,
-        flModuleIO,
-        frModuleIO,
-        blModuleIO,
-        brModuleIO,
-        Timer::getFPGATimestamp,
-        SwerveConstants::getWheelRadiusMeters);
-  }
-
-  SwerveSubsystem(
-      GyroIO gyroIO,
-      ModuleIO flModuleIO,
-      ModuleIO frModuleIO,
-      ModuleIO blModuleIO,
-      ModuleIO brModuleIO,
-      DoubleSupplier controlClock,
-      DoubleSupplier radiusSupplier) {
-    this.controlClock = controlClock;
-    this.radiusSupplier = radiusSupplier;
     this.gyroIO = gyroIO;
     modules[0] = new Module(flModuleIO, 0);
     modules[1] = new Module(frModuleIO, 1);
     modules[2] = new Module(blModuleIO, 2);
     modules[3] = new Module(brModuleIO, 3);
-
-    for (int i = 0; i < modules.length; i++) {
-      calibrationAngleKeys[i] = "Swerve/Calibration/Module" + i + "/AbsoluteAngleDeg";
-      calibrationTrimKeys[i] = "Swerve/Calibration/Module" + i + "/ZeroTrimRotations";
+    if (GlobalConstants.MODE != SIM) {
+      musicPlayer = new SwerveMusicPlayer(modules, SwerveConstants.SWERVE_MUSIC_FILE);
+    } else {
+      musicPlayer = null;
     }
 
     // Usage reporting for swerve template
@@ -239,7 +176,9 @@ public class SwerveSubsystem extends SubsystemBase {
                 null,
                 Seconds.of(2.5),
                 (state) -> {
-                  Logger.recordOutput("Drive/SysIdState", state.toString());
+                  if (GlobalConstants.isDebugMode()) {
+                    Logger.recordOutput("Drive/SysIdState", state.toString());
+                  }
                 }),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runDriveSysIdVoltage(voltage.in(Volts)), sysIdLogCallbackDrive, this));
@@ -252,7 +191,9 @@ public class SwerveSubsystem extends SubsystemBase {
                 null,
                 Seconds.of(2.5),
                 (state) -> {
-                  Logger.recordOutput("Drive/TurnSysIdState", state.toString());
+                  if (GlobalConstants.isDebugMode()) {
+                    Logger.recordOutput("Drive/TurnSysIdState", state.toString());
+                  }
                 }),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runTurnSysIdVoltage(voltage.in(Volts)), sysIdLogCallbackTurn, this));
@@ -260,97 +201,74 @@ public class SwerveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    long started = System.nanoTime();
-    boolean disabled = DriverStation.isDisabled();
-    for (Module module : modules) module.updateConfiguration(disabled);
-    synchronized (measurementLock) {
-      periodicCaptured(disabled);
-    }
-    Logger.recordOutput("Swerve/Performance/PeriodicMS", (System.nanoTime() - started) / 1e6);
-  }
-
-  private void periodicCaptured(boolean disabled) {
-    publishTelemetry =
-        telemetryCadence.shouldPublish(
-            controlClock.getAsDouble(),
-            RuntimeModeManager.isDebugEnabled("swerve")
-                || driveSysIdActive
-                || turnSysIdActive
-                || characterizationCycle);
-    characterizationCycle = false;
-    cycleWheelRadius = radiusSupplier.getAsDouble();
-    calibrationRevision = SwerveCalibration.revision();
-    double acquisitionTimestamp = controlClock.getAsDouble();
-    long capturedGeneration = resetGeneration;
-    long waitStarted = System.nanoTime();
-    odometryLock.lock();
-    long acquired = System.nanoTime();
+    odometryLock.lock(); // Prevents odometry updates while reading data
     try {
-      gyroIO.updateInputs(gyroInputs, acquisitionTimestamp);
-      for (int i = 0; i < modules.length; i++) {
-        long inputStarted = System.nanoTime();
-        modules[i].captureInputs(cycleWheelRadius, acquisitionTimestamp);
-        moduleAcquisitionMs[i] = (System.nanoTime() - inputStarted) / 1e6;
+      gyroIO.updateInputs(gyroInputs);
+      Logger.processInputs("Swerve/Gyro", gyroInputs);
+      for (var module : modules) {
+        module.periodic();
+      }
+      if (GlobalConstants.isDebugMode()) {
+        Logger.recordOutput("Swerve/SysId/DrivePhase", driveSysIdPhase);
+        Logger.recordOutput("Swerve/SysId/DriveActive", driveSysIdActive);
+        Logger.recordOutput("Swerve/SysId/DriveLastCompleted", driveSysIdLastCompleted);
+        Logger.recordOutput("Swerve/SysId/DriveLastCompletedPhase", driveSysIdLastCompletedPhase);
+        Logger.recordOutput("Swerve/SysId/TurnPhase", turnSysIdPhase);
+        Logger.recordOutput("Swerve/SysId/TurnActive", turnSysIdActive);
+        Logger.recordOutput("Swerve/SysId/TurnLastCompleted", turnSysIdLastCompleted);
+        Logger.recordOutput("Swerve/SysId/TurnLastCompletedPhase", turnSysIdLastCompletedPhase);
       }
     } finally {
       odometryLock.unlock();
     }
-    long released = System.nanoTime();
-    Logger.recordOutput("Swerve/Performance/OdometryLockWaitMS", (acquired - waitStarted) / 1e6);
-    Logger.recordOutput("Swerve/Performance/OdometryLockHoldMS", (released - acquired) / 1e6);
-    Logger.recordOutput("Swerve/Performance/ModuleAcquisitionMS", moduleAcquisitionMs);
-    long processingStarted = System.nanoTime();
-    for (Module module : modules) module.finishInputs(publishTelemetry);
-    refreshMeasurements();
-    configurationReady = allModulesConfigured();
-    configurationAlert.set(!configurationReady);
-    Logger.recordOutput("Swerve/Configuration/Ready", configurationReady);
-    Logger.recordOutput("Swerve/Gyro/Connected", gyroInputs.connected);
-    Logger.recordOutput("Swerve/Gyro/YawPosition", gyroInputs.yawPosition);
-    Logger.recordOutput("Swerve/Gyro/YawVelocityRadPerSec", gyroInputs.yawVelocityRadPerSec);
-    Logger.recordOutput("Swerve/Gyro/OdometryYawTimestamps", gyroInputs.odometryYawTimestamps);
-    Logger.recordOutput("Swerve/Gyro/OdometryYawPositions", gyroInputs.odometryYawPositions);
-    if (publishTelemetry || driveSysIdActive || turnSysIdActive) {
-      Logger.recordOutput("Swerve/SysId/DrivePhase", driveSysIdPhase);
-      Logger.recordOutput("Swerve/SysId/DriveActive", driveSysIdActive);
-      Logger.recordOutput("Swerve/SysId/DriveLastCompleted", driveSysIdLastCompleted);
-      Logger.recordOutput("Swerve/SysId/DriveLastCompletedPhase", driveSysIdLastCompletedPhase);
-      Logger.recordOutput("Swerve/SysId/TurnPhase", turnSysIdPhase);
-      Logger.recordOutput("Swerve/SysId/TurnActive", turnSysIdActive);
-      Logger.recordOutput("Swerve/SysId/TurnLastCompleted", turnSysIdLastCompleted);
-      Logger.recordOutput("Swerve/SysId/TurnLastCompletedPhase", turnSysIdLastCompletedPhase);
-    }
 
     // Stop moving when disabled
-    if (disabled || !configurationReady) {
+    if (DriverStation.isDisabled()) {
       for (var module : modules) {
         module.stop();
       }
     }
 
     // Log empty setpoint states when disabled
-    if (disabled || !configurationReady) {
+    if (DriverStation.isDisabled()) {
       Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
       Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
     }
 
-    long odometryStarted = System.nanoTime();
-    // Only complete, aligned batches may update the estimator. Never pair by a truncated index.
-    if (capturedGeneration != resetGeneration) {
-      discardedSnapshotCount++;
-    } else {
-      processOdometrySnapshot();
+    // Update odometry
+    double[] sampleTimestamps =
+        modules[0].getOdometryTimestamps(); // All signals are sampled together
+    int sampleCount = sampleTimestamps.length;
+    int gyroSampleCount = gyroInputs.odometryYawPositions.length;
+    for (int i = 0; i < sampleCount; i++) {
+      // Read wheel positions and deltas from each module
+      SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
+      SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
+      for (int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
+        modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
+        moduleDeltas[moduleIndex] =
+            new SwerveModulePosition(
+                modulePositions[moduleIndex].distanceMeters
+                    - lastModulePositions[moduleIndex].distanceMeters,
+                modulePositions[moduleIndex].angle);
+        lastModulePositions[moduleIndex] = modulePositions[moduleIndex];
+      }
+
+      // Update gyro angle
+      if (gyroInputs.connected) {
+        // Use the real gyro angle
+        rawestGyroRotation = gyroInputs.yawPosition;
+        rawGyroRotation =
+            i < gyroSampleCount ? gyroInputs.odometryYawPositions[i] : rawGyroRotation;
+      } else {
+        // Use the angle delta from the kinematics and module deltas
+        Twist2d twist = kinematics.toTwist2d(moduleDeltas);
+        rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
+      }
+
+      // Apply update
+      poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
     }
-    Logger.recordOutput(
-        "Swerve/Performance/OdometryProcessingMS", (System.nanoTime() - odometryStarted) / 1e6);
-    Logger.recordOutput("Swerve/Odometry/DiscardedResetSnapshots", discardedSnapshotCount);
-    Logger.recordOutput("Swerve/Odometry/InvalidSnapshots", invalidSnapshotCount);
-    Logger.recordOutput(
-        "Swerve/Odometry/DroppedProducerSamples",
-        PhoenixOdometryThread.getInstance().getDroppedSamples());
-    Logger.recordOutput(
-        "Swerve/Performance/InputProcessingAndOdometryMS",
-        (System.nanoTime() - processingStarted) / 1e6);
 
     Pose2d estimatedPose = poseEstimator.getEstimatedPosition();
     if (!isFinitePose(estimatedPose)) {
@@ -359,9 +277,9 @@ public class SwerveSubsystem extends SubsystemBase {
       poseEstimator.resetPosition(safeRotation, getModulePositions(), new Pose2d());
     }
 
-    double now = controlClock.getAsDouble();
+    double now = Timer.getFPGATimestamp();
     Pose2d pose = getPose();
-    ChassisSpeeds speeds = measuredSpeeds;
+    ChassisSpeeds speeds = getRobotRelativeSpeeds();
 
     Translation2d currentVelocity =
         new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond)
@@ -376,6 +294,10 @@ public class SwerveSubsystem extends SubsystemBase {
     } else {
       double dt = now - lastFieldVelTimestamp;
       fieldMotionSampleDtSec = dt;
+      double maxMotionSpeedMps =
+          sanitizePositiveOrInfinite(AlignConstants.TurretAutoAim.MAX_MOTION_SPEED_MPS.get());
+      double maxMotionAccelMps2 =
+          sanitizePositiveOrInfinite(AlignConstants.TurretAutoAim.MAX_MOTION_ACCEL_MPS2.get());
       if (dt > 1e-4 && dt < 0.25) {
         Translation2d acceleration = currentVelocity.minus(lastFieldVelocity).times(1 / dt);
         double speedNorm = currentVelocity.getNorm();
@@ -385,55 +307,57 @@ public class SwerveSubsystem extends SubsystemBase {
             new Translation2d(
                 axFilter.calculate(acceleration.getX()), ayFilter.calculate(acceleration.getY()));
         fieldMotionSampleValid =
-            isFiniteTranslation(currentVelocity) && isFiniteTranslation(fieldAcceleration);
-        Logger.recordOutput("Swerve/FieldMotionSpeedFinite", Double.isFinite(speedNorm));
-        Logger.recordOutput("Swerve/FieldMotionAccelFinite", Double.isFinite(accelNorm));
+            isFiniteTranslation(currentVelocity)
+                && isFiniteTranslation(fieldAcceleration)
+                && speedNorm <= maxMotionSpeedMps
+                && accelNorm <= maxMotionAccelMps2;
+        Logger.recordOutput("Swerve/FieldMotionSpeedInRange", speedNorm <= maxMotionSpeedMps);
+        Logger.recordOutput("Swerve/FieldMotionAccelInRange", accelNorm <= maxMotionAccelMps2);
+        Logger.recordOutput("Swerve/FieldMotionMaxSpeedMps", maxMotionSpeedMps);
+        Logger.recordOutput("Swerve/FieldMotionMaxAccelMps2", maxMotionAccelMps2);
       } else {
         fieldAcceleration = new Translation2d();
         fieldMotionSampleValid = false;
-        Logger.recordOutput("Swerve/FieldMotionSpeedFinite", false);
-        Logger.recordOutput("Swerve/FieldMotionAccelFinite", false);
+        Logger.recordOutput("Swerve/FieldMotionSpeedInRange", false);
+        Logger.recordOutput("Swerve/FieldMotionAccelInRange", false);
+        Logger.recordOutput("Swerve/FieldMotionMaxSpeedMps", maxMotionSpeedMps);
+        Logger.recordOutput("Swerve/FieldMotionMaxAccelMps2", maxMotionAccelMps2);
       }
 
       lastFieldVelocity = currentVelocity;
       lastFieldVelTimestamp = now;
     }
 
-    // Filter state and validity are evaluated at control rate, independent of publication.
+    Logger.recordOutput("Swerve/FieldVelocity", currentVelocity);
+    Logger.recordOutput("Swerve/FieldAcceleration", fieldAcceleration);
+    Logger.recordOutput("Swerve/FieldVelocityMps", currentVelocity.getNorm());
+    Logger.recordOutput("Swerve/FieldAccelerationMps2", fieldAcceleration.getNorm());
     Logger.recordOutput("Swerve/FieldMotionSampleValid", fieldMotionSampleValid);
-    if (publishTelemetry) {
-      Logger.recordOutput("Swerve/FieldVelocity", currentVelocity);
-      Logger.recordOutput("Swerve/FieldAcceleration", fieldAcceleration);
-      Logger.recordOutput("Swerve/FieldVelocityMps", measuredSpeedMagnitude);
-      Logger.recordOutput("Swerve/FieldAccelerationMps2", fieldAcceleration.getNorm());
-      Logger.recordOutput("Swerve/FieldMotionSampleDtSec", fieldMotionSampleDtSec);
-      Logger.recordOutput("Swerve/FieldMotionSampleAgeSec", getFieldMotionSampleAgeSec());
-    }
-    if (Double.compare(lastLoggedRadius, cycleWheelRadius) != 0) {
-      Logger.recordOutput("Swerve/Calibration/WheelRadiusMeters", cycleWheelRadius);
-      lastLoggedRadius = cycleWheelRadius;
-    }
+    Logger.recordOutput("Swerve/FieldMotionSampleDtSec", fieldMotionSampleDtSec);
+    Logger.recordOutput("Swerve/FieldMotionSampleAgeSec", getFieldMotionSampleAgeSec());
+    Logger.recordOutput(
+        "Swerve/Calibration/WheelRadiusMeters", SwerveConstants.getWheelRadiusMeters());
     for (int i = 0; i < modules.length; i++) {
-      if (publishTelemetry)
-        Logger.recordOutput(calibrationAngleKeys[i], modules[i].getAbsoluteAngle().getDegrees());
-      double trim = modules[i].getZeroTrimRotations();
-      if (Double.compare(lastLoggedTrims[i], trim) != 0) {
-        Logger.recordOutput(calibrationTrimKeys[i], trim);
-        lastLoggedTrims[i] = trim;
-      }
+      Logger.recordOutput(
+          "Swerve/Calibration/Module" + i + "/AbsoluteAngleDeg",
+          modules[i].getAbsoluteAngle().getDegrees());
+      Logger.recordOutput(
+          "Swerve/Calibration/Module" + i + "/ZeroTrimRotations",
+          modules[i].getZeroTrimRotations());
     }
 
     if (!krakenVelocityMode) {
-      krakenCurrentSetpoint = new SwerveSetpoint(copyMeasuredSpeeds(), copyMeasuredStates());
+      krakenCurrentSetpoint = new SwerveSetpoint(getChassisSpeeds(), getModuleStates());
     }
 
     double commandedTranslationalMps =
         Math.hypot(
             krakenCurrentSetpoint.chassisSpeeds().vxMetersPerSecond,
             krakenCurrentSetpoint.chassisSpeeds().vyMetersPerSecond);
-    double measuredTranslationalMps = measuredSpeedMagnitude;
+    double measuredTranslationalMps =
+        Math.hypot(getChassisSpeeds().vxMetersPerSecond, getChassisSpeeds().vyMetersPerSecond);
     double commandedOmega = krakenCurrentSetpoint.chassisSpeeds().omegaRadiansPerSecond;
-    double measuredOmega = measuredSpeeds.omegaRadiansPerSecond;
+    double measuredOmega = getChassisSpeeds().omegaRadiansPerSecond;
     double overallSpeedRatio =
         commandedTranslationalMps > 0.15
             ? measuredTranslationalMps / commandedTranslationalMps
@@ -463,24 +387,20 @@ public class SwerveSubsystem extends SubsystemBase {
       }
     }
     var canStatus = RobotController.getCANStatus();
-    double batteryVoltage = RobotController.getBatteryVoltage();
-    boolean brownedOut = RobotController.isBrownedOut();
-    if (publishTelemetry) {
-      Logger.recordOutput("Swerve/Debug/CommandedSpeedMps", commandedTranslationalMps);
-      Logger.recordOutput("Swerve/Debug/MeasuredSpeedMps", measuredTranslationalMps);
-      Logger.recordOutput("Swerve/Debug/OverallSpeedRatio", overallSpeedRatio);
-      Logger.recordOutput("Swerve/Debug/CommandedOmegaRadPerSec", commandedOmega);
-      Logger.recordOutput("Swerve/Debug/MeasuredOmegaRadPerSec", measuredOmega);
-      Logger.recordOutput("Swerve/Debug/BatteryVoltage", batteryVoltage);
-      Logger.recordOutput("Swerve/Debug/BrownedOut", brownedOut);
-      Logger.recordOutput("Swerve/Debug/CANUtilization", canStatus.percentBusUtilization);
-      Logger.recordOutput("Swerve/Debug/CANTxFullCount", canStatus.txFullCount);
-      Logger.recordOutput("Swerve/Debug/CANReceiveErrorCount", canStatus.receiveErrorCount);
-      Logger.recordOutput("Swerve/Debug/CANTransmitErrorCount", canStatus.transmitErrorCount);
-      Logger.recordOutput("Swerve/Debug/BadModule", badModule);
-      Logger.recordOutput("Swerve/Debug/BadModuleReason", badReason);
-      Logger.recordOutput("Swerve/Debug/BadModuleScore", worstScore);
-    }
+    Logger.recordOutput("Swerve/Debug/CommandedSpeedMps", commandedTranslationalMps);
+    Logger.recordOutput("Swerve/Debug/MeasuredSpeedMps", measuredTranslationalMps);
+    Logger.recordOutput("Swerve/Debug/OverallSpeedRatio", overallSpeedRatio);
+    Logger.recordOutput("Swerve/Debug/CommandedOmegaRadPerSec", commandedOmega);
+    Logger.recordOutput("Swerve/Debug/MeasuredOmegaRadPerSec", measuredOmega);
+    Logger.recordOutput("Swerve/Debug/BatteryVoltage", RobotController.getBatteryVoltage());
+    Logger.recordOutput("Swerve/Debug/BrownedOut", RobotController.isBrownedOut());
+    Logger.recordOutput("Swerve/Debug/CANUtilization", canStatus.percentBusUtilization);
+    Logger.recordOutput("Swerve/Debug/CANTxFullCount", canStatus.txFullCount);
+    Logger.recordOutput("Swerve/Debug/CANReceiveErrorCount", canStatus.receiveErrorCount);
+    Logger.recordOutput("Swerve/Debug/CANTransmitErrorCount", canStatus.transmitErrorCount);
+    Logger.recordOutput("Swerve/Debug/BadModule", badModule);
+    Logger.recordOutput("Swerve/Debug/BadModuleReason", badReason);
+    Logger.recordOutput("Swerve/Debug/BadModuleScore", worstScore);
 
     updateObserver(
         commandedTranslationalMps,
@@ -489,10 +409,7 @@ public class SwerveSubsystem extends SubsystemBase {
         badModule,
         badReason,
         commandedOmega,
-        measuredOmega,
-        canStatus,
-        batteryVoltage,
-        brownedOut);
+        measuredOmega);
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && GlobalConstants.MODE != SIM);
@@ -515,10 +432,8 @@ public class SwerveSubsystem extends SubsystemBase {
       int badModule,
       String badReason,
       double commandedOmega,
-      double measuredOmega,
-      CANStatus canStatus,
-      double batteryVoltage,
-      boolean brownedOut) {
+      double measuredOmega) {
+    var canStatus = RobotController.getCANStatus();
     int canErrorDelta =
         (canStatus.txFullCount - lastCanTxFullCount)
             + (canStatus.receiveErrorCount - lastCanReceiveErrorCount)
@@ -535,7 +450,7 @@ public class SwerveSubsystem extends SubsystemBase {
     String candidateIssue = "OK";
     int candidateModule = -1;
 
-    if (brownedOut || batteryVoltage < 6.8) {
+    if (RobotController.isBrownedOut() || RobotController.getBatteryVoltage() < 6.8) {
       candidateIssue = "BROWNOUT";
     } else if (canErrorDelta > 0 && (slowdown || commandedFast)) {
       candidateIssue = "CAN_OR_COMMS";
@@ -569,7 +484,7 @@ public class SwerveSubsystem extends SubsystemBase {
       observerCandidateLoops = "OK".equals(candidateIssue) ? 0 : 1;
     }
 
-    double nowSec = controlClock.getAsDouble();
+    double nowSec = Timer.getFPGATimestamp();
     if (!"OK".equals(candidateIssue) && observerCandidateLoops >= 5) {
       observerLatchedIssue = candidateIssue;
       observerLatchedModule = candidateModule;
@@ -584,75 +499,19 @@ public class SwerveSubsystem extends SubsystemBase {
     Logger.recordOutput("Swerve/Observer/Issue", observerLatchedIssue);
     Logger.recordOutput("Swerve/Observer/IssueModule", observerLatchedModule);
     Logger.recordOutput("Swerve/Observer/IssueModuleName", moduleName(observerLatchedModule));
-    if (publishTelemetry) {
-      Logger.recordOutput("Swerve/Observer/RequestedSpeedMps", requestedTranslationalMps);
-      Logger.recordOutput("Swerve/Observer/RequestedOmegaRadPerSec", requestedOmegaRadPerSec);
-      Logger.recordOutput("Swerve/Observer/CommandedSpeedMps", commandedTranslationalMps);
-      Logger.recordOutput("Swerve/Observer/MeasuredSpeedMps", measuredTranslationalMps);
-      Logger.recordOutput("Swerve/Observer/OverallSpeedRatio", overallSpeedRatio);
-      Logger.recordOutput("Swerve/Observer/CommandedOmegaRadPerSec", commandedOmega);
-      Logger.recordOutput("Swerve/Observer/MeasuredOmegaRadPerSec", measuredOmega);
-      Logger.recordOutput("Swerve/Observer/CanErrorDelta", canErrorDelta);
-      Logger.recordOutput("Swerve/Observer/BatteryVoltage", batteryVoltage);
-      Logger.recordOutput("Swerve/Observer/BrownedOut", brownedOut);
-    }
+    Logger.recordOutput("Swerve/Observer/RequestedSpeedMps", requestedTranslationalMps);
+    Logger.recordOutput("Swerve/Observer/RequestedOmegaRadPerSec", requestedOmegaRadPerSec);
+    Logger.recordOutput("Swerve/Observer/CommandedSpeedMps", commandedTranslationalMps);
+    Logger.recordOutput("Swerve/Observer/MeasuredSpeedMps", measuredTranslationalMps);
+    Logger.recordOutput("Swerve/Observer/OverallSpeedRatio", overallSpeedRatio);
+    Logger.recordOutput("Swerve/Observer/CommandedOmegaRadPerSec", commandedOmega);
+    Logger.recordOutput("Swerve/Observer/MeasuredOmegaRadPerSec", measuredOmega);
+    Logger.recordOutput("Swerve/Observer/CanErrorDelta", canErrorDelta);
+    Logger.recordOutput("Swerve/Observer/BatteryVoltage", RobotController.getBatteryVoltage());
+    Logger.recordOutput("Swerve/Observer/BrownedOut", RobotController.isBrownedOut());
     Logger.recordOutput("Swerve/Observer/CandidateIssue", candidateIssue);
     Logger.recordOutput("Swerve/Observer/CandidateModule", candidateModule);
     Logger.recordOutput("Swerve/Observer/CandidateLoops", observerCandidateLoops);
-
-    maybeReportAutonomousObserverIssue(
-        nowSec,
-        issueActive,
-        commandedTranslationalMps,
-        measuredTranslationalMps,
-        overallSpeedRatio,
-        commandedOmega,
-        measuredOmega);
-  }
-
-  private void maybeReportAutonomousObserverIssue(
-      double nowSec,
-      boolean issueActive,
-      double commandedTranslationalMps,
-      double measuredTranslationalMps,
-      double overallSpeedRatio,
-      double commandedOmega,
-      double measuredOmega) {
-    if (!DriverStation.isAutonomousEnabled()) {
-      lastAutonomousObserverReport = "";
-      lastAutonomousObserverReportSec = Double.NEGATIVE_INFINITY;
-      return;
-    }
-    if (!issueActive) {
-      return;
-    }
-
-    boolean transition =
-        !observerLatchedIssue.equals(lastReportedIssue)
-            || observerLatchedModule != lastReportedModule;
-    if (!transition && nowSec - lastAutonomousObserverReportSec < 0.5) return;
-    lastReportedIssue = observerLatchedIssue;
-    lastReportedModule = observerLatchedModule;
-    String report =
-        String.format(
-            java.util.Locale.ROOT,
-            "%s module=%s req=%.2f cmd=%.2f meas=%.2f ratio=%.2f cmdOmega=%.2f measOmega=%.2f",
-            observerLatchedIssue,
-            moduleName(observerLatchedModule),
-            requestedTranslationalMps,
-            commandedTranslationalMps,
-            measuredTranslationalMps,
-            overallSpeedRatio,
-            commandedOmega,
-            measuredOmega);
-    if (report.equals(lastAutonomousObserverReport)
-        && nowSec - lastAutonomousObserverReportSec < 0.5) {
-      return;
-    }
-
-    lastAutonomousObserverReport = report;
-    lastAutonomousObserverReportSec = nowSec;
-    RobotLogging.warn("Auto drive observer: " + report);
   }
 
   /**
@@ -661,25 +520,17 @@ public class SwerveSubsystem extends SubsystemBase {
    * @param speeds Speeds in meters/sec
    */
   public void runVelocity(ChassisSpeeds speeds) {
-    if (!allowOutputs()) return;
-    synchronized (measurementLock) {
-      refreshCalibrationIfChanged();
-    }
     krakenVelocityMode = true;
     requestedTranslationalMps = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
     requestedOmegaRadPerSec = speeds.omegaRadiansPerSecond;
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
-    // This call also updates kinematics heading history: retain its original ordering even
-    // when publication is gated. It is not safe to treat it as a telemetry-only calculation.
     SwerveModuleState[] setpointStatesUnoptimized = kinematics.toSwerveModuleStates(discreteSpeeds);
-
     krakenCurrentSetpoint =
         krakenSetpointGenerator.generateSetpoint(
             SwerveConstants.KRAKEN_MODULE_LIMITS_FREE, krakenCurrentSetpoint, discreteSpeeds, 0.02);
     SwerveModuleState[] setpointStates = krakenCurrentSetpoint.moduleStates();
 
-    if (publishTelemetry)
-      Logger.recordOutput("SwerveStates/SetpointsUnoptimized", setpointStatesUnoptimized);
+    Logger.recordOutput("SwerveStates/SetpointsUnoptimized", setpointStatesUnoptimized);
     Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
     Logger.recordOutput("SwerveChassisSpeeds/Setpoints", krakenCurrentSetpoint.chassisSpeeds());
 
@@ -690,22 +541,8 @@ public class SwerveSubsystem extends SubsystemBase {
     Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
   }
 
-  public ChassisSpeeds getCommandedRobotRelativeSpeeds() {
-    return krakenCurrentSetpoint.chassisSpeeds();
-  }
-
-  public double getRequestedTranslationalMps() {
-    return requestedTranslationalMps;
-  }
-
-  public double getRequestedOmegaRadPerSec() {
-    return requestedOmegaRadPerSec;
-  }
-
   /** Runs the drive in a straight line with the specified drive output. */
   public void runCharacterization(double output) {
-    if (!allowOutputs()) return;
-    characterizationCycle = true;
     krakenVelocityMode = false;
     for (int i = 0; i < 4; i++) {
       modules[i].runCharacterization(output);
@@ -714,8 +551,6 @@ public class SwerveSubsystem extends SubsystemBase {
 
   /** Runs the turn motors open-loop for SysId and tuning. */
   public void runTurnCharacterization(double output) {
-    if (!allowOutputs()) return;
-    characterizationCycle = true;
     krakenVelocityMode = false;
     for (int i = 0; i < 4; i++) {
       modules[i].runTurnCharacterization(output);
@@ -736,8 +571,6 @@ public class SwerveSubsystem extends SubsystemBase {
     String previousPhase = driveSysIdPhase;
     driveSysIdPhase = phase;
     driveSysIdActive = active;
-    Logger.recordOutput("Swerve/SysId/DrivePhase", phase);
-    Logger.recordOutput("Swerve/SysId/DriveActive", active);
     if (!active) {
       driveSysIdLastCompletedPhase = previousPhase;
       driveSysIdLastCompleted = Timer.getFPGATimestamp();
@@ -748,11 +581,27 @@ public class SwerveSubsystem extends SubsystemBase {
     String previousPhase = turnSysIdPhase;
     turnSysIdPhase = phase;
     turnSysIdActive = active;
-    Logger.recordOutput("Swerve/SysId/TurnPhase", phase);
-    Logger.recordOutput("Swerve/SysId/TurnActive", active);
     if (!active) {
       turnSysIdLastCompletedPhase = previousPhase;
       turnSysIdLastCompleted = Timer.getFPGATimestamp();
+    }
+  }
+
+  public void playSwerveMusic() {
+    if (musicPlayer != null) {
+      musicPlayer.start();
+    }
+  }
+
+  public void stopSwerveMusic() {
+    if (musicPlayer != null) {
+      musicPlayer.stop();
+    }
+  }
+
+  public void setSwerveMusicVolume(double volume) {
+    if (musicPlayer != null) {
+      musicPlayer.setVolume(volume);
     }
   }
 
@@ -798,7 +647,6 @@ public class SwerveSubsystem extends SubsystemBase {
    * return to their normal orientations the next time a nonzero velocity is requested.
    */
   public void stopWithX() {
-    if (!allowOutputs()) return;
     Rotation2d[] headings = new Rotation2d[4];
     for (int i = 0; i < 4; i++) {
       headings[i] = SwerveConstants.MODULE_TRANSLATIONS[i].getAngle();
@@ -1019,57 +867,29 @@ public class SwerveSubsystem extends SubsystemBase {
         .andThen(turnSysId.dynamic(direction));
   }
 
-  private void refreshMeasurements() {
-    measuredStates = new SwerveModuleState[modules.length];
-    for (int i = 0; i < modules.length; i++) measuredStates[i] = modules[i].getState();
-    measuredSpeeds = kinematics.toChassisSpeeds(measuredStates);
-    measuredKinematicsCount++;
-    measuredSpeedMagnitude =
-        Math.hypot(measuredSpeeds.vxMetersPerSecond, measuredSpeeds.vyMetersPerSecond);
-    Logger.recordOutput("SwerveStates/Measured", measuredStates);
-    Logger.recordOutput("SwerveChassisSpeeds/Measured", measuredSpeeds);
-  }
-
-  private SwerveModuleState[] copyMeasuredStates() {
-    SwerveModuleState[] copy = new SwerveModuleState[modules.length];
-    for (int i = 0; i < copy.length; i++)
-      copy[i] =
-          new SwerveModuleState(measuredStates[i].speedMetersPerSecond, measuredStates[i].angle);
-    return copy;
-  }
-
-  private ChassisSpeeds copyMeasuredSpeeds() {
-    return new ChassisSpeeds(
-        measuredSpeeds.vxMetersPerSecond,
-        measuredSpeeds.vyMetersPerSecond,
-        measuredSpeeds.omegaRadiansPerSecond);
-  }
-
-  private SwerveModulePosition[] getModulePositions() {
-    SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
-    for (int i = 0; i < positions.length; i++) positions[i] = modules[i].getPosition();
-    return positions;
-  }
-
-  private void refreshCalibrationIfChanged() {
-    if (calibrationRevision != SwerveCalibration.revision()) {
-      cycleWheelRadius = radiusSupplier.getAsDouble();
-      calibrationRevision = SwerveCalibration.revision();
-      for (Module module : modules) module.refreshRadius(cycleWheelRadius);
-      refreshMeasurements();
+  /** Returns the module states (turn angles and drive velocities) for all of the modules. */
+  @AutoLogOutput(key = "SwerveStates/Measured")
+  private SwerveModuleState[] getModuleStates() {
+    SwerveModuleState[] states = new SwerveModuleState[4];
+    for (int i = 0; i < 4; i++) {
+      states[i] = modules[i].getState();
     }
+    return states;
   }
 
-  long measuredKinematicsCount() {
-    return measuredKinematicsCount;
+  /** Returns the module positions (turn angles and drive positions) for all of the modules. */
+  private SwerveModulePosition[] getModulePositions() {
+    SwerveModulePosition[] states = new SwerveModulePosition[4];
+    for (int i = 0; i < 4; i++) {
+      states[i] = modules[i].getPosition();
+    }
+    return states;
   }
 
-  long discardedSnapshotCount() {
-    return discardedSnapshotCount;
-  }
-
-  long invalidSnapshotCount() {
-    return invalidSnapshotCount;
+  /** Returns the measured chassis speeds of the robot. */
+  @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
+  private ChassisSpeeds getChassisSpeeds() {
+    return kinematics.toChassisSpeeds(getModuleStates());
   }
 
   public Translation2d getFieldAcceleration() {
@@ -1088,7 +908,7 @@ public class SwerveSubsystem extends SubsystemBase {
     if (!Double.isFinite(lastFieldVelTimestamp)) {
       return Double.POSITIVE_INFINITY;
     }
-    return Math.max(0.0, controlClock.getAsDouble() - lastFieldVelTimestamp);
+    return Math.max(0.0, Timer.getFPGATimestamp() - lastFieldVelTimestamp);
   }
 
   /** Returns the position of each module in radians. */
@@ -1102,10 +922,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   /** Returns the current robot-relative chassis speeds. */
   public ChassisSpeeds getRobotRelativeSpeeds() {
-    synchronized (measurementLock) {
-      refreshCalibrationIfChanged();
-      return copyMeasuredSpeeds();
-    }
+    return getChassisSpeeds();
   }
 
   /** Returns the average velocity of the modules in rad/sec. */
@@ -1120,9 +937,7 @@ public class SwerveSubsystem extends SubsystemBase {
   /** Returns the current odometry pose. */
   @AutoLogOutput(key = "Odometry/Robot")
   public Pose2d getPose() {
-    synchronized (measurementLock) {
-      return poseEstimator.getEstimatedPosition();
-    }
+    return poseEstimator.getEstimatedPosition();
   }
 
   /** Returns the current odometry rotation. */
@@ -1133,25 +948,6 @@ public class SwerveSubsystem extends SubsystemBase {
   /** Returns the current yaw rate in degrees per second from the gyro. */
   public double getYawRateDegreesPerSec() {
     return Math.toDegrees(gyroInputs.yawVelocityRadPerSec);
-  }
-
-  public ValidationModuleSample[] getValidationModuleSamples() {
-    ValidationModuleSample[] samples = new ValidationModuleSample[modules.length];
-    for (int index = 0; index < modules.length; index++) {
-      Module module = modules[index];
-      samples[index] =
-          new ValidationModuleSample(
-              module.getIndex(),
-              module.getDesiredSpeedMetersPerSec(),
-              module.getVelocityMetersPerSec(),
-              module.getDesiredAngle().getRadians(),
-              module.getAngle().getRadians(),
-              module.getDriveVoltage(),
-              module.getTurnVoltage(),
-              module.getTerrainDriveAuthorityScale(),
-              module.getTerrainTurnAuthorityScale());
-    }
-    return samples;
   }
 
   /**
@@ -1172,19 +968,6 @@ public class SwerveSubsystem extends SubsystemBase {
     return alliance == Alliance.Blue ? Rotation2d.fromDegrees(180.0) : new Rotation2d();
   }
 
-  /** Resets heading to alliance-relative forward without changing the current field translation. */
-  public void resetHeadingToAllianceForward(Alliance alliance) {
-    Rotation2d heading = getAllianceForwardRotation(alliance);
-    resetOdometry(new Pose2d(getPose().getTranslation(), heading), true);
-    Logger.recordOutput("Odometry/AllianceForwardReset/HeadingDeg", heading.getDegrees());
-    Logger.recordOutput("Odometry/AllianceForwardReset/Alliance", alliance.name());
-  }
-
-  /** Returns the field heading used for the alliance-relative forward direction. */
-  public static Rotation2d getAllianceForwardRotation(Alliance alliance) {
-    return alliance == Alliance.Red ? Rotation2d.fromDegrees(180.0) : new Rotation2d();
-  }
-
   /** Resets the current odometry pose. */
   public void resetOdometry(Pose2d pose) {
     resetOdometry(pose, false);
@@ -1196,49 +979,29 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void captureModuleZeroOffsets() {
-    synchronized (measurementLock) {
-      for (var module : modules) {
-        module.captureZeroTrim();
-      }
-
-      resetGeneration++;
-      clearCapturedQueues();
+    for (var module : modules) {
+      module.captureZeroTrim();
     }
   }
 
   public void captureModuleZeroOffset(int moduleIndex) {
-    synchronized (measurementLock) {
-      if (moduleIndex < 0 || moduleIndex >= modules.length) {
-        return;
-      }
-      modules[moduleIndex].captureZeroTrim();
-
-      resetGeneration++;
-      clearCapturedQueues();
+    if (moduleIndex < 0 || moduleIndex >= modules.length) {
+      return;
     }
+    modules[moduleIndex].captureZeroTrim();
   }
 
   public void clearModuleZeroOffsets() {
-    synchronized (measurementLock) {
-      for (var module : modules) {
-        module.clearZeroTrim();
-      }
-
-      resetGeneration++;
-      clearCapturedQueues();
+    for (var module : modules) {
+      module.clearZeroTrim();
     }
   }
 
   public void clearModuleZeroOffset(int moduleIndex) {
-    synchronized (measurementLock) {
-      if (moduleIndex < 0 || moduleIndex >= modules.length) {
-        return;
-      }
-      modules[moduleIndex].clearZeroTrim();
-
-      resetGeneration++;
-      clearCapturedQueues();
+    if (moduleIndex < 0 || moduleIndex >= modules.length) {
+      return;
     }
+    modules[moduleIndex].clearZeroTrim();
   }
 
   /**
@@ -1248,149 +1011,36 @@ public class SwerveSubsystem extends SubsystemBase {
    * @param resetGyro If true, reset the gyro yaw to pose rotation (field heading).
    */
   public void resetOdometry(Pose2d pose, boolean resetGyro) {
-    synchronized (measurementLock) {
-      resetGeneration++;
-      refreshCalibrationIfChanged();
-      if (resetGyro) {
-        gyroIO.resetYaw(pose.getRotation().getDegrees());
-        rawGyroRotation = pose.getRotation();
-      }
-      SwerveModulePosition[] modulePositions = getModulePositions();
-      poseEstimator.resetPosition(rawGyroRotation, modulePositions, pose);
-      lastModulePositions =
-          java.util.Arrays.stream(modulePositions)
-              .map(position -> new SwerveModulePosition(position.distanceMeters, position.angle))
-              .toArray(SwerveModulePosition[]::new);
-      clearCapturedQueues();
-      odometryResetListener.run();
+    if (resetGyro) {
+      gyroIO.resetYaw(pose.getRotation().getDegrees());
+      rawGyroRotation = pose.getRotation();
     }
+    poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
+    odometryResetListener.run();
   }
 
   /** Adds a new timestamped vision measurement. */
+  @Override
   public void accept(
       Pose2d visionRobotPoseMeters,
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
-    synchronized (measurementLock) {
-      if (visionRobotPoseMeters == null || visionMeasurementStdDevs == null) {
-        return;
-      }
-      if (!isFinitePose(visionRobotPoseMeters) || !isFiniteMatrix(visionMeasurementStdDevs)) {
-        return;
-      }
-
-      Pose2d currentPose = poseEstimator.getEstimatedPosition();
-      if (!isFinitePose(currentPose)) {
-        resetGeneration++;
-        refreshCalibrationIfChanged();
-        clearCapturedQueues();
-        rawGyroRotation = visionRobotPoseMeters.getRotation();
-        lastModulePositions = getModulePositions();
-        poseEstimator.resetPosition(rawGyroRotation, lastModulePositions, visionRobotPoseMeters);
-        return;
-      }
-
-      poseEstimator.addVisionMeasurement(
-          visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
-    }
-  }
-
-  private boolean allModulesConfigured() {
-    for (Module module : modules) if (!module.isConfigurationReady()) return false;
-    return true;
-  }
-
-  private boolean allowOutputs() {
-    if (allModulesConfigured()) return true;
-    for (Module module : modules) module.stop();
-    krakenVelocityMode = false;
-    return false;
-  }
-
-  /** Caller holds measurementLock; hardware reset/configuration must precede this short section. */
-  private void clearCapturedQueues() {
-    odometryLock.lock();
-    try {
-      PhoenixOdometryThread.getInstance().invalidatePendingSamples();
-      gyroIO.clearOdometrySamples();
-      for (Module module : modules) module.clearOdometrySamples();
-    } finally {
-      odometryLock.unlock();
-    }
-  }
-
-  private void processOdometrySnapshot() {
-    double[] timestamps = modules[0].getOdometryTimestamps();
-    for (Module module : modules) {
-      if (!java.util.Arrays.equals(timestamps, module.getOdometryTimestamps())
-          || module.getOdometryPositions().length != timestamps.length) {
-        invalidSnapshotCount++;
-        return;
-      }
-    }
-    // A connected gyro may have no sample at all (existing fallback holds heading), but
-    // samples that do exist must share the wheel timestamp. Never pair unrelated indices.
-    if (gyroInputs.connected
-        && gyroInputs.odometryYawPositions.length > 0
-        && (gyroInputs.odometryYawPositions.length != gyroInputs.odometryYawTimestamps.length
-            || !java.util.Arrays.equals(timestamps, gyroInputs.odometryYawTimestamps))) {
-      invalidSnapshotCount++;
+    if (visionRobotPoseMeters == null || visionMeasurementStdDevs == null) {
       return;
     }
-    for (int i = 0; i < timestamps.length; i++) {
-      if (!Double.isFinite(timestamps[i]) || (i > 0 && timestamps[i] <= timestamps[i - 1])) {
-        invalidSnapshotCount++;
-        return;
-      }
-      for (Module module : modules) {
-        SwerveModulePosition position = module.getOdometryPositions()[i];
-        if (!Double.isFinite(position.distanceMeters) || !isValidRotation(position.angle)) {
-          invalidSnapshotCount++;
-          return;
-        }
-      }
-      if (gyroInputs.connected
-          && i < gyroInputs.odometryYawPositions.length
-          && !isValidRotation(gyroInputs.odometryYawPositions[i])) {
-        invalidSnapshotCount++;
-        return;
-      }
+    if (!isFinitePose(visionRobotPoseMeters) || !isFiniteMatrix(visionMeasurementStdDevs)) {
+      return;
     }
-    for (int i = 0; i < timestamps.length; i++) {
-      SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
-      SwerveModulePosition[] deltas =
-          gyroInputs.connected ? null : new SwerveModulePosition[modules.length];
-      for (int m = 0; m < modules.length; m++) {
-        positions[m] = modules[m].getOdometryPositions()[i];
-        if (deltas != null)
-          deltas[m] =
-              new SwerveModulePosition(
-                  positions[m].distanceMeters - lastModulePositions[m].distanceMeters,
-                  positions[m].angle);
-      }
-      if (gyroInputs.connected) {
-        rawestGyroRotation = gyroInputs.yawPosition;
-        if (i < gyroInputs.odometryYawPositions.length)
-          rawGyroRotation = gyroInputs.odometryYawPositions[i];
-      } else {
-        Twist2d twist = kinematics.toTwist2d(deltas);
-        rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
-      }
-      lastModulePositions = positions;
-      poseEstimator.updateWithTime(timestamps[i], rawGyroRotation, positions);
-    }
-  }
 
-  public void close() {
-    synchronized (measurementLock) {
-      PhoenixOdometryThread.getInstance().shutdown();
-      for (Module module : modules) {
-        module.stop();
-        module.close();
-      }
-      gyroIO.close();
-      edu.wpi.first.wpilibj2.command.CommandScheduler.getInstance().unregisterSubsystem(this);
+    Pose2d currentPose = poseEstimator.getEstimatedPosition();
+    if (!isFinitePose(currentPose)) {
+      rawGyroRotation = visionRobotPoseMeters.getRotation();
+      poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), visionRobotPoseMeters);
+      return;
     }
+
+    poseEstimator.addVisionMeasurement(
+        visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
   }
 
   private static boolean isFinitePose(Pose2d pose) {
@@ -1435,6 +1085,13 @@ public class SwerveSubsystem extends SubsystemBase {
     return value != null && isFinite(value.getX()) && isFinite(value.getY());
   }
 
+  private static double sanitizePositiveOrInfinite(double value) {
+    if (!Double.isFinite(value) || value <= 0.0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return value;
+  }
+
   /** Returns the maximum linear speed in meters per sec. */
   public double getMaxLinearSpeedMetersPerSec() {
     return SwerveConstants.MAX_LINEAR_SPEED;
@@ -1444,15 +1101,4 @@ public class SwerveSubsystem extends SubsystemBase {
   public double getMaxAngularSpeedRadPerSec() {
     return SwerveConstants.MAX_ANGULAR_SPEED;
   }
-
-  public record ValidationModuleSample(
-      int index,
-      double desiredSpeedMetersPerSec,
-      double actualSpeedMetersPerSec,
-      double desiredAngleRadians,
-      double actualAngleRadians,
-      double driveVoltage,
-      double turnVoltage,
-      double terrainDriveAuthorityScale,
-      double terrainTurnAuthorityScale) {}
 }

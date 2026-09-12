@@ -9,6 +9,11 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import java.util.function.DoubleSupplier;
 
 public class XboxDriverMap extends CommandXboxController implements DriverMap {
+  /**
+   * Construct an instance of a controller.
+   *
+   * @param port The port index on the Driver Station that the controller is plugged into.
+   */
   public XboxDriverMap(int port) {
     super(port);
   }
@@ -34,18 +39,44 @@ public class XboxDriverMap extends CommandXboxController implements DriverMap {
   }
 
   @Override
-  public Trigger resetHeading() {
-    return start();
+  public Trigger alignWithBall() {
+    return new Trigger(() -> this.getLeftTriggerAxis() > 0.5);
   }
 
   @Override
-  public Trigger robotRelativeOverride() {
-    return leftTrigger();
+  public Trigger shootToggle() {
+    return new Trigger(() -> this.getRightTriggerAxis() > 0.5);
+  }
+
+  @Override
+  public Trigger intakeRollersHold() {
+    return rightBumper();
+  }
+
+  @Override
+  public Trigger intakeDeployToggle() {
+    return leftBumper();
   }
 
   @Override
   public Command rumble() {
     return startEnd(
-        () -> getHID().setRumble(kBothRumble, 1.0), () -> getHID().setRumble(kBothRumble, 0.0));
+        () -> getHID().setRumble(kBothRumble, 1), () -> getHID().setRumble(kBothRumble, 0));
+  }
+
+  public Trigger shooterPivotUp() {
+    return y();
+  }
+
+  public Trigger shooterPivotDown() {
+    return a();
+  }
+
+  public Trigger turretLeft() {
+    return x();
+  }
+
+  public Trigger turretRight() {
+    return b();
   }
 }
