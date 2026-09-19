@@ -1,31 +1,21 @@
 # FRC 1884 Season 2027 ownership policy
 # Hosted enforcement must also be enabled in repository branch/ruleset settings.
 
-* @FRC1884/software-lead
+* @FRC1884/student-reviewers
 
 # Governance / Harness
-/.github/workflows/ @FRC1884/mentors @FRC1884/software-lead
+/.github/workflows/ @FRC1884/mentors @FRC1884/student-reviewers
 /.github/CODEOWNERS @FRC1884/mentors
-/.github/pull_request_template.md @FRC1884/mentors @FRC1884/software-lead
-/.github/robotics-harness/ @FRC1884/mentors @FRC1884/software-lead
-/.codex/ @FRC1884/mentors @FRC1884/software-lead
+/.github/pull_request_template.md @FRC1884/mentors @FRC1884/student-reviewers
+/.github/robotics-harness/ @FRC1884/mentors
+/.codex/ @FRC1884/mentors
 /AGENTS.md @FRC1884/mentors
-/build.gradle @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
-/settings.gradle @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
+/build.gradle @FRC1884/mentors @FRC1884/student-reviewers
+/settings.gradle @FRC1884/mentors @FRC1884/student-reviewers
 
 # Safety-critical shared configuration
-/src/main/java/**/safety/ @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
-/src/main/java/**/*Constants.java @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
-/src/main/deploy/ @FRC1884/mentors @FRC1884/software-lead @FRC1884/approved-alumni-reviewers
-
-# Sub-lead domains (used as the season grows)
-/src/main/java/**/vision/ @FRC1884/vision-localisation-lead @FRC1884/software-lead
-/src/main/java/**/localisation/ @FRC1884/vision-localisation-lead @FRC1884/software-lead
-/src/main/java/**/subsystems/ @FRC1884/core-mechanisms-lead @FRC1884/software-lead
-/src/main/java/**/mechanisms/ @FRC1884/core-mechanisms-lead @FRC1884/software-lead
-/src/main/java/**/commands/auto/ @FRC1884/autonomous-lead @FRC1884/software-lead
-/src/main/deploy/pathplanner/ @FRC1884/autonomous-lead @FRC1884/software-lead
-/src/main/deploy/pathplana/ @FRC1884/autonomous-lead @FRC1884/software-lead
+/src/main/java/ @FRC1884/student-reviewers
+/src/main/deploy/ @FRC1884/student-reviewers
 
 # Shared provider adapters and executable policy
 /CLAUDE.md @FRC1884/mentors
